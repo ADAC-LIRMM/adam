@@ -1,0 +1,12 @@
+# scripts
+Jinja2==3.1.2
+matplotlib==3.7.2
+numpy==1.25.2
+pyelftools==0.29
+pyserial==3.5
+tqdm==4.64.0
+
+# docs
+sphinx==6.2.1
+sphinx-rtd-theme==1.2.2
+sphinxcontrib-wavedrom==3.0.4

@@ -1,0 +1,63 @@
+From b3aeed7023caa4c368db79aa6f4d343d406b300f Mon Sep 17 00:00:00 2001
+From: alencar-felipe <alencar.felipe.paiva@gmail.com>
+Date: Wed, 6 Sep 2023 08:54:20 +0200
+Subject: [PATCH] Support for Synopsys Design Compiler
+
+---
+ src/cf_math_pkg.sv | 12 +++++++++++-
+ src/ecc_decode.sv  |  2 +-
+ src/ecc_encode.sv  |  2 +-
+ 3 files changed, 13 insertions(+), 3 deletions(-)
+
+diff --git a/src/cf_math_pkg.sv b/src/cf_math_pkg.sv
+index 9f35a44..5be5f95 100644
+--- a/src/cf_math_pkg.sv
++++ b/src/cf_math_pkg.sv
+@@ -55,7 +55,17 @@ package cf_math_pkg;
+     /// As typedef:
+     ///   `typedef logic [cf_math_pkg::idx_width(NumIdx)-1:0] idx_t`
+     function automatic integer unsigned idx_width (input integer unsigned num_idx);
+-        return (num_idx > 32'd1) ? unsigned'($clog2(num_idx)) : 32'd1;
++        return (num_idx > 32'd1) ? my_clog2(num_idx) : 32'd1;
++    endfunction
++
++    function automatic integer unsigned my_clog2(input integer unsigned value);
++        integer unsigned result = 0;
++        value = value - 1;  // Adjust for exact powers of 2
++        while (value > 0) begin
++            value = value >> 1;
++            result = result + 1;
++        end
++        return result;
+     endfunction
+ 
+ endpackage
+diff --git a/src/ecc_decode.sv b/src/ecc_decode.sv
+index 40687e9..c0aa63f 100644
+--- a/src/ecc_decode.sv
++++ b/src/ecc_decode.sv
+@@ -116,7 +116,7 @@ module ecc_decode import ecc_pkg::*; #(
+ 
+     for (int unsigned i = 1; i < unsigned'($bits(code_word_t)) + 1; i++) begin
+       // if i is a power of two we are indexing a parity bit
+-      if (unsigned'(2**$clog2(i)) != i) begin
++      if (unsigned'(2**cf_math_pkg::my_clog2(i)) != i) begin
+         data_wo_parity[idx] = correct_data[i - 1];
+         idx++;
+       end
+diff --git a/src/ecc_encode.sv b/src/ecc_encode.sv
+index 8669a08..09ff214 100644
+--- a/src/ecc_encode.sv
++++ b/src/ecc_encode.sv
+@@ -47,7 +47,7 @@ module ecc_encode import ecc_pkg::*; #(
+     idx = 0;
+     for (int unsigned i = 1; i < unsigned'($bits(code_word_t)) + 1; i++) begin
+       // if it is not a power of two word it is a normal data index
+-      if (unsigned'(2**$clog2(i)) != i) begin
++      if (unsigned'(2**cf_math_pkg::my_clog2(i)) != i) begin
+         data[i - 1] = data_i[idx];
+         idx++;
+       end
+-- 
+2.30.2
+

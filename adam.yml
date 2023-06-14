@@ -1,0 +1,598 @@
+file_sets:
+  adam_rtl:
+    root: rtl/
+    files:
+      # Level 0
+      - intf/adam_intf_io.sv
+      # Level 1
+      - periphs/spi/adam_periph_spi_phy.sv
+      - periphs/uart/adam_periph_uart_rx.sv
+      - periphs/uart/adam_periph_uart_tx.sv
+      # Level 2
+      - periphs/gpio/adam_periph_gpio.sv
+      - periphs/spi/adam_periph_spi.sv
+      - periphs/sysctrl/adam_periph_sysctrl.sv
+      - periphs/timer/adam_periph_timer.sv
+      - periphs/uart/adam_periph_uart.sv
+      # Level 3
+      - axil/adam_axil_apb_bridge.sv
+      - axil/adam_axil_pause.sv
+      - axil/adam_axil_ram.sv
+      - axil/adam_axil_xbar.sv  
+      - obi/adam_obi_axil_bridge.sv
+      - periphs/adam_periphs.sv
+      - adam_clk_div.sv
+      # Level 4
+      - adam.sv
+
+  adam_cv32e40p_rtl:
+    root: rtl/
+    files:
+      - cpu/cv32e40p/adam_cpu.sv
+      - cpu/cv32e40p/cv32e40p_clock_gate.sv
+
+  adam_ibex_rtl:
+    root: rtl/
+    files:
+      - cpu/ibex/adam_cpu.sv
+
+  adam_bhv:
+    root: bhv/
+    files:
+      # Level 0
+      - axil/adam_axil_master_bhv.sv
+      - axil/adam_axil_slave_bhv.sv
+      - adam_clk_rst_bhv.sv
+      - adam_pause_bhv.sv
+      # Level 1
+      - axil/adam_axil_apb_bridge_tb.sv
+      - axil/adam_axil_pause_tb.sv
+      - axil/adam_axil_ram_tb.sv
+      - axil/adam_axil_xbar_tb.sv
+      - periphs/gpio/adam_periph_gpio_tb.sv
+      - periphs/spi/adam_periph_spi_phy_tb.sv
+      - periphs/spi/adam_periph_spi_tb.sv
+      - periphs/sysctrl/adam_periph_sysctrl_tb.sv
+      - periphs/timer/adam_periph_timer_tb.sv
+      - periphs/uart/adam_periph_uart_rx_tb.sv
+      - periphs/uart/adam_periph_uart_tx_tb.sv
+      - periphs/uart/adam_periph_uart_tb.sv
+      - periphs/adam_periphs_tb.sv
+      - adam_tb.sv
+
+  adam_basys3_rtl:
+    root: ./
+    files:
+      - bootloader/build/target/bootloader.sv
+      - bhv/adam_clk_gate.sv
+      - targets/basys3/adam_basys3.sv
+      
+  adam_basys3_xdc:
+    root: ./
+    files:
+      - targets/basys3/adam_basys3.xdc
+
+  adam_power_rtl:
+    root: ./
+    files:
+      - bhv/adam_clk_gate.sv
+      - targets/power/adam_power.sv
+
+  adam_power_bhv:
+    root: ./
+    files:
+      - bootloader/build/target/bootloader.sv
+      - examples/coremark/build/target/coremark.sv
+      - targets/power/adam_power_intf.sv
+      - targets/power/adam_power_tb.sv
+
+  axi_rtl:
+    root: libs/axi/src
+    files:
+      # Level 0
+      - axi_pkg.sv
+      # Level 1
+      - axi_intf.sv
+      # Level 2
+      - axi_atop_filter.sv
+      - axi_burst_splitter.sv
+      - axi_cdc_dst.sv
+      - axi_cdc_src.sv
+      - axi_cut.sv
+      - axi_delayer.sv
+      - axi_demux.sv
+      - axi_dw_downsizer.sv
+      - axi_dw_upsizer.sv
+      - axi_fifo.sv
+      - axi_id_remap.sv
+      - axi_id_prepend.sv
+      - axi_isolate.sv
+      - axi_join.sv
+      - axi_lite_demux.sv
+      - axi_lite_join.sv
+      - axi_lite_lfsr.sv
+      - axi_lite_mailbox.sv
+      - axi_lite_mux.sv
+      - axi_lite_regs.sv
+      - axi_lite_to_apb.sv
+      - axi_lite_to_axi.sv
+      - axi_modify_address.sv
+      - axi_mux.sv
+      - axi_serializer.sv
+      - axi_throttle.sv
+      # - axi_to_mem.sv
+      # Level 3
+      - axi_cdc.sv
+      - axi_err_slv.sv
+      - axi_dw_converter.sv
+      - axi_id_serialize.sv
+      - axi_lfsr.sv
+      - axi_multicut.sv
+      - axi_to_axi_lite.sv
+      - axi_to_mem_banked.sv
+      - axi_to_mem_interleaved.sv
+      - axi_to_mem_split.sv
+      # Level 4
+      - axi_iw_converter.sv
+      - axi_lite_xbar.sv
+      - axi_xbar.sv
+      # Level 5
+      - axi_xp.sv
+
+  axi_bhv:
+    root: libs/axi/src
+    files:
+      - axi_dumper.sv
+      - axi_sim_mem.sv
+      - axi_test.sv
+  
+  apb_rtl:
+    root: libs/apb/src
+    files:
+      # Level 0
+      - apb_pkg.sv
+      # Level 1
+      - apb_intf.sv
+      # Level 2
+      - apb_err_slv.sv
+      - apb_regs.sv
+      - apb_cdc.sv
+      - apb_demux.sv
+
+  apb_bhv:
+    root: libs/apb/src
+    files:
+      - apb_test.sv
+
+  common_cells_rtl:
+    root: libs/common_cells/src
+    files:
+      # Level 0
+      - binary_to_gray.sv
+      - cb_filter_pkg.sv
+      - cc_onehot.sv
+      - cf_math_pkg.sv
+      - clk_int_div.sv
+      - delta_counter.sv
+      - ecc_pkg.sv
+      - edge_propagator_tx.sv
+      - exp_backoff.sv
+      - fifo_v3.sv
+      - gray_to_binary.sv
+      - isochronous_4phase_handshake.sv
+      - isochronous_spill_register.sv
+      - lfsr.sv
+      - lfsr_16bit.sv
+      - lfsr_8bit.sv
+      - mv_filter.sv
+      - onehot_to_bin.sv
+      - plru_tree.sv
+      - popcount.sv
+      - rr_arb_tree.sv
+      - rstgen_bypass.sv
+      - serial_deglitch.sv
+      - shift_reg.sv
+      - shift_reg_gated.sv
+      - spill_register_flushable.sv
+      - stream_demux.sv
+      - stream_filter.sv
+      - stream_fork.sv
+      - stream_intf.sv
+      - stream_join.sv
+      - stream_mux.sv
+      - stream_throttle.sv
+      - lossy_valid_to_stream.sv
+      - sub_per_hash.sv
+      - sync.sv
+      - sync_wedge.sv
+      - unread.sv
+      - read.sv
+      - cdc_reset_ctrlr_pkg.sv
+      # Level 1
+      - clk_int_div_static.sv
+      - addr_decode_napot.sv
+      - cdc_2phase.sv
+      - cdc_4phase.sv
+      - addr_decode.sv
+      - cb_filter.sv
+      - cdc_fifo_2phase.sv
+      - counter.sv
+      - ecc_decode.sv
+      - ecc_encode.sv
+      - edge_detect.sv
+      - lzc.sv
+      - max_counter.sv
+      - rstgen.sv
+      - spill_register.sv
+      - stream_delay.sv
+      - stream_fifo.sv
+      - stream_fork_dynamic.sv
+      - clk_mux_glitch_free.sv
+      # Level 2
+      - cdc_reset_ctrlr.sv
+      - cdc_fifo_gray.sv
+      - fall_through_register.sv
+      - id_queue.sv
+      - stream_to_mem.sv
+      - stream_arbiter_flushable.sv
+      - stream_fifo_optimal_wrap.sv
+      - stream_register.sv
+      - stream_xbar.sv
+      # Level 3
+      - cdc_fifo_gray_clearable.sv
+      - cdc_2phase_clearable.sv
+      - mem_to_banks.sv
+      - stream_arbiter.sv
+      - stream_omega_net.sv
+      # Deprecated modules
+      # Level 0
+      - deprecated/clock_divider_counter.sv
+      - deprecated/clk_div.sv
+      - deprecated/find_first_one.sv
+      - deprecated/generic_LFSR_8bit.sv
+      - deprecated/generic_fifo.sv
+      - deprecated/prioarbiter.sv
+      - deprecated/pulp_sync.sv
+      - deprecated/pulp_sync_wedge.sv
+      - deprecated/rrarbiter.sv
+      # Level 1
+      - deprecated/clock_divider.sv
+      - deprecated/fifo_v2.sv
+      # Level 2
+      - deprecated/fifo_v1.sv
+      # Depend on deprecated modules
+      - edge_propagator_ack.sv
+      - edge_propagator.sv
+      - edge_propagator_rx.sv
+
+  common_cells_bhv:
+    root: libs/common_cells/src
+    files:
+      - deprecated/sram.sv
+
+  common_verification_bhv:
+    root: libs/common_verification/src
+    files:
+      # Level 0
+      - clk_rst_gen.sv
+      - rand_id_queue.sv
+      - rand_stream_mst.sv
+      - rand_synch_holdable_driver.sv
+      - rand_verif_pkg.sv
+      - sim_timeout.sv
+      # Level 1
+      - rand_synch_driver.sv
+      # Level 2
+      - rand_stream_slv.sv
+
+  cv32e40p_rtl:
+    root: libs/cv32e40p/rtl/
+    files:
+      - include/cv32e40p_fpu_pkg.sv
+      - include/cv32e40p_apu_core_pkg.sv
+      - include/cv32e40p_pkg.sv
+      - cv32e40p_ex_stage.sv
+      - cv32e40p_prefetch_controller.sv
+      - cv32e40p_apu_disp.sv
+      - cv32e40p_load_store_unit.sv
+      - cv32e40p_sleep_unit.sv
+      - cv32e40p_cs_registers.sv
+      - cv32e40p_alu.sv
+      - cv32e40p_hwloop_regs.sv
+      - cv32e40p_int_controller.sv
+      - cv32e40p_controller.sv
+      - cv32e40p_prefetch_buffer.sv
+      - cv32e40p_if_stage.sv
+      - cv32e40p_ff_one.sv
+      - cv32e40p_top.sv
+      - cv32e40p_id_stage.sv
+      - cv32e40p_mult.sv
+      - cv32e40p_fifo.sv
+      - cv32e40p_compressed_decoder.sv
+      - cv32e40p_decoder.sv
+      - cv32e40p_alu_div.sv
+      - cv32e40p_aligner.sv
+      - cv32e40p_core.sv
+      - cv32e40p_fp_wrapper.sv
+      - cv32e40p_obi_interface.sv
+      - cv32e40p_popcnt.sv
+      - cv32e40p_register_file_ff.sv
+
+  fpnew_rtl:
+    root: libs/cv32e40p/rtl/vendor/pulp_platform_fpnew/src
+    files:
+      - fpnew_pkg.sv
+      - fpnew_cast_multi.sv
+      - fpnew_classifier.sv
+      - fpnew_divsqrt_multi.sv
+      - fpnew_fma.sv
+      - fpnew_fma_multi.sv
+      - fpnew_noncomp.sv
+      - fpnew_opgroup_block.sv
+      - fpnew_opgroup_fmt_slice.sv
+      - fpnew_opgroup_multifmt_slice.sv
+      - fpnew_rounding.sv
+      - fpnew_top.sv
+  
+  fpu_div_sqrt_mvp_rtl:
+    root: libs/cv32e40p/rtl/vendor/pulp_platform_fpu_div_sqrt_mvp/hdl
+    files:
+      # Level 0
+      - defs_div_sqrt_mvp.sv
+      - iteration_div_sqrt_mvp.sv
+      # Level 1
+      - control_mvp.sv
+      - norm_div_sqrt_mvp.sv
+      - preprocess_mvp.sv
+      # Level 2
+      - nrbd_nrsc_mvp.sv
+      # Level 3
+      - div_sqrt_top_mvp.sv
+      # Level 4
+      - div_sqrt_mvp_wrapper.sv
+
+  ibex_rtl:
+    root: libs/ibex/build/ibex_out/src
+    files:
+      - lowrisc_ibex_ibex_pkg_0.1/rtl/ibex_pkg.sv
+      - lowrisc_prim_abstract_prim_pkg_0.1/prim_pkg.sv
+      - lowrisc_prim_ram_1p_pkg_0/rtl/prim_ram_1p_pkg.sv
+      - lowrisc_prim_cipher_pkg_0.1/rtl/prim_cipher_pkg.sv
+      - lowrisc_prim_generic_buf_0/rtl/prim_generic_buf.sv
+      - lowrisc_prim_generic_clock_gating_0/rtl/prim_generic_clock_gating.sv
+      - lowrisc_prim_generic_flop_0/rtl/prim_generic_flop.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_pkg.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_22_16_dec.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_22_16_enc.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_28_22_dec.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_28_22_enc.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_39_32_dec.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_39_32_enc.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_64_57_dec.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_64_57_enc.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_72_64_dec.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_72_64_enc.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_hamming_22_16_dec.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_hamming_22_16_enc.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_hamming_39_32_dec.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_hamming_39_32_enc.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_hamming_72_64_dec.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_hamming_72_64_enc.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_hamming_76_68_dec.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_hamming_76_68_enc.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_inv_22_16_dec.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_inv_22_16_enc.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_inv_28_22_dec.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_inv_28_22_enc.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_inv_39_32_dec.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_inv_39_32_enc.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_inv_64_57_dec.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_inv_64_57_enc.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_inv_72_64_dec.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_inv_72_64_enc.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_inv_hamming_22_16_dec.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_inv_hamming_22_16_enc.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_inv_hamming_39_32_dec.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_inv_hamming_39_32_enc.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_inv_hamming_72_64_dec.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_inv_hamming_72_64_enc.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_inv_hamming_76_68_dec.sv
+      - lowrisc_prim_secded_0.1/rtl/prim_secded_inv_hamming_76_68_enc.sv
+      - lowrisc_prim_xilinx_buf_0/rtl/prim_xilinx_buf.sv
+      - lowrisc_prim_xilinx_clock_gating_0/rtl/prim_xilinx_clock_gating.sv
+      - lowrisc_prim_xilinx_clock_mux2_0/rtl/prim_xilinx_clock_mux2.sv
+      - lowrisc_prim_xilinx_flop_0/rtl/prim_xilinx_flop.sv
+      - lowrisc_ibex_ibex_icache_0.1/rtl/ibex_icache.sv
+      - lowrisc_prim_abstract_buf_0/prim_buf.sv
+      - lowrisc_prim_abstract_clock_gating_0/prim_clock_gating.sv
+      - lowrisc_prim_abstract_flop_0/prim_flop.sv
+      - lowrisc_prim_cipher_0/rtl/prim_subst_perm.sv
+      - lowrisc_prim_cipher_0/rtl/prim_present.sv
+      - lowrisc_prim_cipher_0/rtl/prim_prince.sv
+      - lowrisc_prim_generic_clock_mux2_0/rtl/prim_generic_clock_mux2.sv
+      - lowrisc_prim_generic_ram_1p_0/rtl/prim_generic_ram_1p.sv
+      - lowrisc_prim_lfsr_0.1/rtl/prim_lfsr.sv
+      - lowrisc_prim_util_0.1/rtl/prim_util_pkg.sv
+      - lowrisc_prim_abstract_clock_mux2_0/prim_clock_mux2.sv
+      - lowrisc_prim_badbit_ram_1p_0/prim_badbit_ram_1p.sv
+      - lowrisc_prim_onehot_check_0/rtl/prim_onehot_check.sv
+      - lowrisc_ibex_ibex_core_0.1/rtl/ibex_alu.sv
+      - lowrisc_ibex_ibex_core_0.1/rtl/ibex_branch_predict.sv
+      - lowrisc_ibex_ibex_core_0.1/rtl/ibex_compressed_decoder.sv
+      - lowrisc_ibex_ibex_core_0.1/rtl/ibex_controller.sv
+      - lowrisc_ibex_ibex_core_0.1/rtl/ibex_cs_registers.sv
+      - lowrisc_ibex_ibex_core_0.1/rtl/ibex_csr.sv
+      - lowrisc_ibex_ibex_core_0.1/rtl/ibex_counter.sv
+      - lowrisc_ibex_ibex_core_0.1/rtl/ibex_decoder.sv
+      - lowrisc_ibex_ibex_core_0.1/rtl/ibex_ex_block.sv
+      - lowrisc_ibex_ibex_core_0.1/rtl/ibex_fetch_fifo.sv
+      - lowrisc_ibex_ibex_core_0.1/rtl/ibex_id_stage.sv
+      - lowrisc_ibex_ibex_core_0.1/rtl/ibex_if_stage.sv
+      - lowrisc_ibex_ibex_core_0.1/rtl/ibex_load_store_unit.sv
+      - lowrisc_ibex_ibex_core_0.1/rtl/ibex_multdiv_fast.sv
+      - lowrisc_ibex_ibex_core_0.1/rtl/ibex_multdiv_slow.sv
+      - lowrisc_ibex_ibex_core_0.1/rtl/ibex_prefetch_buffer.sv
+      - lowrisc_ibex_ibex_core_0.1/rtl/ibex_pmp.sv
+      - lowrisc_ibex_ibex_core_0.1/rtl/ibex_wb_stage.sv
+      - lowrisc_ibex_ibex_core_0.1/rtl/ibex_dummy_instr.sv
+      - lowrisc_ibex_ibex_core_0.1/rtl/ibex_core.sv
+      - lowrisc_prim_abstract_ram_1p_0/prim_ram_1p.sv
+      - lowrisc_prim_ram_1p_adv_0.1/rtl/prim_ram_1p_adv.sv
+      - lowrisc_prim_ram_1p_scr_0.1/rtl/prim_ram_1p_scr.sv
+      - lowrisc_ibex_ibex_top_0.1/rtl/ibex_register_file_ff.sv
+      - lowrisc_ibex_ibex_top_0.1/rtl/ibex_register_file_fpga.sv
+      - lowrisc_ibex_ibex_top_0.1/rtl/ibex_register_file_latch.sv
+      - lowrisc_ibex_ibex_top_0.1/rtl/ibex_lockstep.sv
+      - lowrisc_ibex_ibex_top_0.1/rtl/ibex_top.sv
+
+vivado:
+  adam_cv32e40p_basys3:
+    part: xc7a35tcpg236-1
+    top: adam_basys3
+    top_sim: adam_tb
+    define:
+      - VERILATOR
+
+    define_simulation:
+      - VERILATOR
+
+    include:
+      - libs/common_cells/include
+      - libs/axi/include
+      - libs/apb/include
+      - libs/cv32e40p/rtl/include
+
+    rtl:
+      - common_cells_rtl
+      - axi_rtl
+      - apb_rtl
+      - fpu_div_sqrt_mvp_rtl
+      - fpnew_rtl
+      - cv32e40p_rtl
+      - adam_rtl
+      - adam_cv32e40p_rtl
+      - adam_basys3_rtl
+      
+    bhv:
+      - common_verification_bhv
+      - common_cells_bhv
+      - axi_bhv
+      - apb_bhv
+      - adam_bhv
+
+    xdc:
+      - adam_basys3_xdc
+
+    test:
+      - adam_axil_apb_bridge_tb
+      - adam_axil_pause_tb
+      - adam_axil_ram_tb
+      - adam_axil_xbar_tb
+      - adam_periph_gpio_tb
+      - adam_periph_spi_phy_tb
+      - adam_periph_spi_tb
+      - adam_periph_sysctrl_tb
+      - adam_periph_timer_tb
+      - adam_periph_uart_rx_tb
+      - adam_periph_uart_tx_tb
+      - adam_periph_uart_tb
+      - adam_periphs_tb
+
+  adam_ibex_basys3:
+    part: xc7a35tcpg236-1
+    top: adam_basys3
+    top_sim: adam_tb
+    define:
+      - VERILATOR
+
+    define_simulation:
+      - VERILATOR
+
+    include:
+      - libs/common_cells/include
+      - libs/axi/include
+      - libs/apb/include
+      - libs/ibex/build/ibex_out/src/lowrisc_dv_crypto_prince_ref_0.1
+      - libs/ibex/build/ibex_out/src/lowrisc_dv_dv_fcov_macros_0
+      - libs/ibex/build/ibex_out/src/lowrisc_dv_secded_enc_0
+      - libs/ibex/build/ibex_out/src/lowrisc_prim_util_get_scramble_params_0/rtl
+      - libs/ibex/build/ibex_out/src/lowrisc_prim_util_memload_0/rtl
+      - libs/ibex/build/ibex_out/src/lowrisc_dv_scramble_model_0
+      - libs/ibex/build/ibex_out/src/lowrisc_prim_assert_0.1/rtl
+      - libs/ibex/build/ibex_out/src/owrisc_ibex_ibex_core_0.1/rtl
+
+    rtl:
+      - common_cells_rtl
+      - axi_rtl
+      - apb_rtl
+      - ibex_rtl
+      - adam_rtl
+      - adam_ibex_rtl
+      - adam_basys3_rtl
+      
+    bhv:
+      - common_verification_bhv
+      - common_cells_bhv
+      - axi_bhv
+      - apb_bhv
+      - adam_bhv
+
+    xdc:
+      - adam_basys3_xdc
+
+    test:
+      - adam_axil_apb_bridge_tb
+      - adam_axil_pause_tb
+      - adam_axil_ram_tb
+      - adam_axil_xbar_tb
+      - adam_periph_gpio_tb
+      - adam_periph_spi_phy_tb
+      - adam_periph_spi_tb
+      - adam_periph_sysctrl_tb
+      - adam_periph_timer_tb
+      - adam_periph_uart_rx_tb
+      - adam_periph_uart_tx_tb
+      - adam_periph_uart_tb
+      - adam_periphs_tb
+
+power_flow:
+  adam_cv32e40p_power:
+    top: adam_power
+    top_sim: adam_power_tb
+    dut_path: adam_power_tb/adam_power_intf/adam_power
+    interval: 1
+    outputs:
+      adam_power: adam_power
+      cv32e40p: adam_power/adam/genblk4[0].adam_cpu/cv32e40p_top
+
+    define:
+      - VERILATOR
+
+    include:
+      - libs/common_cells/include
+      - libs/axi/include
+      - libs/apb/include
+      - libs/cv32e40p/rtl/include
+
+    rtl:
+      - common_cells_rtl
+      - axi_rtl
+      - apb_rtl
+      - fpu_div_sqrt_mvp_rtl
+      - fpnew_rtl
+      - cv32e40p_rtl
+      - adam_rtl
+      - adam_cv32e40p_rtl
+      - adam_power_rtl
+
+    bhv:
+      - common_cells_rtl
+      - axi_rtl
+      - apb_rtl
+      - adam_rtl
+      - common_verification_bhv
+      - common_cells_bhv
+      - axi_bhv
+      - apb_bhv
+      - adam_bhv
+      - adam_power_bhv
