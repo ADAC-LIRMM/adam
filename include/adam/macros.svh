@@ -36,6 +36,11 @@
     __opt NO_LSIP_TIMERS = CFG.NO_LSIP_TIMERS __sep \
     __opt NO_LSIP_UARTS  = CFG.NO_LSIP_UARTS __sep \
     \
+    __opt EN_BOOTSTRAP_CPU0  = CFG.EN_BOOTSTRAP_CPU0 __sep \
+    __opt EN_BOOTSTRAP_MEM0  = CFG.EN_BOOTSTRAP_MEM0 __sep \
+    __opt EN_BOOTSTRAP_LPCPU = CFG.EN_BOOTSTRAP_LPCPU __sep \
+    __opt EN_BOOTSTRAP_LPMEM = CFG.EN_BOOTSTRAP_LPMEM __sep \
+    \
     __opt NO_LSBPS = NO_LSBP_GPIOS + NO_LSBP_SPIS + NO_LSBP_TIMERS + \
         NO_LSBP_UARTS __sep \
     \

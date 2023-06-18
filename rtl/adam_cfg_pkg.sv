@@ -27,7 +27,12 @@ package adam_cfg_pkg;
         int NO_LSIP_GPIOS;
         int NO_LSIP_SPIS;
         int NO_LSIP_TIMERS;
-        int NO_LSIP_UARTS; 
+        int NO_LSIP_UARTS;
+
+        int EN_BOOTSTRAP_CPU0;
+        int EN_BOOTSTRAP_MEM0;
+        int EN_BOOTSTRAP_LPCPU;
+        int EN_BOOTSTRAP_LPMEM;
     } CFG_T;
 
     localparam CFG_T CFG = '{
@@ -53,7 +58,12 @@ package adam_cfg_pkg;
         NO_LSIP_GPIOS  : 1,
         NO_LSIP_SPIS   : 1,
         NO_LSIP_TIMERS : 1,
-        NO_LSIP_UARTS  : 1        
+        NO_LSIP_UARTS  : 1,
+
+        EN_BOOTSTRAP_CPU0  : 1,
+        EN_BOOTSTRAP_MEM0  : 1,
+        EN_BOOTSTRAP_LPCPU : 0,
+        EN_BOOTSTRAP_LPMEM : 0
     };
 
 `ifndef SYNTHESIS    

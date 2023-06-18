@@ -183,7 +183,7 @@ module adam_periph_syscfg #(
             adam_periph_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
-                .EN_BOOTSTRAP (0),
+                .EN_BOOTSTRAP (1),
                 .EN_BOOT_ADDR (0),
                 .EN_IRQ       (0)
             ) tgt_lsdom (
@@ -205,7 +205,7 @@ module adam_periph_syscfg #(
             adam_periph_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
-                .EN_BOOTSTRAP (0),
+                .EN_BOOTSTRAP (1),
                 .EN_BOOT_ADDR (0),
                 .EN_IRQ       (0)
             ) tgt_hsdom (
@@ -227,7 +227,7 @@ module adam_periph_syscfg #(
             adam_periph_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
-                .EN_BOOTSTRAP (0),
+                .EN_BOOTSTRAP (1),
                 .EN_BOOT_ADDR (0),
                 .EN_IRQ       (0)
             ) tgt_fab_lsdom (
@@ -249,7 +249,7 @@ module adam_periph_syscfg #(
             adam_periph_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
-                .EN_BOOTSTRAP (0),
+                .EN_BOOTSTRAP (1),
                 .EN_BOOT_ADDR (0),
                 .EN_IRQ       (0)
             ) tgt_fab_hsdom (
@@ -271,7 +271,7 @@ module adam_periph_syscfg #(
             adam_periph_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
-                .EN_BOOTSTRAP (0),
+                .EN_BOOTSTRAP (1),
                 .EN_BOOT_ADDR (0),
                 .EN_IRQ       (0)
             ) tgt_fab_lsbp (
@@ -323,7 +323,7 @@ module adam_periph_syscfg #(
             adam_periph_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
-                .EN_BOOTSTRAP (0),
+                .EN_BOOTSTRAP (1),
                 .EN_BOOT_ADDR (0),
                 .EN_IRQ       (0)
             ) tgt_fab_hsbp (
@@ -349,7 +349,7 @@ module adam_periph_syscfg #(
             adam_periph_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
-                .EN_BOOTSTRAP (0),
+                .EN_BOOTSTRAP (1),
                 .EN_BOOT_ADDR (0),
                 .EN_IRQ       (0)
             ) tgt_fab_hsip (
@@ -375,7 +375,7 @@ module adam_periph_syscfg #(
             adam_periph_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
-                .EN_BOOTSTRAP (0),
+                .EN_BOOTSTRAP (EN_BOOTSTRAP_LPCPU),
                 .EN_BOOT_ADDR (1),
                 .EN_IRQ       (1)
             ) tgt_lpcpu (
@@ -401,7 +401,7 @@ module adam_periph_syscfg #(
             adam_periph_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
-                .EN_BOOTSTRAP (0),
+                .EN_BOOTSTRAP (EN_BOOTSTRAP_LPMEM),
                 .EN_BOOT_ADDR (0),
                 .EN_IRQ       (0)
             ) tgt_lpmem (
@@ -427,7 +427,7 @@ module adam_periph_syscfg #(
             adam_periph_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
-                .EN_BOOTSTRAP (0),
+                .EN_BOOTSTRAP ((i == 0) ? EN_BOOTSTRAP_CPU0 : 0),
                 .EN_BOOT_ADDR (0),
                 .EN_IRQ       (0)
             ) tgt_cpu (
@@ -471,7 +471,7 @@ module adam_periph_syscfg #(
             adam_periph_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
-                .EN_BOOTSTRAP (0),
+                .EN_BOOTSTRAP ((i == 0) ? EN_BOOTSTRAP_MEM0 : 0),
                 .EN_BOOT_ADDR (0),
                 .EN_IRQ       (0)
             ) tgt_mem (
