@@ -1,4 +1,4 @@
-file_sets:
+fsets:
   adam_rtl:
     root: rtl/
     files:
