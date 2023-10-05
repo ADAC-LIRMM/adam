@@ -445,7 +445,7 @@ fsets:
       - lowrisc_ibex_ibex_top_0.1/rtl/ibex_lockstep.sv
       - lowrisc_ibex_ibex_top_0.1/rtl/ibex_top.sv
 
-vivado:
+targets:
   adam_cv32e40p_basys3:
     part: xc7a35tcpg236-1
     top: adam_basys3
