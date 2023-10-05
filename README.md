@@ -1,27 +1,63 @@
 # ADAM - ADAptive Microcontroler
 
-## Setting Up ADAM
+## Project Setup Guide
 
-To have a working copy of the project, follow these steps:
+To achieve a functional copy of the ADAM project, adhere to the guide below:
 
-### 1. Clone the Repository
+### 1. Validate Base Software Dependencies
 
+Initial Setup:
+
+- **Operating System**: Utilize a modern x86-64 Linux distribution.
+  The primary development was conducted on Debian 11.
+- **Essential Software**: Ensure the installation and proper configuration of:
+  - Python 3.9, along with `pip` and `virtualenv`
+  - RISC-V GNU Toolchain
+
+These base dependencies are sufficient to complete the initial setup and to
+perform embedded software development for ADAM targets.
+
+#### Miniconda Usage (Optional)
+
+In instances where system software stack control is limited or difficulties
+arise during installation, Miniconda offers an alternative for managing these
+base software dependencies.
+
+After Miniconda is installed, an environment for ADAM might be created and
+configured with the necessary packages using the commands below:
+```bash
+conda create -n adam python=3.9
+conda activate adam
+conda install -c bdutrosv riscv-gnu-toolchain
 ```
-$ git clone git@github.com:alencar-felipe/adam.git
+
+### 2. Clone the Repository
+
+Clone the repository with the following command:
+
+```bash
+git clone git@gite.lirmm.fr:adac/adam.git
 ```
 
-### 2. Run ```setup.bash```
+### 3. Run ```setup.bash```
 
+```bash
+cd adam
+./setup.bash
 ```
-$ cd adam
-$ ./setup.bash
-```
 
-#### Observation:
+### 4. Additional Software Dependencies
 
-If you're working on an outdated system and encounter issues related to Python
-versions, consider using Miniconda to create an environment with Python 3.9.
-This will ensure you have a compatible version for running ADAM.
+- For a minimum bitstream flow execution, ensure the installation of Vivado.
+- For other flows, ensure the installation of the following:
+  - Xilinx Vivado
+  - Siemens (MentorGraphics) Questa
+  - Synopsys Design Compiler
+  - Synopsys PrimePower
+  - ST CMOS28FDSOI Technology Files
+
+Remember to confirm that these tools are installed, PATH-included, and
+licensed properly within your environment variables as applicable.
 
 ## Vivado
 

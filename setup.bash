@@ -15,7 +15,7 @@ cd "$proj"
 git submodule deinit -f .
 
 # Delete gitignored files/folders
-git clean -f -X
+git clean -Xdf
 
 # Setup submodules
 # =============================================================================
@@ -37,7 +37,7 @@ done
 # =============================================================================
 # Create python venv and activate it
 python3 -m venv venv
-source venv/bin/activate
+source ./venv/bin/activate
 
 # Install requirements.txt
 pip install -r requirements.txt
