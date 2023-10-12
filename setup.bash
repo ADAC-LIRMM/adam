@@ -57,7 +57,21 @@ fusesoc --cores-root . run --target=lint --setup --build-root \
 # Return to project root
 cd $proj
 
+# Build bootloader
+# =============================================================================
+# Goes into the bootloader directory
+cd bootloader 
+
+# Build bootloader
+make all
+
+# Return to project root
+cd $proj
+
 # Exit
 # =============================================================================
+# Print exit message
 echo -e "\033[0;32mSetup finished\033[0m"
+
+# Exits from script
 exit 0

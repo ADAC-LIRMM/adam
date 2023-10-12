@@ -10,8 +10,9 @@ import subprocess
 import sys
 import yaml
 
+from copy import deepcopy
 from jinja2 import Template
-from pathlib import Path, PosixPath
+from pathlib import Path
 
 dry_run = False
 assume_yes = False
@@ -109,10 +110,12 @@ set adam "{{adam}}"
 
 # Technology Setup
 # =============================================================================
-set CMOS28FDSOI_DIR $env(CMOS28FDSOI_DIR)
-set SYN_PATH $env(SYN_PATH)
-set search_path	". $SYN_PATH/libraries/syn $SYN_PATH/dw/sim_ver \\
-  $CMOS28FDSOI_DIR/C28SOI_SC_12_CORE_LL/5.1-05/libs "
+set CMOS28FDSOI_PATH $env(CMOS28FDSOI_PATH)
+set SNPS_SYN_PATH $env(SNPS_SYN_PATH)
+set search_path	". \\
+    $SNPS_SYN_PATH/libraries/syn \\
+    $SNPS_SYN_PATH/dw/sim_ver \\
+    $CMOS28FDSOI_PATH/C28SOI_SC_12_CORE_LL/5.1-05/libs "
 set target_library "C28SOI_SC_12_CORE_LL_tt28_0.90V_0.00V_0.00V_0.00V_125C.db"
 # set symbol_library "C28SOI_SC_12_CORE_LL.sdb"
 # set synthetic_library dw_foundation.sldb 
@@ -121,7 +124,7 @@ set link_library "* $target_library "
 # Include Directories
 # =============================================================================
 {%- for dir in include %}
-  lappend search_path "$adam/{{dir}}"
+lappend search_path "$adam/{{dir}}"
 {%- endfor %}
 
 # Define Directives
@@ -220,33 +223,28 @@ def bitst(*args, **kargs):
         safe_rm(bitst_path)
         bitst_path.mkdir(parents=True)
 
+    target = compile_target('bitst', target)
+
     tcl_data = {}
 
-    tcl_data['adam'] = PosixPath(adam_path).resolve()
+    tcl_data['adam'] = Path(adam_path).resolve()
     tcl_data['part'] = target['part'] 
     tcl_data['top'] = target['top']
 
-    rtl = target.get('rtl', [])
-    bhv = target.get('bhv', [])
-    xdc = target.get('xdc', [])
+    fset_name = target.get('fsets', {}).get('rtl')
+    
+    if not fset_name:
+        raise RuntimeError('RTL fset not specified.')    
+        
+    incs, srcs = compile_fset(fset_name, fsets)
+    cons = [target['xdc']]
 
-    sources = []
-    for fset_name in rtl:
-        sources += compile_fset(fsets[fset_name])
-    tcl_data['sources'] = sources
-
-    constrs = []
-    for fset_name in xdc:
-        constrs += compile_fset(fsets[fset_name])
-    tcl_data['constrs'] = constrs
-
-    include = target['include']
+    tcl_data['include'] = clean_path_list(incs, adam_path)
+    tcl_data['sources'] = clean_path_list(srcs, adam_path)
+    tcl_data['constrs'] = clean_path_list(cons, adam_path)
+    
     define = target['define']
-
-    include = include if include else []
     define = define if define else []
-
-    tcl_data['include'] = include
     tcl_data['define'] = define
 
     tcl_path = bitst_path / 'bitst.tcl'
@@ -272,20 +270,22 @@ def synth(*args, **kargs):
         safe_rm(synth_path)
         synth_path.mkdir(parents=True)
 
+    target = compile_target('synth', target)
+
     tcl_data = {}
 
-    tcl_data['adam_path'] = adam_path
-
+    tcl_data['adam'] = Path(adam_path).resolve()
     tcl_data['top'] = target['top']
-    tcl_data['include'] = target['include']
-    
-    rtl = target.get('rtl', [])
 
-    sources = []
-    for file_set_name in rtl:
-        file_set = file_sets[file_set_name]
-        sources += file_set2list(file_set)
-    tcl_data['sources'] = sources
+    fset_name = target.get('fsets', {}).get('rtl')
+    
+    if not fset_name:
+        raise RuntimeError('RTL fset not specified.')
+    
+    incs, srcs = compile_fset(fset_name, fsets)
+
+    tcl_data['include'] = clean_path_list(incs, adam_path)
+    tcl_data['sources'] = clean_path_list(srcs, adam_path)
 
     tcl_path = synth_path / 'synth.tcl'
     tcl_raw = synth_template.render(**tcl_data)
@@ -364,9 +364,50 @@ def safe_rm(path):
             raise RuntimeError('Abort.')
 
 
-def compile_fset(fset):
-    root = PosixPath(fset['root'])
-    return [root/path for path in fset['files']]
+def compile_fset(fset_name, fsets):
+    incs = []
+    srcs = []
+    solved = []
+    queue = [fset_name]
+    while queue:
+        fset_name = queue.pop()
+        if fset_name not in fsets:
+            raise RuntimeError(f'compile_fset: "{fset_name}" does not exist.')
+
+        fset = fsets[fset_name]
+        reqs = fset.get('requires', [])
+        queue += [req for req in reqs if req not in solved]
+        root = Path(fset.get('root', '.'))
+        incs = [root/inc for inc in fset.get('includes', [])] + incs
+        srcs = [root/src for src in fset.get('sources', [])] + srcs
+        solved.append(fset_name)
+
+    return incs, srcs
+
+def compile_target(command_name, target):
+    res = deepcopy(target)
+    if command_name in target:
+        recursive_update(res, target[command_name])
+    return res
+
+def clean_path_list(path_list, anchor):
+    return [Path(path).resolve().relative_to(anchor) for path in path_list]
+
+def recursive_update(d, u):
+    for k, v in u.items():
+        if isinstance(v, dict):
+            d[k] = recursive_update(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
+
+def list_as_none(d):
+    for key, value in d.items():
+        if value is None:
+            d[key] = []
+        elif isinstance(value, dict):
+            list_as_none(value)
+    return d
 
 def main():
     global dry_run
@@ -451,7 +492,7 @@ def main():
 
     adam_yaml_path = adam_path / 'adam.yml'
     with open(adam_yaml_path, 'r') as f:
-        adam_yaml = yaml.safe_load(f)
+        adam_yaml = list_as_none(yaml.safe_load(f))
 
     target_name = args.target
     command = args.command

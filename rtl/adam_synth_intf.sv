@@ -1,13 +1,13 @@
-module adam_power_intf #(
+module adam_synth_intf #(
 	parameter ADDR_WIDTH = 32,
 	parameter DATA_WIDTH = 32,
 	parameter GPIO_WIDTH = 16,
 
-	parameter NO_MEMS   = 3,
+	parameter NO_MEMS   = 5,
     parameter NO_GPIOS  = 4,
     parameter NO_SPIS   = 1,
     parameter NO_TIMERS = 1,
-    parameter NO_UARTS  = 1,
+    parameter NO_UARTS  = 2,
 
 	// Dependent parameters below, do not override.
 
@@ -102,15 +102,15 @@ module adam_power_intf #(
     logic [NO_SPIS-1:0] spi_ss_n_mode;
     logic [NO_SPIS-1:0] spi_ss_n_otype;
 
-    logic [NO_SPIS-1:0] uart_tx_i;
-    logic [NO_SPIS-1:0] uart_tx_o;
-    logic [NO_SPIS-1:0] uart_tx_mode;
-    logic [NO_SPIS-1:0] uart_tx_otype;
+    logic [NO_UARTS-1:0] uart_tx_i;
+    logic [NO_UARTS-1:0] uart_tx_o;
+    logic [NO_UARTS-1:0] uart_tx_mode;
+    logic [NO_UARTS-1:0] uart_tx_otype;
 
-    logic [NO_SPIS-1:0] uart_rx_i;
-    logic [NO_SPIS-1:0] uart_rx_o;
-    logic [NO_SPIS-1:0] uart_rx_mode;
-    logic [NO_SPIS-1:0] uart_rx_otype;
+    logic [NO_UARTS-1:0] uart_rx_i;
+    logic [NO_UARTS-1:0] uart_rx_o;
+    logic [NO_UARTS-1:0] uart_rx_mode;
+    logic [NO_UARTS-1:0] uart_rx_otype;
 
 	generate
         for (genvar i = 0; i < NO_MEMS; i++) begin
@@ -197,7 +197,7 @@ module adam_power_intf #(
         end
     endgenerate
 
-	adam_power adam_power (
+	adam_flatten adam_flatten (
 		.clk              (clk),
 		.rst              (rst),
 		.test             (test),

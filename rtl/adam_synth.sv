@@ -1,13 +1,13 @@
-module adam_power #(
+module adam_synth #(
     parameter ADDR_WIDTH = 32,
 	parameter DATA_WIDTH = 32,
 	parameter GPIO_WIDTH = 16,
 
-	parameter NO_MEMS   = 3,
+	parameter NO_MEMS   = 5,
     parameter NO_GPIOS  = 4,
     parameter NO_SPIS   = 1,
     parameter NO_TIMERS = 1,
-    parameter NO_UARTS  = 1,
+    parameter NO_UARTS  = 2,
 	parameter NO_CPUS   = 1,
     parameter NO_LPUS   = 1,
 
@@ -79,15 +79,15 @@ module adam_power #(
     output logic [NO_SPIS-1:0] spi_ss_n_mode,
     output logic [NO_SPIS-1:0] spi_ss_n_otype,
 
-    input  logic [NO_SPIS-1:0] uart_tx_i,
-    output logic [NO_SPIS-1:0] uart_tx_o,
-    output logic [NO_SPIS-1:0] uart_tx_mode,
-    output logic [NO_SPIS-1:0] uart_tx_otype,
+    input  logic [NO_UARTS-1:0] uart_tx_i,
+    output logic [NO_UARTS-1:0] uart_tx_o,
+    output logic [NO_UARTS-1:0] uart_tx_mode,
+    output logic [NO_UARTS-1:0] uart_tx_otype,
 
-    input  logic [NO_SPIS-1:0] uart_rx_i,
-    output logic [NO_SPIS-1:0] uart_rx_o,
-    output logic [NO_SPIS-1:0] uart_rx_mode,
-    output logic [NO_SPIS-1:0] uart_rx_otype
+    input  logic [NO_UARTS-1:0] uart_rx_i,
+    output logic [NO_UARTS-1:0] uart_rx_o,
+    output logic [NO_UARTS-1:0] uart_rx_mode,
+    output logic [NO_UARTS-1:0] uart_rx_otype
 );
 
     logic _mem_srst      [NO_MEMS];
