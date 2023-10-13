@@ -1,36 +1,44 @@
 targets:
   adam_cv32e40p_basys3:
-    bitst:
-      top: adam_basys3
-      part: xc7a35tcpg236-1
-      xdc: xdc/adam_basys3.xdc
+    override:
+      bhsim:
+        top: adam_periphs_tb
+        fset: adam_cv32e40p_basys3_bhv
 
-    synth: 
-      top: adam_synth
+      bitst:
+        top: adam_basys3
+        part: xc7a35tcpg236-1
+        xdc: xdc/adam_basys3.xdc
+
+      synth: 
+        top: adam_synth
+
+    fset: adam_cv32e40p_basys3_rtl
 
     define:
       - VERILATOR
 
-    fsets:
-      rtl: adam_cv32e40p_basys3_rtl
-      bhv: adam_cv32e40p_basys3_bhv
-
-    test:
-      - adam_axil_apb_bridge_tb
-      - adam_axil_pause_tb
-      - adam_axil_ram_tb
-      - adam_axil_xbar_tb
-      - adam_periph_gpio_tb
-      - adam_periph_spi_phy_tb
-      - adam_periph_spi_tb
-      - adam_periph_sysctrl_tb
-      - adam_periph_timer_tb
-      - adam_periph_uart_rx_tb
-      - adam_periph_uart_tx_tb
-      - adam_periph_uart_tb
-      - adam_periphs_tb
+tests:
+  - adam_axil_apb_bridge_tb
+  - adam_axil_pause_tb
+  - adam_axil_ram_tb
+  - adam_axil_xbar_tb
+  - adam_periph_gpio_tb
+  - adam_periph_spi_phy_tb
+  - adam_periph_spi_tb
+  - adam_periph_sysctrl_tb
+  - adam_periph_timer_tb
+  - adam_periph_uart_rx_tb
+  - adam_periph_uart_tx_tb
+  - adam_periph_uart_tb
+  - adam_periphs_tb
       
-fsets:      
+fsets: 
+  adam_cv32e40p_basys3_bhv:
+    requires:
+      - adam_cv32e40p_basys3_rtl
+      - adam_bhv
+
   adam_cv32e40p_basys3_rtl:
     requires:
       - adam_rtl
@@ -40,6 +48,35 @@ fsets:
       - bootloader/build/target/bootloader.sv
       - bhv/adam_clk_gate.sv
       - rtl/adam_basys3.sv
+
+  adam_bhv:
+    requires:
+      - adam_rtl
+      - axi_bhv
+      - apb_bhv
+
+    root: bhv/
+    sources:
+      # Level 0
+      - axil/adam_axil_master_bhv.sv
+      - axil/adam_axil_slave_bhv.sv
+      - adam_clk_rst_bhv.sv
+      - adam_pause_bhv.sv
+      # Level 1
+      - axil/adam_axil_apb_bridge_tb.sv
+      - axil/adam_axil_pause_tb.sv
+      - axil/adam_axil_ram_tb.sv
+      - axil/adam_axil_xbar_tb.sv
+      - periphs/gpio/adam_periph_gpio_tb.sv
+      - periphs/spi/adam_periph_spi_phy_tb.sv
+      - periphs/spi/adam_periph_spi_tb.sv
+      - periphs/sysctrl/adam_periph_sysctrl_tb.sv
+      - periphs/timer/adam_periph_timer_tb.sv
+      - periphs/uart/adam_periph_uart_rx_tb.sv
+      - periphs/uart/adam_periph_uart_tx_tb.sv
+      - periphs/uart/adam_periph_uart_tb.sv
+      - periphs/adam_periphs_tb.sv
+      - adam_tb.sv
 
   adam_rtl:
     requires:
@@ -75,35 +112,6 @@ fsets:
       # Level 6
       - adam_synth_intf.sv
 
-  adam_bhv:
-    requires:
-      - adam_rtl
-      - axi_bhv
-      - apb_bhv
-
-    root: bhv/
-    sources:
-      # Level 0
-      - axil/adam_axil_master_bhv.sv
-      - axil/adam_axil_slave_bhv.sv
-      - adam_clk_rst_bhv.sv
-      - adam_pause_bhv.sv
-      # Level 1
-      - axil/adam_axil_apb_bridge_tb.sv
-      - axil/adam_axil_pause_tb.sv
-      - axil/adam_axil_ram_tb.sv
-      - axil/adam_axil_xbar_tb.sv
-      - periphs/gpio/adam_periph_gpio_tb.sv
-      - periphs/spi/adam_periph_spi_phy_tb.sv
-      - periphs/spi/adam_periph_spi_tb.sv
-      - periphs/sysctrl/adam_periph_sysctrl_tb.sv
-      - periphs/timer/adam_periph_timer_tb.sv
-      - periphs/uart/adam_periph_uart_rx_tb.sv
-      - periphs/uart/adam_periph_uart_tx_tb.sv
-      - periphs/uart/adam_periph_uart_tb.sv
-      - periphs/adam_periphs_tb.sv
-      - adam_tb.sv
-
   adam_cv32e40p_rtl:
     requires:
       - adam_rtl
@@ -123,6 +131,18 @@ fsets:
     sources:
       - cpu/ibex/adam_cpu.sv
 
+  axi_bhv:
+    requires:
+      - axi_rtl
+      - common_cells_bhv
+      - common_verification_bhv
+
+    root: libs/axi/src
+    sources:
+      - axi_dumper.sv
+      - axi_sim_mem.sv
+      - axi_test.sv
+ 
   axi_rtl:
     requires:
       - common_cells_rtl
@@ -182,18 +202,19 @@ fsets:
       # Level 5
       - axi_xp.sv
 
-  axi_bhv:
+  apb_bhv:
     requires:
-      - axi_rtl
+      - apb_rtl
       - common_cells_bhv
-      - common_verification
+      - common_verification_bhv
 
-    root: libs/axi/src
+    root: libs/apb/src
+    includes:
+      - ../include
+    
     sources:
-      - axi_dumper.sv
-      - axi_sim_mem.sv
-      - axi_test.sv
-  
+      - apb_test.sv
+
   apb_rtl:
     requires:
       - common_cells_rtl
@@ -213,18 +234,13 @@ fsets:
       - apb_cdc.sv
       - apb_demux.sv
 
-  apb_bhv:
+  common_cells_bhv:
     requires:
-      - apb_rtl
-      - common_cells_bhv
-      - common_verification
+      - common_cells_rtl
 
-    root: libs/apb/src
-    includes:
-      - ../include
-    
+    root: libs/common_cells/src
     sources:
-      - apb_test.sv
+      - deprecated/sram.sv
 
   common_cells_rtl:
     root: libs/common_cells/src
@@ -330,17 +346,9 @@ fsets:
       - edge_propagator.sv
       - edge_propagator_rx.sv
 
-  common_cells_bhv:
-    requires:
-      - common_cells_rtl
-
-    root: libs/common_cells/src
-    sources:
-      - deprecated/sram.sv
-
   common_verification_bhv:
     root: libs/common_verification/src
-    files:
+    sources:
       # Level 0
       - clk_rst_gen.sv
       - rand_id_queue.sv
