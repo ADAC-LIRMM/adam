@@ -188,7 +188,7 @@ set_max_area 0
 # Compile and Save the Design
 # =============================================================================
 compile
-write -format verilog -hierarchy -out synth.v $top  
+write -format verilog -hierarchy -out synth.v "{{top}}"  
 write -format ddc -hierarchy -output synth.ddc
 report_area -hierarchy > area_report.txt
 
@@ -202,8 +202,8 @@ close $fp
 # =============================================================================
 # Useful for troubleshooting
 check_design
-change_names
-link
+# change_names
+# link
 
 # Exit design compiler
 exit   
@@ -364,23 +364,28 @@ def safe_rm(path):
             raise RuntimeError('Abort.')
 
 
-def compile_fset(fset_name, fsets):
+def compile_fset(fset_name, fsets, solved=None):
     incs = []
     srcs = []
-    solved = []
-    queue = [fset_name]
-    while queue:
-        fset_name = queue.pop()
-        if fset_name not in fsets:
-            raise RuntimeError(f'compile_fset: "{fset_name}" does not exist.')
 
-        fset = fsets[fset_name]
-        reqs = fset.get('requires', [])
-        queue += [req for req in reqs if req not in solved]
-        root = Path(fset.get('root', '.'))
-        incs = [root/inc for inc in fset.get('includes', [])] + incs
-        srcs = [root/src for src in fset.get('sources', [])] + srcs
-        solved.append(fset_name)
+    if solved is None:
+        solved = []
+
+    if fset_name not in fsets:
+        raise RuntimeError(f'compile_fset: "{fset_name}" does not exist.')
+
+    fset = fsets[fset_name]
+    for req in fset.get('requires', []):
+        if req not in solved:
+            x, y = compile_fset(req, fsets, solved=solved)
+            incs += x
+            srcs += y
+        
+    root = Path(fset.get('root', '.'))
+    incs += [root/inc for inc in fset.get('includes', [])]
+    srcs += [root/src for src in fset.get('sources', [])]
+
+    solved += [fset_name]
 
     return incs, srcs
 

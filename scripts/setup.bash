@@ -3,11 +3,9 @@
 # Exit on any error
 set -e
 
-# Project root
-proj="$(realpath "$(dirname "$0")")"
-
 # Navigate to the project root
-cd "$proj"
+cd "$(dirname "$0")"/..
+proj=$(pwd)
 
 # Clean
 # =============================================================================
