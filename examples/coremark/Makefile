@@ -52,9 +52,9 @@ LDSCRIPT = link.ld
 # ============================================================================ #
 
 DEFS = \
-	-DITERATIONS=1 \
-	-DCORE_DEBUG=1 \
-	-DVALIDATION_RUN=1
+	-DITERATIONS=700 \
+	#-DCORE_DEBUG=1 \
+	#-DVALIDATION_RUN=1
 
 GFLAGS   = -march=rv32imc -mabi=ilp32
 CFLAGS   = -Wall -Wextra -static -mcmodel=medany -ffunction-sections \

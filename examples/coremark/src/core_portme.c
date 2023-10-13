@@ -117,8 +117,6 @@ time_in_secs(CORE_TICKS ticks)
     return retval;
 }
 
-const char *test = "Hello, World\n";
-
 ee_u32 default_num_contexts = 1;
 
 /* Function : portable_init
@@ -136,7 +134,7 @@ portable_init(core_portable *p, int *argc, char *argv[])
     SYSCTRL.PMR_TIMER0 = 1;
     while(SYSCTRL.PMR_TIMER0);
 
-    UART0.BRR = 5; // 1000000 @ 50MHz 
+    UART0.BRR = 434; // 115200 @ 50MHz 
     UART0.CR  = 0x807; // No parity, 1 stop, 8 data
 
     TIMER0.PR = 50; // 1MHz @ 50MHz
@@ -144,8 +142,8 @@ portable_init(core_portable *p, int *argc, char *argv[])
     TIMER0.ARR = ~0;
     TIMER0.PE = 1;
 
-    (void)argc; // prevent unused warning
-    (void)argv; // prevent unused warning
+    (void) argc; // prevent unused warning
+    (void) argv; // prevent unused warning
 
     ee_printf("IM ALIVE\n");
 
