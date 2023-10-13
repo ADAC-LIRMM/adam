@@ -1,22 +1,23 @@
-module adam_basys3 (
-    input  logic clk100,
+module adam_nexys_video (
+    input  logic clk,
 
-    input  logic [15:0] sw,
+    output logic [7:0] led,
+
+    input  logic btnc,
+    input  logic btnd,
+    input  logic btnl,
+    input  logic btnr,
+    input  logic btnu,
+    input  logic cpu_resetn,
+
+    input  logic [7:0] sw,
     
-    output logic [15:0] led,
-    
-    input  logic btn_c,
-    input  logic btn_u,
-    input  logic btn_l,
-    input  logic btn_r,
-    input  logic btn_d,
+    output logic [7:0] ja,
+    output logic [7:0] jb,
+    output logic [7:0] jc,
 
-    output logic [7:0] header_ja,
-    output logic [7:0] header_jb,
-    output logic [7:0] header_jc,
-
-    input  logic uart_rx,
-    output logic uart_tx
+    output logic uart_rx_out,
+    input  logic uart_tx_in
 );
     localparam ADDR_WIDTH = 32;
     localparam DATA_WIDTH = 32;
@@ -57,8 +58,8 @@ module adam_basys3 (
     ADAM_IO spi_miso [NO_SPIS] ();
     ADAM_IO spi_ss_n [NO_SPIS] ();
 
-    ADAM_IO uart_tx_io [NO_UARTS] ();
-    ADAM_IO uart_rx_io [NO_UARTS] ();
+    ADAM_IO uart_tx [NO_UARTS] ();
+    ADAM_IO uart_rx [NO_UARTS] ();
 
     logic [3:0] counter = 4'b1111;
 
@@ -68,7 +69,7 @@ module adam_basys3 (
     adam_clk_div #(
         .WIDTH (1)
     ) adam_clk_div (
-        .in  (clk100),
+        .in  (clk),
         .out (clk50)
     );
 
@@ -107,14 +108,14 @@ module adam_basys3 (
         .spi_miso (spi_miso),
         .spi_ss_n (spi_ss_n),
         
-        .uart_tx (uart_tx_io),
-        .uart_rx (uart_rx_io)
+        .uart_tx (uart_tx),
+        .uart_rx (uart_rx)
     );
     
     generate 
         bootloader bootloader (
             .clk  (clk50),
-            .rst  (rst || mem_srst[0]),
+            .rst  (rst), // || mem_srst[0]
             .test (test),
 
             .pause_req (mem_pause_req[0]),
@@ -131,7 +132,7 @@ module adam_basys3 (
                 .SIZE (MEM_SIZE[i])
             ) adam_axil_ram (
                 .clk  (clk50),
-                .rst  (rst || mem_srst[i]),
+                .rst  (rst), // || mem_srst[i]
                 .test (test),
 
                 .pause_req (mem_pause_req[i]),
@@ -152,12 +153,12 @@ module adam_basys3 (
     endgenerate
 
     always_comb begin
-        uart_tx = uart_tx_io[0].o;
-        uart_rx_io[0].i = uart_rx;
+        uart_rx_out = uart_tx[0].o;
+        uart_rx[0].i = uart_tx_in;
     end
 
     always_ff @(posedge clk50) begin
-        if (btn_c) begin
+        if (!cpu_resetn) begin
             counter <= 0;
             rst <= 1;
         end

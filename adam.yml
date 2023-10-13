@@ -1,19 +1,19 @@
 targets:
-  adam_cv32e40p_basys3:
+  adam_cv32e40p_nexys_video:
     override:
       bhsim:
         top: adam_periphs_tb
-        fset: adam_cv32e40p_basys3_bhv
+        fset: adam_cv32e40p_nexys_video_bhv
 
       bitst:
-        top: adam_basys3
-        part: xc7a35tcpg236-1
-        xdc: xdc/adam_basys3.xdc
+        top: adam_nexys_video
+        part: xc7a200tsbg484-1
+        xdc: xdc/adam_nexys_video.xdc
 
       synth: 
         top: adam_synth
 
-    fset: adam_cv32e40p_basys3_rtl
+    fset: adam_cv32e40p_nexys_video_rtl
 
     define:
       - VERILATOR
@@ -34,12 +34,12 @@ tests:
   - adam_periphs_tb
       
 fsets: 
-  adam_cv32e40p_basys3_bhv:
+  adam_cv32e40p_nexys_video_bhv:
     requires:
-      - adam_cv32e40p_basys3_rtl
+      - adam_cv32e40p_nexys_video_rtl
       - adam_bhv
 
-  adam_cv32e40p_basys3_rtl:
+  adam_cv32e40p_nexys_video_rtl:
     requires:
       - adam_rtl
       - adam_cv32e40p_rtl
@@ -47,7 +47,7 @@ fsets:
     sources:
       - bootloader/build/target/bootloader.sv
       - bhv/adam_clk_gate.sv
-      - rtl/adam_basys3.sv
+      - rtl/adam_nexys_video.sv
 
   adam_bhv:
     requires:

@@ -305,6 +305,7 @@ def bhsim(*args, **kargs):
     bhsim_path = kargs['bhsim_path']
     synth_path = kargs['synth_path']
     clean = kargs.get('clean', True)
+    top = kargs.get('top', None)
 
     logger.info('Starting bhsim.')
 
@@ -318,7 +319,7 @@ def bhsim(*args, **kargs):
 
     tcl_data['adam'] = adam_path
     tcl_data['synth'] = synth_path
-    tcl_data['top'] = target['top']
+    tcl_data['top'] = top if top else target['top']
 
     incs, srcs = compile_fset(target['fset'], fsets)
 
@@ -658,19 +659,19 @@ def main():
     }
 
     if command == 'bhsim':
-        bhsim(**common_kargs)
+        bhsim(**common_kargs, top=args.top)
     elif command == 'bitst':
         bitst(**common_kargs)
     elif command == 'synth':
         synth(**common_kargs)
     elif command == 'prpwr':
-        pass #prpwr(**common_kargs)
+        raise RuntimeError('Not yet implemented')
     elif command == 'plink':
-        pass #plink(**common_kargs)
+        raise RuntimeError('Not yet implemented')
     elif command == 'fpga_flow':
-        pass
+        raise RuntimeError('Not yet implemented')
     elif command == 'power_flow':
-        pass
+        raise RuntimeError('Not yet implemented')
     else:
         print("Invalid command.")
         parser.print_help()

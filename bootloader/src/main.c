@@ -16,7 +16,7 @@
 typedef unsigned int word_t;
 
 static const char greating[] =
-    "Greetings from the ICOBS-Light bootloader\n"
+    "Greetings from the ADAM bootloader\n"
     "Compiled on: " __DATE__ " at " __TIME__ "\n"
     "LIRMM - Universite de Montpellier, CNRS - France\n";
 
@@ -200,6 +200,7 @@ void boot_cmd(void)
      * behave as expected.
      */
     
+    while(!UART0.TBE);
     asm volatile ("jalr %0" : : "r"((uint32_t) address));
 
     // SYSCTRL.BAR0 = address;
