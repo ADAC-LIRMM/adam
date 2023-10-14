@@ -44,7 +44,7 @@ LDSCRIPT = link.ld
 
 # ============================================================================ #
 
-GFLAGS   = -march=rv32i -mabi=ilp32
+GFLAGS   = -march=rv32i_zicsr -mabi=ilp32
 CFLAGS   = -Wall -Wextra -static -mcmodel=medany -ffunction-sections \
 	-fdata-sections -O3 -fstrict-volatile-bitfields
 CXXFLAGS = -Wall -Wextra -static -mcmodel=medany -ffunction-sections \

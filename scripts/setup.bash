@@ -1,7 +1,18 @@
 #!/bin/bash
 
+use_venv=true
+
 # Exit on any error
 set -e
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --no-venv)
+      use_venv=false
+      shift
+      ;;
+  esac
+done
 
 # Navigate to the project root
 cd "$(dirname "$0")"/..
@@ -33,12 +44,16 @@ done
 
 # Setup Python
 # =============================================================================
-# Create python venv and activate it
-python3 -m venv venv
-source ./venv/bin/activate
+if $use_venv; then
+  # Create python venv and activate it
+  python3 -m venv venv
+  source ./venv/bin/activate
+else
+  echo "Skipping virtual environment as --no-venv was specified"
+fi
 
 # Install requirements.txt
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 
 # Setup IBEX
 # =============================================================================
