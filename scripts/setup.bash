@@ -81,6 +81,17 @@ make all
 # Return to project root
 cd $proj
 
+# Build docs
+# =============================================================================
+# Goes into the docs directory
+cd docs
+
+# Build docs
+make html
+
+# Return to project root
+cd $proj
+
 # Exit
 # =============================================================================
 # Print exit message
