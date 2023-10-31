@@ -47,9 +47,9 @@ module adam #(
     ADAM_IO.Master uart_rx [NO_UARTS]
 );
 
-	localparam NO_CORES = NO_CPUS;
+	localparam NO_CORES = NO_CPUS + NO_LPUS;
 
-	localparam NO_XBAR_SLVS = 2*NO_CPUS;
+	localparam NO_XBAR_SLVS = 2*NO_CORES;
 	localparam NO_XBAR_MSTS = NO_MEMS + 1;
 
 	typedef struct packed {
@@ -73,7 +73,7 @@ module adam #(
 	AXI_LITE #(
         .AXI_ADDR_WIDTH (ADDR_WIDTH),
         .AXI_DATA_WIDTH (DATA_WIDTH)
-    ) cpu_axil [2*NO_CPUS] ();
+    ) core_axil [2*NO_CORES] ();
 
 	AXI_LITE #(
         .AXI_ADDR_WIDTH (ADDR_WIDTH),
@@ -162,28 +162,54 @@ module adam #(
     endgenerate
 
 	generate
-		localparam CPUS_S = 0;
-		localparam CPUS_E = CPUS_S + 2*NO_CPUS;
+		localparam CORES_S = 0;
+		localparam CORES_E = CORES_S + 2*NO_CORES;
 
-		for(genvar i = CPUS_S; i < CPUS_E; i++) begin
-			`AXI_LITE_ASSIGN(xbar_slv_axil[i], cpu_axil[i - CPUS_S]);
+		for(genvar i = CORES_S; i < CORES_E; i++) begin
+			`AXI_LITE_ASSIGN(xbar_slv_axil[i], core_axil[i - CORES_S]);
 		end
 	endgenerate
 
 	generate
-		for(genvar i = 0; i < NO_CPUS; i++) begin
-			adam_cpu adam_cpu (
+		localparam CPUS_S = 0;
+		localparam CPUS_E = CPUS_S + NO_CPUS;
+
+		localparam LPUS_S = CPUS_E;
+		localparam LPUS_E = LPUS_S + NO_LPUS;
+
+		for(genvar i = CPUS_S; i < CPUS_E; i++) begin
+			adam_core_cv32e40p adam_core_cv32e40p (
 				.clk  (clk),
-				.rst  (rst),
+				.rst  (rst || core_srst[i]),
 				.test (test),
 
 				.pause_req (core_pause_req[i]),
 				.pause_ack (core_pause_ack[i]),
 
 				.boot_addr (core_boot_addr[i]),
+				.hart_id   (data_t'(i)),
 
-				.inst_axil (cpu_axil[2*i + 0]),
-				.data_axil (cpu_axil[2*i + 1]),
+				.inst_axil (core_axil[2*i + 0]),
+				.data_axil (core_axil[2*i + 1]),
+
+				.irq (core_irq[i])
+			);
+		end
+
+		for(genvar i = LPUS_S; i < LPUS_E; i++) begin
+			adam_core_cv32e40p adam_core_cv32e40p (
+				.clk  (clk),
+				.rst  (rst || core_srst[i]),
+				.test (test),
+
+				.pause_req (core_pause_req[i]),
+				.pause_ack (core_pause_ack[i]),
+
+				.boot_addr (core_boot_addr[i]),
+				.hart_id   (data_t'(i)),
+
+				.inst_axil (core_axil[2*i + 0]),
+				.data_axil (core_axil[2*i + 1]),
 
 				.irq (core_irq[i])
 			);

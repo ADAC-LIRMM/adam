@@ -4,34 +4,41 @@ RUN apt-get update && \
     apt-get install -y \
         autoconf \
         automake \
-        autotools-dev \
+        bison \
+        bc \
+        build-essential \
+        cmake \
         curl \
+        device-tree-compiler \
+        flex \
+        gawk \
+        git \
+        gperf \
+        libtool \
+        locales \
+        ninja-build \
+        patchutils \
         python3 \
         python3-pip \
         python3-venv \
+        texinfo \
+        autotools-dev \
+        libexpat-dev \
+        libftdi1-dev \
+        libglib2.0-dev \
+        libgmp-dev \
         libmpc-dev \
         libmpfr-dev \
-        libgmp-dev \
-        gawk \
-        build-essential \
-        bison \
-        flex \
-        texinfo \
-        gperf \
-        libtool \
-        patchutils \
-        bc \
+        libpixman-1-dev \
+        libtinfo5 \
+        libusb-1.0-0-dev \
         zlib1g-dev \
-        libexpat-dev \
-        ninja-build \
-        git \
-        cmake \
-        libglib2.0-dev \
-        device-tree-compiler \
     && \
     ln -sf /usr/bin/python3 /usr/bin/python && \
     ln -sf /usr/bin/pip3 /usr/bin/pip && \
     rm -rf /var/lib/apt/lists/*
+
+RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen && locale-gen
 
 ARG ARCH="rv32imc_zicsr_zifencei"
 
@@ -41,6 +48,7 @@ RUN git clone https://github.com/riscv/riscv-gnu-toolchain.git && \
     cd riscv-gnu-toolchain && \
     git checkout e65e7fc58543c821baf4f1fb6d0ef700177b9d89 && \
     ./configure --prefix=/opt/riscv \
+        --enable-debug-info=yes \
         --disable-linux \
         --disable-multilib \
         --with-arch=${ARCH} \
@@ -60,7 +68,16 @@ RUN git clone https://github.com/riscv/riscv-isa-sim.git && \
     make install && \
     cd ../.. && rm -rf riscv-isa-sim
 
-RUN git clone https://github.com/riscv-software-src/riscv-pk && \
+RUN git clone https://git.qemu.org/git/qemu.git && \
+    cd qemu && \
+    git checkout 78385bc738108a9b5b20e639520dc60425ca2a5a && \
+    ./configure --prefix=/opt/riscv \
+        --target-list=riscv32-softmmu \ 
+    && make -j$(nproc) && \
+    make install && \
+    cd .. && rm -rf qemu
+
+RUN git clone https://github.com/riscv-software-src/riscv-pk.git && \
     cd riscv-pk && \
     git checkout fafaedd2825054222ce2874bf4a90164b5b071d4 && \
     mkdir build/ && cd build/ && \
@@ -71,7 +88,7 @@ RUN git clone https://github.com/riscv-software-src/riscv-pk && \
     make install && \
     cd ../.. && rm -rf riscv-pk
 
-RUN git clone https://github.com/riscv/riscv-openocd && \
+RUN git clone https://github.com/riscv/riscv-openocd.git && \
     cd riscv-openocd && \
     git checkout 6e9514efcd0b5af1f5ffae5d1afa7e7640962ca6 && \
     ./bootstrap && \
@@ -90,6 +107,13 @@ WORKDIR /adam
 
 RUN chmod 777 /adam
 
-ENV HOME="/adam"
+RUN cat >> /etc/bash.bashrc <<'EOF'
+if [ ! -z "$XILINX_PATH" ]; then
+    VER=$(ls $XILINX_PATH/Vivado/ | sort -V | tail -n 1)
+    export PATH="$XILINX_PATH/Vivado/$VER/bin:$PATH"
+fi
 
-RUN echo "PS1='(adam) \w \$ '" >> /etc/bash.bashrc
+PS1="(adam) $(pwd | sed 's|^/adam|~|') \\$ "
+
+export HOME="/adam/work"
+EOF

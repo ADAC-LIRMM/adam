@@ -119,8 +119,8 @@ fsets:
 
     root: rtl/
     sources:
-      - cpu/cv32e40p/adam_cpu.sv
-      - cpu/cv32e40p/cv32e40p_clock_gate.sv
+      - cores/cv32e40p/adam_core_cv32e40p.sv
+      - cores/cv32e40p/cv32e40p_clock_gate.sv
 
   adam_ibex_rtl:
     requires:
@@ -129,7 +129,7 @@ fsets:
 
     root: rtl/
     sources:
-      - cpu/ibex/adam_cpu.sv
+      - cores/ibex/adam_core_ibex.sv
 
   axi_bhv:
     requires:

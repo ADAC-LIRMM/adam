@@ -1,4 +1,4 @@
-module adam_cpu #(
+module adam_core_cv32e40p #(
 	parameter ADDR_WIDTH = 32,
 	parameter DATA_WIDTH = 32,
 
@@ -18,6 +18,7 @@ module adam_cpu #(
 	output logic pause_ack,
 
 	input  addr_t boot_addr,
+	input  data_t hart_id,
 
 	AXI_LITE.Master inst_axil,
 	AXI_LITE.Master data_axil,
@@ -59,9 +60,9 @@ module adam_cpu #(
 	assign data_rready_o = 1;
 
 	cv32e40p_top #(
-		.FPU              (0),
-		.FPU_ADDMUL_LAT   (0),
-		.FPU_OTHERS_LAT   (0),
+		.FPU              (1),
+		.FPU_ADDMUL_LAT   (2),
+		.FPU_OTHERS_LAT   (2),
 		.ZFINX            (0),
 		.COREV_PULP       (0),
 		.COREV_CLUSTER    (0),
@@ -82,7 +83,7 @@ module adam_cpu #(
 		.mtvec_addr_i        (boot_addr),
 		.dm_halt_addr_i      (32'hFFFF_FFFF),
 		.dm_exception_addr_i (32'hFFFF_FFFF),
-		.hart_id_i           (32'h0000_0000),
+		.hart_id_i           (hart_id),
 
 		// Instruction memory interface
 		.instr_req_o    (inst_req_o),

@@ -659,11 +659,11 @@ def main():
     }
 
     if command == 'bhsim':
-        bhsim(**common_kargs, top=args.top)
+        raise RuntimeError('Not yet implemented')
     elif command == 'bitst':
         bitst(**common_kargs)
     elif command == 'synth':
-        synth(**common_kargs)
+        raise RuntimeError('Not yet implemented')
     elif command == 'prpwr':
         raise RuntimeError('Not yet implemented')
     elif command == 'plink':

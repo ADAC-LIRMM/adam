@@ -10,9 +10,6 @@
 [submodule "libs/common_verification"]
 	path = libs/common_verification
 	url = https://github.com/pulp-platform/common_verification.git
-[submodule "examples/coremark/coremark"]
-	path = examples/coremark/coremark
-	url = https://github.com/eembc/coremark.git
 [submodule "libs/cv32e40p"]
 	path = libs/cv32e40p
 	url = https://github.com/openhwgroup/cv32e40p.git

@@ -1,4 +1,4 @@
-module adam_cpu #(
+module adam_core_ibex #(
 	parameter ADDR_WIDTH = 32,
 	parameter DATA_WIDTH = 32,
 
@@ -18,6 +18,7 @@ module adam_cpu #(
 	output logic pause_ack,
 
 	input  addr_t boot_addr,
+	input  data_t hart_id,
 
 	AXI_LITE.Master inst_axil,
 	AXI_LITE.Master data_axil,
@@ -76,8 +77,8 @@ module adam_cpu #(
         .RndCnstLfsrSeed  (ibex_pkg::RndCnstLfsrSeedDefault),
         .RndCnstLfsrPerm  (ibex_pkg::RndCnstLfsrPermDefault),
         .DbgTriggerEn     (0),
-        .DmHaltAddr       (32'h1A110800),
-        .DmExceptionAddr  (32'h1A110808)
+        .DmHaltAddr       (32'hFFFF_FFFF),
+        .DmExceptionAddr  (32'hFFFF_FFFF)
     ) ibex_top (
         // Clock and reset
         .clk_i       (clk),
@@ -87,7 +88,7 @@ module adam_cpu #(
         // .ram_cfg_i   (10'b0),
 
         // Configuration
-        .hart_id_i   (32'h0000_0000),
+        .hart_id_i   (hart_id),
         .boot_addr_i (boot_addr),
 
         // Instruction memory interface
