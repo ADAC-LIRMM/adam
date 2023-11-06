@@ -5,6 +5,8 @@ Welcome to ADAM's documentation!
    :maxdepth: 2
    :caption: Contents:
    
+   getting_started
+   guidelines/index
    hal/index
    peripherals/index
    activity_pause_protocol

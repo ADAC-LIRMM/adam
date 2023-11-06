@@ -1,5 +1,5 @@
 Peripherals
-============
+===========
 
 .. toctree::
    :maxdepth: 2
