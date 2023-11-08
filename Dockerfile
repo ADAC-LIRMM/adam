@@ -13,6 +13,7 @@ RUN dpkg --add-architecture i386 && \
         device-tree-compiler \
         flex \
         gawk \
+        gcc gcc-multilib \
         git \
         gperf \
         libtool \
