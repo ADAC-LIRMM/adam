@@ -35,7 +35,7 @@ if [[ $(image_exists) -eq 0 ]] || [[ $BUILD -eq 1 ]]; then
     docker build -t $IMAGE .
 fi
 
-RUN_CMD=(docker run -it --rm  --network host --privileged)
+RUN_CMD=(docker run -it --rm --network host --privileged)
 
 if [ $ROOT -eq 0 ]; then
     RUN_CMD+=(-u $(id -u):$(id -g))
@@ -45,6 +45,17 @@ if [ "$WORK" == "$PWD" ]; then
     RUN_CMD+=(-v "$PWD:/adam" -w /adam)
 else
     RUN_CMD+=(-v "$PWD:/adam" -v "$WORK:/work" -w /work)
+fi
+
+if [ ! -z "$DISPLAY" ]; then
+    xhost +local:docker > /dev/null
+    RUN_CMD+=(-v /tmp/.X11-unix:/tmp/.X11-unix \
+        -e "DISPLAY=$DISPLAY")
+fi
+
+if [ ! -z "$MODELSIM_PATH" ]; then
+    RUN_CMD+=(-v "$MODELSIM_PATH:/opt/modelsim" \
+        -e "MODELSIM_PATH=/opt/modelsim")
 fi
 
 if [ ! -z "$XILINX_PATH" ]; then

@@ -1,6 +1,7 @@
 FROM debian:11
 
-RUN apt-get update && \
+RUN dpkg --add-architecture i386 && \
+    apt-get update && \
     apt-get install -y \
         autoconf \
         automake \
@@ -22,16 +23,21 @@ RUN apt-get update && \
         python3-pip \
         python3-venv \
         texinfo \
+        libxext6 libxext6:i386 \
         autotools-dev \
+        libc6 libc6:i386 \
         libexpat-dev \
         libftdi1-dev \
         libglib2.0-dev \
         libgmp-dev \
         libmpc-dev \
         libmpfr-dev \
+        libncurses5 libncurses5:i386 \
         libpixman-1-dev \
+        libstdc++6 libstdc++6:i386 \
         libtinfo5 \
         libusb-1.0-0-dev \
+        libxft2 libxft2:i386 \
         zlib1g-dev \
     && \
     ln -sf /usr/bin/python3 /usr/bin/python && \
@@ -113,7 +119,11 @@ if [ ! -z "$XILINX_PATH" ]; then
     export PATH="$XILINX_PATH/Vivado/$VER/bin:$PATH"
 fi
 
-PS1="(adam) $(pwd | sed 's|^/adam|~|') \\$ "
+if [ ! -z "$MODELSIM_PATH" ]; then
+    export PATH="$MODELSIM_PATH/bin:$PATH"
+fi
+
+PS1="(adam) \$(pwd | sed 's|^/adam|~|') \\$ "
 
 export HOME="/adam/work"
 EOF

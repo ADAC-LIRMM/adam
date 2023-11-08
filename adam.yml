@@ -17,6 +17,8 @@ targets:
 
     define:
       - VERILATOR
+      - ADAM_CORE_CPU=adam_core_cv32e40p
+      - ADAM_CORE_LPU=adam_core_cv32e40p
 
 tests:
   - adam_axil_apb_bridge_tb
@@ -313,7 +315,7 @@ fsets:
       - cdc_reset_ctrlr.sv
       - cdc_fifo_gray.sv
       - fall_through_register.sv
-      - id_queue.sv
+      # - id_queue.sv # commented due to problems with MultiSim SE
       - stream_to_mem.sv
       - stream_arbiter_flushable.sv
       - stream_fifo_optimal_wrap.sv
@@ -440,7 +442,7 @@ fsets:
       - lowrisc_prim_assert_0.1/rtl
       - lowrisc_ibex_ibex_core_0.1/rtl
 
-    files:
+    sources:
       - lowrisc_ibex_ibex_pkg_0.1/rtl/ibex_pkg.sv
       - lowrisc_prim_abstract_prim_pkg_0.1/prim_pkg.sv
       - lowrisc_prim_ram_1p_pkg_0/rtl/prim_ram_1p_pkg.sv

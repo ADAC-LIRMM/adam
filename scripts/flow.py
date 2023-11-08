@@ -16,6 +16,7 @@ from pathlib import Path
 
 dry_run = False
 assume_yes = False
+gui = False
 
 logger = None
 
@@ -43,15 +44,6 @@ set synth "{{synth}}"
 # =============================================================================
 vlib lib/
 vmap work lib/
-
-# Technology Setup
-# =============================================================================
-set CMOS28FDSOI_PATH $env(CMOS28FDSOI_PATH)
-vlog -work work $CMOS28FDSOI_PATH/C28SOI_SC_12_CORE_LL/5.1-05/behaviour/verilog/C28SOI_SC_12_CORE_LL.v
-
-# Load Synthesized Design
-# =============================================================================
-vlog -work work $synth/synth.v
 
 # Include Directories
 # =============================================================================
@@ -84,7 +76,7 @@ foreach dir $include {
   append load_cmd "+incdir+$dir "
 }
 foreach def $define {
-  append load_cmd "-define $def "
+  append load_cmd "+define+$def "
 }
 foreach file $sources {
   append load_cmd "$file "
@@ -180,7 +172,9 @@ set_property verilog_define "{{ define | join(' ') }}" $sources_1
 
 # Generate bitstream ==========================================================
 
-launch_runs impl_1 -to_step write_bitstream -jobs 8
+set nproc [exec nproc]
+
+launch_runs impl_1 -to_step write_bitstream -jobs $nproc
 wait_on_run impl_1
 
 file copy \\
@@ -326,13 +320,19 @@ def bhsim(*args, **kargs):
     tcl_data['include'] = clean_path_list(incs, adam_path)
     tcl_data['sources'] = clean_path_list(srcs, adam_path)
 
+    define = target['define']
+    define = define if define else []
+    tcl_data['define'] = define
+    
     tcl_path = bhsim_path / 'bhsim.tcl'
     tcl_raw = bhsim_template.render(**tcl_data)
     
     with open(tcl_path, 'w') as file:
         file.write(tcl_raw)
 
-    exec_cmd(['vsim', '-c', '-do', f'source {tcl_path}'],
+    mode = '-gui' if gui else '-c'
+
+    exec_cmd(['vsim', mode, '-do', f'source {tcl_path}'],
         bhsim_path, loggers['bhsim'])
 
 def bitst(*args, **kargs):
@@ -532,6 +532,7 @@ def list_as_none(d):
 def main():
     global dry_run
     global assume_yes
+    global gui
     global logger
     global loggers
 
@@ -548,6 +549,8 @@ def main():
         help='Perform a dry run (only generate scripts).')
     parser.add_argument('-y', '--assume-yes', action='store_true',
         help='Assume "yes" for all prompts.')
+    parser.add_argument('-g', '--gui', action='store_true',
+        help='Open GUIs. (when supported)')
 
     # Add subparsers for the subcommands
     subparsers = parser.add_subparsers(
@@ -560,7 +563,7 @@ def main():
         description='Perform behavioral simulation using ModelSim.',
         help='Behavioral Simulation')
     bhsim_parser.add_argument('--top', type=str,
-        help='top module')
+        help='Top module')
 
     # Define the 'bitst' command
     bitst_parser = subparsers.add_parser('bitst',
@@ -619,6 +622,7 @@ def main():
 
     dry_run = args.dry_run
     assume_yes = args.assume_yes
+    gui = args.gui
 
     targets = adam_yaml['targets']
     if not targets:
@@ -659,7 +663,7 @@ def main():
     }
 
     if command == 'bhsim':
-        raise RuntimeError('Not yet implemented')
+        bhsim(**common_kargs, top=args.top)
     elif command == 'bitst':
         bitst(**common_kargs)
     elif command == 'synth':

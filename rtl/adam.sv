@@ -178,7 +178,7 @@ module adam #(
 		localparam LPUS_E = LPUS_S + NO_LPUS;
 
 		for(genvar i = CPUS_S; i < CPUS_E; i++) begin
-			adam_core_cv32e40p adam_core_cv32e40p (
+			`ADAM_CORE_CPU adam_core_cpu (
 				.clk  (clk),
 				.rst  (rst || core_srst[i]),
 				.test (test),
@@ -197,7 +197,7 @@ module adam #(
 		end
 
 		for(genvar i = LPUS_S; i < LPUS_E; i++) begin
-			adam_core_cv32e40p adam_core_cv32e40p (
+			`ADAM_CORE_LPU adam_core_lpu (
 				.clk  (clk),
 				.rst  (rst || core_srst[i]),
 				.test (test),
