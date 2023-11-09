@@ -1,4 +1,14 @@
+/*
+ * Conduct tests on the GPIO with the highest index to perform a
+ * minimal verification of the address routing. After testing, ensure
+ * that the system responds to an incoming pause request, eventually
+ * pausing when certain peripherals are active and others are not.
+ * Before utilizing the GPIO, it must be resumed, as by default, all
+ * normal peripherals are not running.
+ */
+
 `include "axi/assign.svh"
+`include "vunit_defines.svh"
 
 module adam_periphs_tb;
     import adam_axil_master_bhv::*;
@@ -172,78 +182,69 @@ module adam_periphs_tb;
 
     initial axil_bhv.loop();
 
-    initial begin
-        addr_t addr;
-        data_t data;
-        resp_t resp;
-        
-        pause_req = 0;
+    `TEST_SUITE begin
+        `TEST_CASE("test") begin
+            addr_t addr;
+            data_t data;
+            resp_t resp;
+            
+            pause_req = 0;
 
-        @(negedge rst);
-        #1us;
-        @(posedge clk);
-        
-        /*
-         * Conduct tests on the GPIO with the highest index to perform a
-         * minimal verification of the address routing. After testing, ensure
-         * that the system responds to an incoming pause request, eventually
-         * pausing when certain peripherals are active and others are not.
-         * Before utilizing the GPIO, it must be resumed, as by default, all
-         * normal peripherals are not running.
-         */
-        
-        // Resume GPIO
-        addr = 32'h0000_0838; // PMRx
-        data = 1;        // resume
-        fork
-            axil_bhv.send_aw(addr, 3'b000);
-            axil_bhv.send_w(data, 4'b1111);
-            axil_bhv.recv_b(resp);
-        join
-        assert (resp == axi_pkg::RESP_OKAY) else $finish(1);
-
-        // Wait for Maestro
-        do begin
+            @(negedge rst);
+            #1us;
+            @(posedge clk);
+            
+            // Resume GPIO
+            addr = 32'h0000_0838; // PMRx
+            data = 1;        // resume
             fork
-                axil_bhv.send_ar(addr, 3'b000);
-                axil_bhv.recv_r(data, resp);
+                axil_bhv.send_aw(addr, 3'b000);
+                axil_bhv.send_w(data, 4'b1111);
+                axil_bhv.recv_b(resp);
             join
-            assert (resp == axi_pkg::RESP_OKAY) else $finish(1);
-        end while (data == 1);
+            assert (resp == axi_pkg::RESP_OKAY);
 
-        // Configure GPIO to output mode
-        addr = 32'h0004_0008; // MODER
-        data = 32'h0001;
-        fork
-            axil_bhv.send_aw(addr, 3'b000);
-            axil_bhv.send_w(data, 4'b1111);
-            axil_bhv.recv_b(resp);
-        join
-        assert (resp == axi_pkg::RESP_OKAY) else $finish(1);
+            // Wait for Maestro
+            do begin
+                fork
+                    axil_bhv.send_ar(addr, 3'b000);
+                    axil_bhv.recv_r(data, resp);
+                join
+                assert (resp == axi_pkg::RESP_OKAY);
+            end while (data == 1);
 
-        // Set GPIO to logic level high
-        addr = 32'h0004_0004; // ODR
-        data = 32'h0001; // First IO to 1
-        fork
-            axil_bhv.send_aw(addr, 3'b000);
-            axil_bhv.send_w(data, 4'b1111);
-            axil_bhv.recv_b(resp);
-        join
-        assert (resp == axi_pkg::RESP_OKAY) else $finish(1);
+            // Configure GPIO to output mode
+            addr = 32'h0004_0008; // MODER
+            data = 32'h0001;
+            fork
+                axil_bhv.send_aw(addr, 3'b000);
+                axil_bhv.send_w(data, 4'b1111);
+                axil_bhv.recv_b(resp);
+            join
+            assert (resp == axi_pkg::RESP_OKAY);
 
-        // Verify GPIO logic level
-        assert (gpio_io[GPIO_WIDTH*(NO_GPIOS-1)].o == 1) else $finish(1);
+            // Set GPIO to logic level high
+            addr = 32'h0004_0004; // ODR
+            data = 32'h0001; // First IO to 1
+            fork
+                axil_bhv.send_aw(addr, 3'b000);
+                axil_bhv.send_w(data, 4'b1111);
+                axil_bhv.recv_b(resp);
+            join
+            assert (resp == axi_pkg::RESP_OKAY);
 
-        // Pause
-        pause_req <= #TA 1;
-        cycle_start();
-        while (pause_ack != 1) begin
-            cycle_end();
+            // Verify GPIO logic level
+            assert (gpio_io[GPIO_WIDTH*(NO_GPIOS-1)].o == 1);
+
+            // Pause
+            pause_req <= #TA 1;
             cycle_start();
+            while (pause_ack != 1) begin
+                cycle_end();
+                cycle_start();
+            end
+            cycle_end();
         end
-        cycle_end();
-
-        $stop();
     end
 
     task cycle_start();

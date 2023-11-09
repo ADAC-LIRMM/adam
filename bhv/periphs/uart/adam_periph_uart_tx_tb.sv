@@ -1,3 +1,5 @@
+`include "vunit_defines.svh"
+
 module adam_periph_uart_tx_tb;
 
     localparam DATA_WIDTH = 32;
@@ -80,35 +82,35 @@ module adam_periph_uart_tx_tb;
         .pause_ack (pause_ack)
     );
     
-    initial begin
-        test = 0;
+    `TEST_SUITE begin
+        `TEST_CASE("test") begin
+            test = 0;
 
-        parity_select  = 0;
-        parity_control = 1;
-        data_length    = 8;
-        stop_bits      = 1;
-        baud_rate      = 1s / (BAUD_RATE * CLK_PERIOD);
-        data           = 0;
-        data_valid     = 0;
-        
-        @(negedge rst);
-        @(posedge clk);
-
-        for(int i = 0; i < MSG_LEN; i++) begin
+            parity_select  = 0;
+            parity_control = 1;
+            data_length    = 8;
+            stop_bits      = 1;
+            baud_rate      = 1s / (BAUD_RATE * CLK_PERIOD);
+            data           = 0;
+            data_valid     = 0;
             
-            data       <= #TA word_t'(i);
-            data_valid <= #TA 1;
+            @(negedge rst);
+            @(posedge clk);
 
-            cycle_start();
-            while (!data_valid || !data_ready) begin
-                cycle_end();
+            for(int i = 0; i < MSG_LEN; i++) begin
+                
+                data       <= #TA word_t'(i);
+                data_valid <= #TA 1;
+
                 cycle_start();
-            end
-            cycle_end();
+                while (!data_valid || !data_ready) begin
+                    cycle_end();
+                    cycle_start();
+                end
+                cycle_end();
 
+            end
         end
-        
-        $stop();
     end
     
     initial begin
@@ -117,24 +119,24 @@ module adam_periph_uart_tx_tb;
         for(int i = 0; i < MSG_LEN; i++) begin
             @(negedge tx);
             #(0.5s / BAUD_RATE);
-            assert(tx == 0) else $finish(1);
+            assert(tx == 0);
             
             parity = 0;
 
             for(int j = 0; j < data_length; j++) begin
                 #(1s / BAUD_RATE);
                 parity = parity ^ tx;
-                assert (tx == i[j]) else $finish(1);
+                assert (tx == i[j]);
             end
 
             if(parity_control) begin
                 #(1s / BAUD_RATE);
-                assert (tx == parity ^ parity_select) else $finish(1);
+                assert (tx == parity ^ parity_select);
             end
 
             for(int j = 0; j < 1 + stop_bits; j++) begin
                 #(1s / BAUD_RATE);
-                assert (tx == 1) else $finish(1);
+                assert (tx == 1);
             end
         end
     end

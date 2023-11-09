@@ -1,3 +1,5 @@
+`include "vunit_defines.svh"
+
 module adam_periph_uart_rx_tb;
 
     localparam DATA_WIDTH = 32;
@@ -80,30 +82,30 @@ module adam_periph_uart_rx_tb;
         .pause_ack (pause_ack)
     );
 
-    initial begin
-        test = 0;
+    `TEST_SUITE begin
+        `TEST_CASE("test") begin
+            test = 0;
 
-        parity_select  = 0;
-        parity_control = 1;
-        data_length    = 8;
-        stop_bits      = 1;
-        baud_rate      = 1s / (BAUD_RATE * CLK_PERIOD);
-        data_ready     = 1;
+            parity_select  = 0;
+            parity_control = 1;
+            data_length    = 8;
+            stop_bits      = 1;
+            baud_rate      = 1s / (BAUD_RATE * CLK_PERIOD);
+            data_ready     = 1;
 
-        @(negedge rst);
-        @(posedge clk);
+            @(negedge rst);
+            @(posedge clk);
 
-        for (int i = 0; i < MSG_LEN; i++) begin
-            cycle_start();
-            while (!data_valid || !data_ready) begin
-                cycle_end();
+            for (int i = 0; i < MSG_LEN; i++) begin
                 cycle_start();
+                while (!data_valid || !data_ready) begin
+                    cycle_end();
+                    cycle_start();
+                end
+                assert(data == word_t'(i));
+                cycle_end();
             end
-            assert(data == word_t'(i)) else $finish(1);
-            cycle_end();
         end
-
-        $stop();
     end
 
     initial begin

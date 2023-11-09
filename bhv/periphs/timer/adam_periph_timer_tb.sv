@@ -1,5 +1,6 @@
 
 `include "apb/assign.svh"
+`include "vunit_defines.svh"
 
 module adam_periph_timer_tb;
 
@@ -97,131 +98,129 @@ module adam_periph_timer_tb;
         pause_req = pause_req_auto && !critical;
     end
 
-    initial begin
-        automatic addr_t addr;
-        automatic data_t data;
-        automatic strb_t strb;
-        automatic logic  resp;
-        
-        automatic data_t check;
+    `TEST_SUITE begin
+        `TEST_CASE("test") begin
+            automatic addr_t addr;
+            automatic data_t data;
+            automatic strb_t strb;
+            automatic logic  resp;
+            
+            automatic data_t check;
 
-        automatic data_t value;
-        automatic data_t auto_reload;
-        automatic int no_events;
+            automatic data_t value;
+            automatic data_t auto_reload;
+            automatic int no_events;
 
-        test = 0;
-        strb = 4'b1111;
+            test = 0;
+            strb = 4'b1111;
 
-        critical = 0;
+            critical = 0;
 
-        @(negedge rst);
-        master.reset_master();
-        repeat (10) @(posedge clk);
-
-        critical_begin();
-
-        // Write to Prescaler Register (PR)
-        addr = 32'h0004;
-        data = 50e6 / FREQ;
-        master.write(addr, data, strb, resp);
-        assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
-    
-        // Verify PR value
-        master.read(addr, check, resp);
-        assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
-        assert (check == data) else $finish(1);
-
-        // Write to Interrupt Enable Register (IER)
-        addr = 32'h0014;
-        data = 32'hFFFF_FFFF;
-        master.write(addr, data, strb, resp);
-        assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
-
-        // Verify IER value
-        master.read(addr, check, resp);
-        assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
-        assert (check == data) else $finish(1);
-
-        critical_end();
-
-        repeat (NO_TESTS) begin
+            @(negedge rst);
+            master.reset_master();
+            repeat (10) @(posedge clk);
 
             critical_begin();
 
-            value       = $urandom_range(         0, 100);
-            auto_reload = $urandom_range(value + 10, 110);
-            no_events   = $urandom_range(         0,  10);
-
-            // Write to Control Register (CR)
-            // Disable Timer
-            addr = 32'h0000;
-            data = 32'h0000_0000;
+            // Write to Prescaler Register (PR)
+            addr = 32'h0004;
+            data = 50e6 / FREQ;
             master.write(addr, data, strb, resp);
-            assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
+            assert (resp == apb_pkg::RESP_OKAY);
+        
+            // Verify PR value
+            master.read(addr, check, resp);
+            assert (resp == apb_pkg::RESP_OKAY);
+            assert (check == data);
 
-            // Write to Value Register (VR)
-            addr = 32'h0008; 
-            data = value;
+            // Write to Interrupt Enable Register (IER)
+            addr = 32'h0014;
+            data = 32'hFFFF_FFFF;
             master.write(addr, data, strb, resp);
-            assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
+            assert (resp == apb_pkg::RESP_OKAY);
 
-            // Verify VR value
+            // Verify IER value
             master.read(addr, check, resp);
-            assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
-            assert (check == data) else $finish(1);
-
-            // Write to Auto Reload Register (ARR)
-            addr = 32'h000C; 
-            data = auto_reload; 
-            master.write(addr, data, strb, resp);
-            assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
-
-            // Verify ARR value
-            master.read(addr, check, resp);
-            assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
-            assert (check == data) else $finish(1);
-            
-            // Write to Control Register (CR)
-            // Enable Timer
-            addr = 32'h0000; 
-            data = 32'h0000_0001; 
-            master.write(addr, data, strb, resp);
-            assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
-
-            // Verify CR value
-            master.read(addr, check, resp);
-            assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
-            assert (check == data) else $finish(1);
-
-            // Verify Event Register (ER)
-            addr = 32'h0010;
-            data = 32'h0000_0000;
-            master.read(addr, check, resp);
-            assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
-            assert (check == data) else $finish(1);
-
-            fork
-                repeat (no_events) begin
-                    @(posedge irq);
-                    
-                    // Write to Event Register (ER)
-                    // Clear Event
-                    addr = 32'h0010; 
-                    data = 32'h0000_0001; 
-                    master.write(addr, data, strb, resp);
-                    assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
-                end
-
-                repeat (no_events) begin
-                    @(negedge irq);
-                end
-            join
+            assert (resp == apb_pkg::RESP_OKAY);
+            assert (check == data);
 
             critical_end();
 
+            repeat (NO_TESTS) begin
+                critical_begin();
+
+                value       = $urandom_range(         0, 100);
+                auto_reload = $urandom_range(value + 10, 110);
+                no_events   = $urandom_range(         0,  10);
+
+                // Write to Control Register (CR)
+                // Disable Timer
+                addr = 32'h0000;
+                data = 32'h0000_0000;
+                master.write(addr, data, strb, resp);
+                assert (resp == apb_pkg::RESP_OKAY);
+
+                // Write to Value Register (VR)
+                addr = 32'h0008; 
+                data = value;
+                master.write(addr, data, strb, resp);
+                assert (resp == apb_pkg::RESP_OKAY);
+
+                // Verify VR value
+                master.read(addr, check, resp);
+                assert (resp == apb_pkg::RESP_OKAY);
+                assert (check == data);
+
+                // Write to Auto Reload Register (ARR)
+                addr = 32'h000C; 
+                data = auto_reload; 
+                master.write(addr, data, strb, resp);
+                assert (resp == apb_pkg::RESP_OKAY);
+
+                // Verify ARR value
+                master.read(addr, check, resp);
+                assert (resp == apb_pkg::RESP_OKAY);
+                assert (check == data);
+                
+                // Write to Control Register (CR)
+                // Enable Timer
+                addr = 32'h0000; 
+                data = 32'h0000_0001; 
+                master.write(addr, data, strb, resp);
+                assert (resp == apb_pkg::RESP_OKAY);
+
+                // Verify CR value
+                master.read(addr, check, resp);
+                assert (resp == apb_pkg::RESP_OKAY);
+                assert (check == data);
+
+                // Verify Event Register (ER)
+                addr = 32'h0010;
+                data = 32'h0000_0000;
+                master.read(addr, check, resp);
+                assert (resp == apb_pkg::RESP_OKAY);
+                assert (check == data);
+
+                fork
+                    repeat (no_events) begin
+                        @(posedge irq);
+                        
+                        // Write to Event Register (ER)
+                        // Clear Event
+                        addr = 32'h0010; 
+                        data = 32'h0000_0001; 
+                        master.write(addr, data, strb, resp);
+                        assert (resp == apb_pkg::RESP_OKAY);
+                    end
+
+                    repeat (no_events) begin
+                        @(negedge irq);
+                    end
+                join
+
+                critical_end();
+            end
         end
-        
-        $stop();
     end
 
     task critical_begin();

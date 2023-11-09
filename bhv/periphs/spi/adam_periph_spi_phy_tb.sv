@@ -1,3 +1,5 @@
+`include "vunit_defines.svh"
+
 module adam_periph_spi_phy_tb;
     
     localparam DATA_WIDTH = 32;
@@ -92,57 +94,56 @@ module adam_periph_spi_phy_tb;
         .rst (rst)
     );
 
-    // Initialize inputs
-    initial begin        
-        test = 0;
-        
-        pause_req = 0;
-
-        tx_enable      = 0;
-        rx_enable      = 0; 
-        mode_select    = 0;
-        clock_phase    = 0;
-        clock_polarity = 0;
-        data_order     = 0;
-        data_length    = 0;
-        baud_rate      = 0;
-        tx_valid       = 0;
-        rx_ready       = 0;
-        
-        sclk.i = 0;
-        mosi.i = 0;
-        miso.i = 0;
-        ss_n.i = 1;
-
-        @(negedge rst);
-        @(posedge clk);
-
-        /* Random Tests */
-
-        for (int k = 0; k < NO_TESTS; k++) begin
+    `TEST_SUITE begin
+        `TEST_CASE("test") begin       
+            test = 0;
             
-            $display("\nTEST: %d", k);
+            pause_req = 0;
 
-            random_config();
-
-            if (mode_select) begin
-                // dut is master
-                fork
-                    emulate_top();
-                    emulate_slave();
-                join
-            end
-            else begin
-                // dut is slave
-                fork
-                    emulate_top();
-                    emulate_master();
-                join
-            end
+            tx_enable      = 0;
+            rx_enable      = 0; 
+            mode_select    = 0;
+            clock_phase    = 0;
+            clock_polarity = 0;
+            data_order     = 0;
+            data_length    = 0;
+            baud_rate      = 0;
+            tx_valid       = 0;
+            rx_ready       = 0;
             
+            sclk.i = 0;
+            mosi.i = 0;
+            miso.i = 0;
+            ss_n.i = 1;
+
+            @(negedge rst);
+            @(posedge clk);
+
+            /* Random Tests */
+
+            for (int k = 0; k < NO_TESTS; k++) begin
+                
+                $display("\nTEST: %d", k);
+
+                random_config();
+
+                if (mode_select) begin
+                    // dut is master
+                    fork
+                        emulate_top();
+                        emulate_slave();
+                    join
+                end
+                else begin
+                    // dut is slave
+                    fork
+                        emulate_top();
+                        emulate_master();
+                    join
+                end
+                
+            end
         end
-
-        $stop();
     end
     
     task random_config();
@@ -190,7 +191,7 @@ module adam_periph_spi_phy_tb;
             $display("[emulate_top   ] rx: 0x%02h tx: 0x%02h",
                 data_rx, data_tx);
 
-            assert(data_rx == data_tx) else $finish(1);
+            assert(data_rx == data_tx);
         end 
     endtask
 
@@ -198,10 +199,10 @@ module adam_periph_spi_phy_tb;
         logic [7:0] data_tx;
         logic [7:0] data_rx;
 
-        assert (sclk.mode == 1) else $finish(1);
-        assert (mosi.mode == 1) else $finish(1);
-        assert (miso.mode == 0) else $finish(1);
-        assert (ss_n.mode == 1) else $finish(1);
+        assert (sclk.mode == 1);
+        assert (mosi.mode == 1);
+        assert (miso.mode == 0);
+        assert (ss_n.mode == 1);
 
         for (int i = 0; i < NO_FRAMES; i++) begin
             
@@ -246,7 +247,7 @@ module adam_periph_spi_phy_tb;
             $display("[emulate_slave ] rx: 0x%02h tx: 0x%02h",
                 data_rx, data_tx);
 
-            assert (data_rx == data_tx) else $finish(1);
+            assert (data_rx == data_tx);
         end
     endtask
 
@@ -254,9 +255,9 @@ module adam_periph_spi_phy_tb;
         logic [7:0] data_tx;
         logic [7:0] data_rx;
 
-        assert (sclk.mode == 0) else $finish(1);
-        assert (mosi.mode == 0) else $finish(1);
-        assert (ss_n.mode == 0) else $finish(1);
+        assert (sclk.mode == 0);
+        assert (mosi.mode == 0);
+        assert (ss_n.mode == 0);
 
         sclk.i = clock_polarity;
 
@@ -282,13 +283,13 @@ module adam_periph_spi_phy_tb;
                     
                     #(0.5s/BAUD_RATE);
                     sclk.i = clock_polarity;
-                    assert (miso.mode == 1) else $finish(1);
+                    assert (miso.mode == 1);
                     data_rx[j] = miso.o;
                 end
                 else begin
                     #(0.5s/BAUD_RATE);
                     sclk.i = !clock_polarity; 
-                    assert (miso.mode == 1) else $finish(1);
+                    assert (miso.mode == 1);
                     data_rx[j] = miso.o; 
 
                     #(0.5s/BAUD_RATE);
@@ -311,7 +312,7 @@ module adam_periph_spi_phy_tb;
             $display("[emulate_master] rx: 0x%02h tx: 0x%02h",
                 data_rx, data_tx);
 
-            assert (data_rx == data_tx) else $finish(1);
+            assert (data_rx == data_tx);
         end
 
     endtask

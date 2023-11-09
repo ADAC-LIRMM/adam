@@ -1,5 +1,6 @@
 `include "axi/assign.svh"
 `include "apb/assign.svh"
+`include "vunit_defines.svh"
 
 module adam_axil_apb_bridge_tb;
     import adam_axil_master_bhv::*;
@@ -138,73 +139,71 @@ module adam_axil_apb_bridge_tb;
 
     generate
         for (genvar i = 0; i < NO_APBS; i++) begin
-            always_comb begin
-                paddr  [i] = apb[i].paddr;
-                pprot  [i] = apb[i].pprot;
-                psel   [i] = apb[i].psel;
-                penable[i] = apb[i].penable;
-                pwrite [i] = apb[i].pwrite;
-                pwdata [i] = apb[i].pwdata;
-                pstrb  [i] = apb[i].pstrb;
-                
-                apb[i].pready  = pready [i];
-                apb[i].prdata  = prdata [i];
-                apb[i].pslverr = pslverr[i];
-            end
+            assign paddr  [i] = apb[i].paddr;
+            assign pprot  [i] = apb[i].pprot;
+            assign psel   [i] = apb[i].psel;
+            assign penable[i] = apb[i].penable;
+            assign pwrite [i] = apb[i].pwrite;
+            assign pwdata [i] = apb[i].pwdata;
+            assign pstrb  [i] = apb[i].pstrb;
+            
+            assign apb[i].pready  = pready [i];
+            assign apb[i].prdata  = prdata [i];
+            assign apb[i].pslverr = pslverr[i];
         end
     endgenerate
 
     initial axil_bhv.loop();
 
-    initial begin
-        addr_t addr;
-        data_t data;
-        resp_t resp;
+    `TEST_SUITE begin
+        `TEST_CASE("test") begin
+            addr_t addr;
+            data_t data;
+            resp_t resp;
 
-        test = 0;
+            test = 0;
 
-        for (int i = 0; i < NO_APBS; i++) begin
-            pready [i] = 0;
-            prdata [i] = 0;
-            pslverr[i] = 0;
-        end
-
-        @(negedge rst);
-        @(posedge clk);
-
-        for (int i = 0; i < NO_APBS; i++) begin
-            addr = (i << 16);
-            data = $urandom();
-
-            fork
-                axil_bhv.send_aw(addr, 3'b000);
-                axil_bhv.send_w(data, 4'b1111);
-                axil_bhv.send_ar(addr, 3'b000);
-            join
-
-            for (int j = 0; j < 2; j++) begin
-                pready [i] <= #TA 1;
-                prdata [i] <= #TA data_t'(i);
-                pslverr[i] <= #TA 0;
-                cycle_start();
-                while(!psel[i] || !penable[i] || !pready[i]) begin
-                    cycle_end();
-                    cycle_start();
-                end
-                cycle_end();
-
-                pready[i] <= #TA 0;
-                cycle_start();
-                cycle_end();
+            for (int i = 0; i < NO_APBS; i++) begin
+                pready [i] = 0;
+                prdata [i] = 0;
+                pslverr[i] = 0;
             end
 
-            fork
-                axil_bhv.recv_b(resp);
-                axil_bhv.recv_r(data, resp);
-            join
-        end
+            @(negedge rst);
+            @(posedge clk);
 
-        $stop();
+            for (int i = 0; i < NO_APBS; i++) begin
+                addr = (i << 16);
+                data = $urandom();
+
+                fork
+                    axil_bhv.send_aw(addr, 3'b000);
+                    axil_bhv.send_w(data, 4'b1111);
+                    axil_bhv.send_ar(addr, 3'b000);
+                join
+
+                for (int j = 0; j < 2; j++) begin
+                    pready [i] <= #TA 1;
+                    prdata [i] <= #TA data_t'(i);
+                    pslverr[i] <= #TA 0;
+                    cycle_start();
+                    while(!psel[i] || !penable[i] || !pready[i]) begin
+                        cycle_end();
+                        cycle_start();
+                    end
+                    cycle_end();
+
+                    pready[i] <= #TA 0;
+                    cycle_start();
+                    cycle_end();
+                end
+
+                fork
+                    axil_bhv.recv_b(resp);
+                    axil_bhv.recv_r(data, resp);
+                join
+            end
+        end
     end
 
     task cycle_start();

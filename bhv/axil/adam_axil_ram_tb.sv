@@ -1,4 +1,5 @@
 `include "axi/assign.svh"
+`include "vunit_defines.svh"
 
 module adam_axil_ram_tb;
     import adam_axil_master_bhv::*;
@@ -92,100 +93,99 @@ module adam_axil_ram_tb;
 
     initial master.loop();
 
-    initial begin
+    `TEST_SUITE begin
+        `TEST_CASE("test") begin
+            test = 0;
 
-        test = 0;
+            @(negedge rst); 
+            repeat (10) @(posedge clk);
 
-        @(negedge rst); 
-        repeat (10) @(posedge clk);
+            // Write
+            for (addr_t addr = 0; addr < SIZE; addr += STRB_WIDTH) begin
+                automatic resp_t resp;
 
-        // Write
-        for (addr_t addr = 0; addr < SIZE; addr += STRB_WIDTH) begin
-            automatic resp_t resp;
+                master.send_aw(addr, 3'b000);
+                master.send_w(addr, 4'b1111);
+                master.recv_b(resp);
 
-            master.send_aw(addr, 3'b000);
-            master.send_w(addr, 4'b1111);
-            master.recv_b(resp);
-
-            assert (resp == axi_pkg::RESP_OKAY) else $finish(1);
-        end
-        
-        // Read
-        for (addr_t addr = 0; addr < SIZE; addr += STRB_WIDTH) begin
-            automatic data_t data;
-            automatic resp_t resp;
-            
-            master.send_ar(addr, 3'b000);
-            master.recv_r(data, resp);
-
-            assert (resp == axi_pkg::RESP_OKAY) else $finish(1);
-            assert (data == addr) else $finish(1);
-        end
-        
-        // Random access
-        for(int i = 0; i < NO_TESTS; i += 4) begin
-            automatic addr_t addr;
-            automatic data_t data;
-            automatic resp_t b_resp;
-            automatic data_t r_data;
-            automatic resp_t r_resp;
-
-            addr = $urandom_range(MIN_ADDR, MAX_ADDR);
-
-            // force alligned access on 50% of the operations
-            if(i % 2) begin
-                addr[$clog2(STRB_WIDTH)-1:0] = 0;
+                assert (resp == axi_pkg::RESP_OKAY);
             end
-
-            data = addr;
-
-            fork
-                repeat (MAX_TRANS) begin
-                    master.send_aw(addr, 3'b000);
-                end
-
-                repeat (MAX_TRANS) begin
-                    master.send_w(data, 4'b1111);
-                end
+            
+            // Read
+            for (addr_t addr = 0; addr < SIZE; addr += STRB_WIDTH) begin
+                automatic data_t data;
+                automatic resp_t resp;
                 
-                repeat (MAX_TRANS) begin
-                    master.send_ar(addr, 3'b000);
-                end
-                
-                repeat (MAX_TRANS) begin
-                    master.recv_b(b_resp);
+                master.send_ar(addr, 3'b000);
+                master.recv_r(data, resp);
 
-                    // if valid address
-                    if (
-                        (addr[$clog2(STRB_WIDTH)-1:0] == 0) &&
-                        (addr < SIZE)
-                    ) begin
-                        assert (b_resp == axi_pkg::RESP_OKAY) else $finish(1);
-                    end
-                    else begin
-                        assert (b_resp == axi_pkg::RESP_DECERR) else $finish(1);
-                    end
-                end
-                
-                repeat (MAX_TRANS) begin
-                    master.recv_r(r_data, r_resp);
+                assert (resp == axi_pkg::RESP_OKAY);
+                assert (data == addr);
+            end
+            
+            // Random access
+            for(int i = 0; i < NO_TESTS; i += 4) begin
+                automatic addr_t addr;
+                automatic data_t data;
+                automatic resp_t b_resp;
+                automatic data_t r_data;
+                automatic resp_t r_resp;
 
-                    // if valid address
-                    if (
-                        (addr[$clog2(STRB_WIDTH)-1:0] == 0) &&
-                        (addr < SIZE)
-                    ) begin
-                        assert (r_resp == axi_pkg::RESP_OKAY) else $finish(1);
-                        assert (r_data == data) else $finish(1);
-                    end
-                    else begin
-                        assert (r_resp == axi_pkg::RESP_DECERR) else $finish(1);
-                    end
+                addr = $urandom_range(MIN_ADDR, MAX_ADDR);
+
+                // force alligned access on 50% of the operations
+                if(i % 2) begin
+                    addr[$clog2(STRB_WIDTH)-1:0] = 0;
                 end
-            join
+
+                data = addr;
+
+                fork
+                    repeat (MAX_TRANS) begin
+                        master.send_aw(addr, 3'b000);
+                    end
+
+                    repeat (MAX_TRANS) begin
+                        master.send_w(data, 4'b1111);
+                    end
+                    
+                    repeat (MAX_TRANS) begin
+                        master.send_ar(addr, 3'b000);
+                    end
+                    
+                    repeat (MAX_TRANS) begin
+                        master.recv_b(b_resp);
+
+                        // if valid address
+                        if (
+                            (addr[$clog2(STRB_WIDTH)-1:0] == 0) &&
+                            (addr < SIZE)
+                        ) begin
+                            assert (b_resp == axi_pkg::RESP_OKAY);
+                        end
+                        else begin
+                            assert (b_resp == axi_pkg::RESP_DECERR);
+                        end
+                    end
+                    
+                    repeat (MAX_TRANS) begin
+                        master.recv_r(r_data, r_resp);
+
+                        // if valid address
+                        if (
+                            (addr[$clog2(STRB_WIDTH)-1:0] == 0) &&
+                            (addr < SIZE)
+                        ) begin
+                            assert (r_resp == axi_pkg::RESP_OKAY);
+                            assert (r_data == data);
+                        end
+                        else begin
+                            assert (r_resp == axi_pkg::RESP_DECERR);
+                        end
+                    end
+                join
+            end
         end
-
-        $stop();
     end
 
 endmodule

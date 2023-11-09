@@ -5,6 +5,7 @@ numpy==1.25.2
 pyelftools==0.29
 pyserial==3.5
 tqdm==4.64.0
+vunit-hdl==4.7.0
 
 # docs
 sphinx==6.2.1

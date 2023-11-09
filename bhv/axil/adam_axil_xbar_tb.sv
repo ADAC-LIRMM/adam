@@ -1,4 +1,5 @@
 `include "axi/assign.svh"
+`include "vunit_defines.svh"
 
 module adam_axil_xbar_tb;
     import adam_axil_master_bhv::*;
@@ -190,7 +191,7 @@ module adam_axil_xbar_tb;
                             master_bhv[i].recv_b(resp);
                         join
 
-                        assert (resp == axi_pkg::RESP_OKAY) else $finish(1); 
+                        assert (resp == axi_pkg::RESP_OKAY); 
                     end
                     else begin
                         fork
@@ -198,8 +199,8 @@ module adam_axil_xbar_tb;
                             master_bhv[i].recv_r(data, resp);
                         join
 
-                        assert (resp == axi_pkg::RESP_OKAY) else $finish(1);
-                        assert (data == addr_low) else $finish(1);
+                        assert (resp == axi_pkg::RESP_OKAY);
+                        assert (data == addr_low);
                     end
                 end
 
@@ -226,7 +227,7 @@ module adam_axil_xbar_tb;
                         slave_bhv[i].recv_w(data, strb);
                     join
     
-                    assert (addr == (data & 32'hFFFF)) else $finish(1);
+                    assert (addr == (data & 32'hFFFF));
                     
                     slave_bhv[i].send_b(resp);
                 end

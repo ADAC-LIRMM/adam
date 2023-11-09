@@ -1,4 +1,5 @@
 `include "axi/assign.svh"
+`include "vunit_defines.svh"
 
 module adam_axil_pause_tb;
     import adam_axil_master_bhv::*;
@@ -109,32 +110,32 @@ module adam_axil_pause_tb;
     initial slave_bhv.loop();
     initial master_bhv.loop();
 
-    initial begin
-        pause_req = 0;
+    `TEST_SUITE begin
+        `TEST_CASE("test") begin
+            pause_req = 0;
 
-        repeat (NO_TESTS) begin
-            random_delay(100);
+            repeat (NO_TESTS) begin
+                random_delay(100);
 
-            pause_req <= #TA 1;
-            cycle_start();
-            while (pause_ack != 1) begin
-                cycle_end();
+                pause_req <= #TA 1;
                 cycle_start();
-            end
-            cycle_end();
-
-            random_delay(100);
-
-            pause_req <= #TA 0;
-            cycle_start();
-            while (pause_ack != 0) begin
+                while (pause_ack != 1) begin
+                    cycle_end();
+                    cycle_start();
+                end
                 cycle_end();
+
+                random_delay(100);
+
+                pause_req <= #TA 0;
                 cycle_start();
+                while (pause_ack != 0) begin
+                    cycle_end();
+                    cycle_start();
+                end
+                cycle_end();
             end
-            cycle_end();
         end
-
-        $stop();
     end
 
     initial begin

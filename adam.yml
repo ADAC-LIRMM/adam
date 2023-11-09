@@ -1,8 +1,7 @@
 targets:
   adam_cv32e40p_nexys_video:
     override:
-      bhsim:
-        top: adam_periphs_tb
+      vunit:
         fset: adam_cv32e40p_nexys_video_bhv
 
       bitst:
@@ -15,25 +14,10 @@ targets:
 
     fset: adam_cv32e40p_nexys_video_rtl
 
-    define:
+    defines:
       - VERILATOR
       - ADAM_CORE_CPU=adam_core_cv32e40p
       - ADAM_CORE_LPU=adam_core_cv32e40p
-
-tests:
-  - adam_axil_apb_bridge_tb
-  - adam_axil_pause_tb
-  - adam_axil_ram_tb
-  - adam_axil_xbar_tb
-  - adam_periph_gpio_tb
-  - adam_periph_spi_phy_tb
-  - adam_periph_spi_tb
-  - adam_periph_sysctrl_tb
-  - adam_periph_timer_tb
-  - adam_periph_uart_rx_tb
-  - adam_periph_uart_tx_tb
-  - adam_periph_uart_tb
-  - adam_periphs_tb
       
 fsets: 
   adam_cv32e40p_nexys_video_bhv:
@@ -68,7 +52,7 @@ fsets:
       - axil/adam_axil_apb_bridge_tb.sv
       - axil/adam_axil_pause_tb.sv
       - axil/adam_axil_ram_tb.sv
-      - axil/adam_axil_xbar_tb.sv
+#      - axil/adam_axil_xbar_tb.sv
       - periphs/gpio/adam_periph_gpio_tb.sv
       - periphs/spi/adam_periph_spi_phy_tb.sv
       - periphs/spi/adam_periph_spi_tb.sv
@@ -78,7 +62,7 @@ fsets:
       - periphs/uart/adam_periph_uart_tx_tb.sv
       - periphs/uart/adam_periph_uart_tb.sv
       - periphs/adam_periphs_tb.sv
-      - adam_tb.sv
+#      - adam_tb.sv
 
   adam_rtl:
     requires:

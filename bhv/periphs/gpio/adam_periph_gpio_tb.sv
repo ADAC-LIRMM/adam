@@ -1,5 +1,6 @@
 
 `include "apb/assign.svh"
+`include "vunit_defines.svh"
 
 module adam_periph_gpio_tb;
 
@@ -121,13 +122,11 @@ module adam_periph_gpio_tb;
 
     generate
         for (genvar i = 0; i < GPIO_WIDTH; i++) begin
-            always_comb begin
-                io[i].i = idr[i];
-    
-                odr[i]    = io[i].o;
-                moder[i]  = io[i].mode;
-                otyper[i] = io[i].otype;
-            end  
+            assign io[i].i = idr[i];
+
+            assign odr[i]    = io[i].o;
+            assign moder[i]  = io[i].mode;
+            assign otyper[i] = io[i].otype;
         end
     endgenerate
 
@@ -151,109 +150,109 @@ module adam_periph_gpio_tb;
         pause_req = pause_req_auto && !critical;
     end
     
-    initial begin
-        automatic addr_t addr;
-        automatic data_t data;
-        automatic strb_t strb;
-        automatic logic  resp;
-        automatic bit    write;
+    `TEST_SUITE begin
+        `TEST_CASE("test") begin
+            automatic addr_t addr;
+            automatic data_t data;
+            automatic strb_t strb;
+            automatic logic  resp;
+            automatic bit    write;
 
-        automatic reg_t tmp;
+            automatic reg_t tmp;
 
-        test = 0;
+            test = 0;
 
-        ref_irq    = 0;
-        ref_idr    = 0;
-        ref_odr    = 0;
-        ref_moder  = 0;
-        ref_otyper = 0;
-        ref_fsr[0] = 0;
-        ref_fsr[1] = 0;
-        ref_ier    = 0;
+            ref_irq    = 0;
+            ref_idr    = 0;
+            ref_odr    = 0;
+            ref_moder  = 0;
+            ref_otyper = 0;
+            ref_fsr[0] = 0;
+            ref_fsr[1] = 0;
+            ref_ier    = 0;
 
-        critical = 0;
+            critical = 0;
 
-        @(negedge rst);
-        master.reset_master();
-        repeat (10) @(posedge clk);
+            @(negedge rst);
+            master.reset_master();
+            repeat (10) @(posedge clk);
 
-        for(int i = 0; i < NO_TESTS; i++) begin
-            addr  = $urandom_range(0, 6) << $clog2(ADDR_WIDTH/8);
-            data  = $urandom();
-            strb  = $urandom();
-            write = $urandom_range(0, 1);
+            for(int i = 0; i < NO_TESTS; i++) begin
+                addr  = $urandom_range(0, 6) << $clog2(ADDR_WIDTH/8);
+                data  = $urandom();
+                strb  = $urandom();
+                write = $urandom_range(0, 1);
 
-            idr     = $urandom();
-            ref_idr = idr;
+                idr     = $urandom();
+                ref_idr = idr;
 
-            critical_begin();
+                critical_begin();
 
-            if (write) begin
-                $display("Write addr: %0h", addr);
-                $display("Write data: %0h strb: %0h", data, strb);
-                
-                master.write(addr, data, strb, resp);
+                if (write) begin
+                    $display("Write addr: %0h", addr);
+                    $display("Write data: %0h strb: %0h", data, strb);
+                    
+                    master.write(addr, data, strb, resp);
 
-                $display("Write resp: %0h", resp);
+                    $display("Write resp: %0h", resp);
 
-                case (addr)
-                    32'h00:
-                        assert (resp == apb_pkg::RESP_SLVERR) else $finish(1);
-                    32'h04, 32'h08, 32'h0C, 32'h10, 32'h14, 32'h18:
-                        assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
-                endcase
-                
-                for (int i = 0; i < GPIO_WIDTH/8; i++) begin
-                    if (strb[i]) begin
-                        case (addr)
-                            32'h00: ;
-                            32'h04: ref_odr   [i*8 +: 8] = data[i*8 +: 8];
-                            32'h08: ref_moder [i*8 +: 8] = data[i*8 +: 8];
-                            32'h0C: ref_otyper[i*8 +: 8] = data[i*8 +: 8];
-                            32'h10: ref_fsr[0][i*8 +: 8] = data[i*8 +: 8];
-                            32'h14: ref_fsr[1][i*8 +: 8] = data[i*8 +: 8];
-                            32'h18: ref_ier   [i*8 +: 8] = data[i*8 +: 8];
-                        endcase
+                    case (addr)
+                        32'h00:
+                            assert (resp == apb_pkg::RESP_SLVERR);
+                        32'h04, 32'h08, 32'h0C, 32'h10, 32'h14, 32'h18:
+                            assert (resp == apb_pkg::RESP_OKAY);
+                    endcase
+                    
+                    for (int i = 0; i < GPIO_WIDTH/8; i++) begin
+                        if (strb[i]) begin
+                            case (addr)
+                                32'h00: ;
+                                32'h04: ref_odr   [i*8 +: 8] = data[i*8 +: 8];
+                                32'h08: ref_moder [i*8 +: 8] = data[i*8 +: 8];
+                                32'h0C: ref_otyper[i*8 +: 8] = data[i*8 +: 8];
+                                32'h10: ref_fsr[0][i*8 +: 8] = data[i*8 +: 8];
+                                32'h14: ref_fsr[1][i*8 +: 8] = data[i*8 +: 8];
+                                32'h18: ref_ier   [i*8 +: 8] = data[i*8 +: 8];
+                            endcase
+                        end
                     end
                 end
+                else begin
+                    $display("Read from addr: %0h", addr);
+                    
+                    master.read(addr, data, resp);
+
+                    $display("Read data: %0h", data);
+                    $display("Read resp: %0h", resp);
+
+                    assert (resp == apb_pkg::RESP_OKAY);
+
+                    tmp = data[GPIO_WIDTH-1:0];
+
+                    case (addr)
+                        32'h00: assert (tmp == ref_idr   );
+                        32'h04: assert (tmp == ref_odr   );
+                        32'h08: assert (tmp == ref_moder );
+                        32'h0C: assert (tmp == ref_otyper);
+                        32'h10: assert (tmp == ref_fsr[0]);
+                        32'h14: assert (tmp == ref_fsr[1]);
+                        32'h18: assert (tmp == ref_ier   );
+                    endcase
+                end
+
+                ref_irq = 0;
+                for (int i = 0; i < GPIO_WIDTH; i++) begin
+                    ref_irq |= ref_ier[i] & ref_idr[i];
+                end
+
+                assert (irq == ref_irq); 
+
+                critical_end();
+
             end
-            else begin
-                $display("Read from addr: %0h", addr);
-                
-                master.read(addr, data, resp);
-
-                $display("Read data: %0h", data);
-                $display("Read resp: %0h", resp);
-
-                assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
-
-                tmp = data[GPIO_WIDTH-1:0];
-
-                case (addr)
-                    32'h00: assert (tmp == ref_idr   ) else $finish(1);
-                    32'h04: assert (tmp == ref_odr   ) else $finish(1);
-                    32'h08: assert (tmp == ref_moder ) else $finish(1);
-                    32'h0C: assert (tmp == ref_otyper) else $finish(1);
-                    32'h10: assert (tmp == ref_fsr[0]) else $finish(1);
-                    32'h14: assert (tmp == ref_fsr[1]) else $finish(1);
-                    32'h18: assert (tmp == ref_ier   ) else $finish(1);
-                endcase
-            end
-
-            ref_irq = 0;
-            for (int i = 0; i < GPIO_WIDTH; i++) begin
-                ref_irq |= ref_ier[i] & ref_idr[i];
-            end
-
-            assert (irq == ref_irq) else $finish(1); 
-
-            critical_end();
-
+            
+            repeat (10) @(posedge clk);   
         end
-        
-        repeat (10) @(posedge clk);
-        
-        $stop();
     end
 
     task critical_begin();

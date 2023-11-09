@@ -1,5 +1,6 @@
 
 `include "apb/assign.svh"
+`include "vunit_defines.svh"
 
 module adam_periph_uart_tb;
     
@@ -103,133 +104,133 @@ module adam_periph_uart_tb;
         rx.i = tx.o;
     end
 
-    initial begin
-        automatic addr_t addr;
-        automatic data_t data;
-        automatic strb_t strb;
-        automatic logic  resp;
-        
-        automatic data_t check;
-        automatic int no_frames;
-        automatic data_t frames [0:1];
+    `TEST_SUITE begin
+        `TEST_CASE("test") begin
+            automatic addr_t addr;
+            automatic data_t data;
+            automatic strb_t strb;
+            automatic logic  resp;
+            
+            automatic data_t check;
+            automatic int no_frames;
+            automatic data_t frames [0:1];
 
-        test = 1;
-        strb = 4'b1111;
-        
-        critical = 0;
+            test = 1;
+            strb = 4'b1111;
+            
+            critical = 0;
 
-        @(negedge rst);
-        master.reset_master();
-        repeat (10) @(posedge clk);
-
-        critical_begin();
-
-        // Write to Baud Rate Register (BRR)
-        addr = 32'h000C;
-        data = 1s / (BAUD_RATE * CLK_PERIOD);
-        master.write(addr, data, strb, resp);
-        assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
-        
-        // Verify BRR value
-        master.read(addr, check, resp);
-        assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
-        assert (check == data) else $finish(1);
-
-        // Verifies behavior when peripheral is disabled
-        addr = 32'h0000; // Data Register (DR)
-        data = 32'h0000_0000;
-        master.read(addr, check, resp);
-        assert (resp == apb_pkg::RESP_SLVERR) else $finish(1);
-        master.write(addr, data, strb, resp);
-        assert (resp == apb_pkg::RESP_SLVERR) else $finish(1);
-
-        // Write to Control Register (CR)
-        // All enabled, no parity, 1 stop bit, 8 data bits
-        addr = 32'h0004; 
-        data = 32'h0000_0807; 
-        master.write(addr, data, strb, resp);
-        assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
-
-        // Verify CR value
-        master.read(addr, check, resp);
-        assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
-        assert (check == data) else $finish(1);
-
-        // IER at 0 by default => IRQ disabled by default
-        assert (irq == 0) else $finish(1);
-
-        // Write to Interrupt Enable Register (IER)
-        addr = 32'h0010;
-        data = 32'hFFFF_FFFF;
-        master.write(addr, data, strb, resp);
-        assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
-
-        // Verify IER value
-        master.read(addr, check, resp);
-        assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
-        assert (check == data) else $finish(1);
-
-        // Write to Interrupt Enable Register (IER)
-        addr = 32'h0010;
-        data = 32'hFFFF_FFFF;
-        master.write(addr, data, strb, resp);
-        assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
-
-        // Verify IER value
-        assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
-        assert (check == data) else $finish(1);
-
-        // Verify Transmit Buffer Empty Interrupt Enable
-        assert (irq == 1) else $finish(1); 
-
-        critical_end();
-
-        for(int i = 0; i < NO_TESTS; i++) begin
+            @(negedge rst);
+            master.reset_master();
+            repeat (10) @(posedge clk);
 
             critical_begin();
+
+            // Write to Baud Rate Register (BRR)
+            addr = 32'h000C;
+            data = 1s / (BAUD_RATE * CLK_PERIOD);
+            master.write(addr, data, strb, resp);
+            assert (resp == apb_pkg::RESP_OKAY);
             
-            no_frames = $urandom_range(1, 2);
-            
-            frames[0] = $urandom_range(0, 255);
-            frames[1] = $urandom_range(0, 255);
+            // Verify BRR value
+            master.read(addr, check, resp);
+            assert (resp == apb_pkg::RESP_OKAY);
+            assert (check == data);
 
-            // Transmit
-            for (int j = 0; j < no_frames; j++) begin
-                
-                do begin
-                    addr = 32'h0008; // Status Register (SR)
-                    master.read(addr, data, resp);
-                    assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
-                end while (data[0] == 0); // Transmit Buffer Empty (TBE)
+            // Verifies behavior when peripheral is disabled
+            addr = 32'h0000; // Data Register (DR)
+            data = 32'h0000_0000;
+            master.read(addr, check, resp);
+            assert (resp == apb_pkg::RESP_SLVERR);
+            master.write(addr, data, strb, resp);
+            assert (resp == apb_pkg::RESP_SLVERR);
 
-                addr = 32'h0000; // Data Register (DR)
-                master.write(addr, frames[j], strb, resp);
-                assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
+            // Write to Control Register (CR)
+            // All enabled, no parity, 1 stop bit, 8 data bits
+            addr = 32'h0004; 
+            data = 32'h0000_0807; 
+            master.write(addr, data, strb, resp);
+            assert (resp == apb_pkg::RESP_OKAY);
 
-            end
+            // Verify CR value
+            master.read(addr, check, resp);
+            assert (resp == apb_pkg::RESP_OKAY);
+            assert (check == data);
 
-            // Receive
-            for (int j = 0; j < no_frames; j++) begin
+            // IER at 0 by default => IRQ disabled by default
+            assert (irq == 0);
 
-                do begin
-                    addr = 32'h0008; // Status Register (SR)
-                    master.read(addr, data, resp);
-                    assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
-                end while (data[1] == 0); // Receive Buffer Full (RBF)
+            // Write to Interrupt Enable Register (IER)
+            addr = 32'h0010;
+            data = 32'hFFFF_FFFF;
+            master.write(addr, data, strb, resp);
+            assert (resp == apb_pkg::RESP_OKAY);
 
-                addr = 32'h0000; // Data Register (DR)
-                master.read(addr, check, resp);
-                assert (resp == apb_pkg::RESP_OKAY) else $finish(1);
-                assert (check == frames[j]) else $finish(1);
+            // Verify IER value
+            master.read(addr, check, resp);
+            assert (resp == apb_pkg::RESP_OKAY);
+            assert (check == data);
 
-            end
+            // Write to Interrupt Enable Register (IER)
+            addr = 32'h0010;
+            data = 32'hFFFF_FFFF;
+            master.write(addr, data, strb, resp);
+            assert (resp == apb_pkg::RESP_OKAY);
+
+            // Verify IER value
+            assert (resp == apb_pkg::RESP_OKAY);
+            assert (check == data);
+
+            // Verify Transmit Buffer Empty Interrupt Enable
+            assert (irq == 1); 
 
             critical_end();
+
+            for(int i = 0; i < NO_TESTS; i++) begin
+
+                critical_begin();
+                
+                no_frames = $urandom_range(1, 2);
+                
+                frames[0] = $urandom_range(0, 255);
+                frames[1] = $urandom_range(0, 255);
+
+                // Transmit
+                for (int j = 0; j < no_frames; j++) begin
+                    
+                    do begin
+                        addr = 32'h0008; // Status Register (SR)
+                        master.read(addr, data, resp);
+                        assert (resp == apb_pkg::RESP_OKAY);
+                    end while (data[0] == 0); // Transmit Buffer Empty (TBE)
+
+                    addr = 32'h0000; // Data Register (DR)
+                    master.write(addr, frames[j], strb, resp);
+                    assert (resp == apb_pkg::RESP_OKAY);
+
+                end
+
+                // Receive
+                for (int j = 0; j < no_frames; j++) begin
+
+                    do begin
+                        addr = 32'h0008; // Status Register (SR)
+                        master.read(addr, data, resp);
+                        assert (resp == apb_pkg::RESP_OKAY);
+                    end while (data[1] == 0); // Receive Buffer Full (RBF)
+
+                    addr = 32'h0000; // Data Register (DR)
+                    master.read(addr, check, resp);
+                    assert (resp == apb_pkg::RESP_OKAY);
+                    assert (check == frames[j]);
+
+                end
+
+                critical_end();
+            end
+            
+            repeat (10) @(posedge clk);
         end
-        
-        repeat (10) @(posedge clk);
-        
-        $stop();
     end
 
     task critical_begin();
