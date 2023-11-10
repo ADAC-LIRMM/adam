@@ -7,6 +7,7 @@ module cv32e40p_clock_gate (
 
   adam_clk_gate adam_clk_gate (
     .clk       (clk_i),
+    .rst       ('0),
     .test      (scan_cg_en_i),
     .enable    (en_i),
     .gated_clk (clk_o)

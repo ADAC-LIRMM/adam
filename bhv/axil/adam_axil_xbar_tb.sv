@@ -35,6 +35,8 @@ module adam_axil_xbar_tb;
         addr_t end_addr;
     } rule_t;
     
+    integer done;
+
     logic clk;
     logic rst;
     logic test;
@@ -165,6 +167,22 @@ module adam_axil_xbar_tb;
 
     assign test = 0;
 
+    `TEST_SUITE begin
+        `TEST_CASE("test") begin
+            done = 0;
+
+            @(negedge rst); 
+            @(posedge clk);
+
+            cycle_start();
+            while (done < NO_XBAR_SLAVES) begin
+                cycle_end();
+                cycle_start();
+            end
+            cycle_end();
+        end
+    end
+
     generate
         for (genvar i = 0; i < NO_XBAR_SLAVES; i++) begin
             initial begin
@@ -204,7 +222,7 @@ module adam_axil_xbar_tb;
                     end
                 end
 
-                $stop();
+                done += 1;
             end
         end
 
@@ -253,4 +271,13 @@ module adam_axil_xbar_tb;
             end
         end
     endgenerate
+
+    task cycle_start();
+        #TT;
+    endtask
+
+    task cycle_end();
+        @(posedge clk);
+    endtask
+
 endmodule

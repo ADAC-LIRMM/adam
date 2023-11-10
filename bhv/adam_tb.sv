@@ -1,3 +1,5 @@
+`include "vunit_defines.svh"
+
 module adam_tb;
 
     localparam ADDR_WIDTH = 32;
@@ -108,7 +110,6 @@ module adam_tb;
     );
 
     generate 
-
         bootloader bootloader (
             .clk  (clk),
             .rst  (rst || mem_srst[0]),
@@ -139,4 +140,11 @@ module adam_tb;
         end
     endgenerate
     
+    `TEST_SUITE begin
+        `TEST_CASE("test") begin
+            //@(negedge uart_tx[0].o);
+            #10us;
+        end
+    end
+
 endmodule

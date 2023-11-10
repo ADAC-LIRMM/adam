@@ -52,7 +52,7 @@ fsets:
       - axil/adam_axil_apb_bridge_tb.sv
       - axil/adam_axil_pause_tb.sv
       - axil/adam_axil_ram_tb.sv
-#      - axil/adam_axil_xbar_tb.sv
+      - axil/adam_axil_xbar_tb.sv
       - periphs/gpio/adam_periph_gpio_tb.sv
       - periphs/spi/adam_periph_spi_phy_tb.sv
       - periphs/spi/adam_periph_spi_tb.sv
@@ -62,7 +62,8 @@ fsets:
       - periphs/uart/adam_periph_uart_tx_tb.sv
       - periphs/uart/adam_periph_uart_tb.sv
       - periphs/adam_periphs_tb.sv
-#      - adam_tb.sv
+      - adam_clk_div_tb.sv
+      - adam_tb.sv
 
   adam_rtl:
     requires:
