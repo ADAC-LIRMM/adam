@@ -5,13 +5,18 @@
     .AXI_DATA_WIDTH (DATA_WIDTH) \
 )
 
-module adam_fabric_hsclk #(
+module adam_fabric_hsdom #(
 	parameter ADDR_WIDTH = 32,
 	parameter DATA_WIDTH = 32,
 
-    parameter NO_CPUS    = 2,
-    parameter NO_DMAS    = 2,
-    parameter NO_MEMS    = 2,
+    parameter MAX_TRANS = 7,
+
+    parameter NO_CPUS = 2,
+    parameter NO_DMAS = 2,
+    parameter NO_MEMS = 2,
+    parameter NO_HSIP = 1,
+
+    parameter EN_DEBUG = 1,
 
     // Dependent parameters bellow, do not override.
 
@@ -27,24 +32,18 @@ module adam_fabric_hsclk #(
 	input  logic pause_req,
 	output logic pause_ack,
 
-    AXI_LITE.Slave cpus    [2*NO_CORES],
-    AXI_LITE.Slave dmas    [NO_DMAS],
-    AXI_LITE.Slave dbg_slv,
-    AXI_LITE.Slave from_lsclk
+    AXI_LITE.Slave cpus [2*NO_CPUS],
+    AXI_LITE.Slave dmas [NO_DMAS],
+    AXI_LITE.Slave debug_slv,
+    AXI_LITE.Slave from_lsdom,
 
-    AXI_LITE.Master to_lsclk,
-    AXI_LITE.Master dbg_mst,
-    AXI_LITE.Master mems    [NO_MEMS],
-    AXI_LITE.Master hsip
+    AXI_LITE.Master mems [NO_MEMS],
+    AXI_LITE.Master hsip [NO_HSIP],
+    AXI_LITE.Master debug_mst,
+    AXI_LITE.Master to_lsdom
 );
-
-    localparam MAX_TRANS = 7;
-
-    localparam NO_BASE_SLVS = NO_DMAS + 2;
-    localparam NO_BASE_MSTS = 5;
-
-    localparam NO_INTM_SLVS = (NO_CORES-1) + 1;
-    localparam NO_INTM_MSTS = (NO_MEMS-1) + 1;
+    localparam NO_SLVS = NO_CPUS + NO_DMAS + EN_DEBUG + 1;
+    localparam NO_MSTS = NO_MEMS + 1;
 
     typedef struct packed {
         int unsigned idx;
@@ -52,126 +51,104 @@ module adam_fabric_hsclk #(
         addr_t end_addr;
     } rule_t;
 
-    `AXIL_I base_slvs [NO_BASE_SLVS] ();
-    `AXIL_I base_msts [NO_BASE_MSTS] ();
-
-    `AXIL_I base_to_intm ();
-    `AXIL_I intm_to_base ();
+    `AXIL_I slvs [NO_SLVS] ();
+    `AXIL_I msts [NO_MSTS] ();
     
-    rule_t [NO_BASE_MSTS-1:0] base_map;
-    rule_t [NO_INTM_MSTS-1:0] intm_map;
+    rule_t [NO_MSTS-1:0] addr_map;
     
-    // Base Slave Mapping
+    // Slave Mapping
     generate 
-        localparam BSM_CORE0_S = 0;
-		localparam BSM_CORE0_E = BSM_CORE0_S + 2;
+        localparam CPUS_S = 0;
+		localparam CPUS_E = CPUS_S + 2*NO_CPUS;
 
-        localparam BSM_DMA_S = BSM_CORE0_E;
-        localparam BSM_DMA_E = BSM_DMA_S + 2;
+        localparam DMAS_S = CPUS_E;
+        localparam DMAS_E = DMAS_S + 2*NO_DMAS;
 
-        localparam BSM_INTM_S = BSM_DMA_E;
-        localparam BSM_INTM_E = BSM_INTM_S + 1;
+        localparam DEBUG_SLV_S = DMAS_E;
+        localparam DEBUG_SLV_E = DEBUG_SLV_S + EN_DEBUG;
 
-        // Core 0 (LPU)
-		for (genvar i = BSM_CORE0_S; i < BSM_CORE0_E; i++) begin
-			`AXI_LITE_ASSIGN(base_slvs[i], cores[i - BSM_CORE0_S]);
+        localparam FROM_LSDOM_S = DEBUG_SLV_E;
+        localparam FROM_LSDOM_E = FROM_LSDOM_S + 1;
+
+        // Cores
+		for (genvar i = CPUS_S; i < CPUS_E; i++) begin
+			`AXI_LITE_ASSIGN(slvs[i], cpus[i-CPUS_S]);
 		end
 
         // DMAs
-        for (genvar i = BSM_DMA_S; i < BSM_DMA_E; i++) begin
-			`AXI_LITE_ASSIGN(base_slvs[i], dmas[i - BSM_DMA_S]);
+        for (genvar i = DMAS_S; i < DMAS_E; i++) begin
+			`AXI_LITE_ASSIGN(slvs[i], dmas[i-DMAS_S]);
 		end
 
-        // Intm.
-        for (genvar i = BSM_INTM_S; i < BSM_INTM_E; i++) begin
-			`AXI_LITE_ASSIGN(base_slvs[i], intm_to_base);
-		end
-    endgenerate
-
-    // Base Master Mapping
-    generate		
-        // Debug Interface
-        assign base_map[0] = '{
-            idx: 0,
-            start_addr: 32'h0000_0000,
-            end_addr:   32'h0000_4000
-        };
-        `AXI_LITE_OFFSET(dbg_mst, base_msts[0], base_map[0]);
-
-        // Memory 0
-        assign base_map[1] = '{
-            idx: 1,
-            start_addr: 32'h0000_4000,
-            end_addr:   32'h0000_8000
-        };
-        `AXI_LITE_OFFSET(mems[0], base_msts[1], base_map[1]);
-
-        // SYSCFG
-        assign base_map[2] = '{
-            idx: 2,
-            start_addr: 32'h0000_8000,
-            end_addr:   32'h0000_8400
-        };
-        `AXI_LITE_OFFSET(syscfg, base_msts[2], base_map[2]);
-
-        // Low Speed Base Peripherals (LSBP)
-        assign base_map[3] = '{
-            idx: 3,
-            start_addr: 32'h0001_0000,
-            end_addr:   32'h0001_8000
-        };
-        `AXI_LITE_OFFSET(lsbp, base_msts[3], base_map[3]);
-
-        // Intm.
-        assign base_map[4] = '{
-            idx: 4,
-            start_addr: 32'h0002_0000,
-            end_addr:   '0 // unbounded
-        };
-        `AXI_LITE_OFFSET(base_to_intm, base_msts[4], base_map[4]);
-    endgenerate
-
-    // Intm. Slave Mapping
-    generate
-        localparam ISM_CORE0_S = 0;
-		localparam ISM_CORE0_E = ISM_CORE0_S + 2*(NO_CORES-1);
-		
-        localparam ISM_BASE_S = ISM_CORE0_E;
-        localparam ISM_BASE_E = ISM_BASE_S + 1;
-
-        for (genvar i = ISM_CORE0_S; i < ISM_CORE0_E; i++) begin
-			`AXI_LITE_ASSIGN(intm_slvs[i], cores[i-ISM_CORE0_S+1]);
+        // Debug
+        for (genvar i = DEBUG_SLV_S; i < DEBUG_SLV_E; i++) begin
+            `AXI_LITE_ASSIGN(slvs[i], debug_slv);
+        end
+        if (!EN_DEBUG) begin
+            `AXI_LITE_SLAVE_TIE_OFF(debug_slv);
         end
 
-		for (genvar i = ISM_BASE_S; i < ISM_BASE_E; i++) begin
-			`AXI_LITE_ASSIGN(intm_slvs[i], intm_to_base);
+        // From Low Speed Domain (LSDOM)
+        for (genvar i = FROM_LSDOM_S; i < FROM_LSDOM_E; i++) begin
+			`AXI_LITE_ASSIGN(slvs[i], from_lsdom);
 		end
     endgenerate
 
-    // Intm. Master Mapping
+    // Master Mapping
     generate
-        localparam IMM_MEMS_S = 0;
-        localparam IMM_MEMS_E = IMM_MEMS_S + (NO_MEMS-1);
+        localparam MEMS_S = 0;
+		localparam MEMS_E = MEMS_S + NO_MEMS;
 
-        localparam IMM_BASE_S = IMM_MEMS_E;
-        localparam IMM_BASE_E = IMM_BASE_S + 1;
+        localparam HSIP_S = MEMS_E;
+        localparam HSIP_E = HSIP_S + NO_HSIP;
 
-        for (genvar i = IMM_MEMS_S; i < IMM_MEMS_E; i++) begin
-            assign intm_map[i] = '{
+        localparam DEBUG_S = HSIP_E;
+        localparam DEBUG_E = DEBUG_S + EN_DEBUG;
+
+        localparam TO_LSDOM_S = DEBUG_E;
+        localparam TO_LSDOM_E = TO_LSDOM_S + 1;
+
+        // Memories
+        for (genvar i = MEMS_S; i < MEMS_E; i++) begin
+            assign addr_map[i] = '{
                 idx: i,
-                start_addr: 32'h0100_0000 + 32'h0100_0000*(i-IMM_MEMS_S),
-                end_addr:   32'h0100_0000 + 32'h0100_0000*(i-IMM_MEMS_S+1)
+                start_addr: 32'h0100_0000 + 32'h0100_0000*(i-MEMS_S),
+                end_addr:   32'h0100_0000 + 32'h0100_0000*(i-MEMS_S+1)
             };
-            `AXI_LITE_OFFSET(mems[i-IMM_MEMS_S+1], intm_msts[i], intm_map[i]);
+            `AXI_LITE_OFFSET(mems[i-MEMS_S], msts[i], addr_map[i]);
         end
 
-        for (genvar i = IMM_BASE_S; i < IMM_BASE_E; i++) begin
-            assign intm_map[i] = '{
+        // High Speed Intermittent Peripherals (HSIP)
+        for (genvar i = HSIP_S; i < HSIP_E; i++) begin
+            assign addr_map[i] = '{
+                idx: i,
+                start_addr: 32'h0900_0000 + 32'h0000_0400*(i-HSIP_S),
+                end_addr:   32'h0900_0000 + 32'h0000_0400*(i-HSIP_E+1)
+            };
+            `AXI_LITE_OFFSET(hsip[i-HSIP_S], msts[i], addr_map[i]);
+        end
+
+        // Debug
+        for (genvar i = DEBUG_S; i < DEBUG_E; i++) begin
+            assign addr_map[i] = '{
+                idx: i,
+                start_addr: 32'h0000_8000,
+                end_addr:   32'h0000_8400
+            };
+            `AXI_LITE_OFFSET(debug_mst, msts[i], addr_map[i]);
+        end
+        if (!EN_DEBUG) begin
+            `AXI_LITE_MASTER_TIE_OFF(debug_mst);
+        end
+
+        // To Low Speed Domain (LSDOM)
+        for (genvar i = TO_LSDOM_S; i < TO_LSDOM_E; i++) begin
+            assign addr_map[i] = '{
                 idx: i,
                 start_addr: 32'h0000_0000,
-                end_addr:   32'h0002_0000
+                end_addr:   32'h0008_0000
             };
-            `AXI_LITE_OFFSET(intm_to_base, intm_msts[i], intm_map[i]);
+            `AXI_LITE_OFFSET(to_lsdom, msts[i], addr_map[i]);
         end
     endgenerate
 
@@ -179,8 +156,8 @@ module adam_fabric_hsclk #(
         .ADDR_WIDTH (ADDR_WIDTH),
         .DATA_WIDTH (DATA_WIDTH),
 
-        .NO_SLVS  (NO_BASE_SLVS),
-        .NO_MSTS (NO_BASE_MSTS),
+        .NO_SLVS (NO_SLVS),
+        .NO_MSTS (NO_MSTS),
         
         .MAX_TRANS (MAX_TRANS),
 
@@ -189,13 +166,13 @@ module adam_fabric_hsclk #(
         .clk  (clk),
         .rst  (rst),
         
-        .pause_req (base_pause_req),
-		.pause_ack (base_pause_ack),
+        .pause_req (pause_req),
+		.pause_ack (pause_ack),
 
-        .axil_slv (base_slvs),
-        .axil_mst (base_msts),
+        .axil_slv (slvs),
+        .axil_mst (msts),
 
-        .addr_map (base_map)
+        .addr_map (addr_map)
     );
 
 endmodule
