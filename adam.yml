@@ -91,7 +91,7 @@ fsets:
       - obi/adam_obi_axil_bridge.sv
       - periphs/adam_periphs.sv
       # Level 4
-      - fabric/adam_fabric_hsclk.sv
+      - fabric/adam_fabric_hsdom.sv
       # Level 5
       - axil/adam_axil_ram.sv
       - adam.sv
