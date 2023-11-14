@@ -1,0 +1,34 @@
+diff --git a/include/axi/assign.svh b/include/axi/assign.svh
+index 80667eb0..6164756e 100644
+--- a/include/axi/assign.svh
++++ b/include/axi/assign.svh
+@@ -537,6 +537,29 @@
+ `define AXI_LITE_ASSIGN_RESP_STRUCT(lhs, rhs) `__AXI_LITE_TO_RESP(assign, lhs, ., rhs, .)
+ ////////////////////////////////////////////////////////////////////////////////////////////////////
+ 
++////////////////////////////////////////////////////////////////////////////////////////////////////
++// Macro to apply an address offset to an AXI Lite interface
++// This macro adjusts the address signals of the AXI Lite master interface by subtracting a given
++// offset, while keeping other signals unchanged. It should be used to translate addresses for
++// AXI Lite transactions.
++//
++// Parameters:
++// - mst: AXI Lite Master interface to which the offset is applied.
++// - slv: AXI Lite Slave interface from which signals are taken.
++// - offset: Address offset to be subtracted from the address signals.
++//
++// Usage:
++// `AXI_LITE_OFFSET(axi_lite_master, axi_lite_slave, address_offset)
++//
++`define AXI_LITE_OFFSET(mst, slv, offset) \
++    assign mst.aw_addr = slv.aw_addr - (offset); \
++    `AXI_LITE_ASSIGN_AW(mst, slv) \
++    `AXI_LITE_ASSIGN_W(mst, slv) \
++    `AXI_LITE_ASSIGN_B(slv, mst) \
++    assign mst.ar_addr = slv.ar_addr - (offset); \
++    `AXI_LITE_ASSIGN_AR(mst, slv) \
++    `AXI_LITE_ASSIGN_R(slv, mst)
++////////////////////////////////////////////////////////////////////////////////////////////////////
+ 
+ ////////////////////////////////////////////////////////////////////////////////////////////////////
+ // Macros for assigning flattened AXI ports to req/resp AXI structs

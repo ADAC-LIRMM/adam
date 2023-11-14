@@ -8,8 +8,8 @@ module adam_axil_xbar_tb;
     localparam ADDR_WIDTH = 32;
     localparam DATA_WIDTH = 32;
     
-    localparam NO_XBAR_SLAVES  = 4;
-    localparam NO_XBAR_MASTERS = 4;
+    localparam NO_XBAR_SLVS = 4;
+    localparam NO_XBAR_MSTS = 4;
 
     localparam MAX_TRANS = 7;
 
@@ -39,32 +39,31 @@ module adam_axil_xbar_tb;
 
     logic clk;
     logic rst;
-    logic test;
 
     logic pause_req;
     logic pause_ack;
 
-    rule_t [NO_XBAR_SLAVES-1:0] addr_map;
+    rule_t [NO_XBAR_SLVS-1:0] addr_map;
 
     AXI_LITE #(
         .AXI_ADDR_WIDTH (ADDR_WIDTH),
         .AXI_DATA_WIDTH (DATA_WIDTH)
-    ) master [NO_XBAR_SLAVES] ();
+    ) master [NO_XBAR_SLVS] ();
     
     AXI_LITE #(
         .AXI_ADDR_WIDTH (ADDR_WIDTH),
         .AXI_DATA_WIDTH (DATA_WIDTH)
-    ) slave [NO_XBAR_MASTERS] ();
+    ) slave [NO_XBAR_MSTS] ();
 
     AXI_LITE_DV #(
         .AXI_ADDR_WIDTH(ADDR_WIDTH),
         .AXI_DATA_WIDTH(DATA_WIDTH)
-    ) master_dv [NO_XBAR_SLAVES] (clk);
+    ) master_dv [NO_XBAR_SLVS] (clk);
 
     AXI_LITE_DV #(
         .AXI_ADDR_WIDTH(ADDR_WIDTH),
         .AXI_DATA_WIDTH(DATA_WIDTH)
-    ) slave_dv [NO_XBAR_MASTERS] (clk);
+    ) slave_dv [NO_XBAR_MSTS] (clk);
 
     adam_axil_master_bhv #(
         .ADDR_WIDTH (ADDR_WIDTH),
@@ -74,7 +73,7 @@ module adam_axil_xbar_tb;
         .TT (TT),
 
         .MAX_TRANS (MAX_TRANS)
-    ) master_bhv [NO_XBAR_SLAVES];
+    ) master_bhv [NO_XBAR_SLVS];
 
      adam_axil_slave_bhv #(
         .ADDR_WIDTH (ADDR_WIDTH),
@@ -84,10 +83,10 @@ module adam_axil_xbar_tb;
         .TT (TT),
 
         .MAX_TRANS (MAX_TRANS)
-     ) slave_bhv [NO_XBAR_MASTERS];
+     ) slave_bhv [NO_XBAR_MSTS];
 
     generate
-        for (genvar i = 0; i < NO_XBAR_SLAVES; i++) begin
+        for (genvar i = 0; i < NO_XBAR_SLVS; i++) begin
             `AXI_LITE_ASSIGN(master[i], master_dv[i]);
 
             initial begin
@@ -96,7 +95,7 @@ module adam_axil_xbar_tb;
             end
         end
 
-        for (genvar i = 0; i < NO_XBAR_MASTERS; i++) begin
+        for (genvar i = 0; i < NO_XBAR_MSTS; i++) begin
             `AXI_LITE_ASSIGN(slave_dv[i], slave[i]);
 
             initial begin
@@ -107,7 +106,7 @@ module adam_axil_xbar_tb;
     endgenerate
 
     always_comb begin
-        for (int i = 0; i < NO_XBAR_MASTERS; i++) begin
+        for (int i = 0; i < NO_XBAR_MSTS; i++) begin
             addr_map[i] = '{
                 idx: i,
                 start_addr: i << 16,
@@ -145,8 +144,8 @@ module adam_axil_xbar_tb;
         .ADDR_WIDTH (ADDR_WIDTH),
         .DATA_WIDTH (DATA_WIDTH),
 
-        .NO_SLAVES  (NO_XBAR_SLAVES),
-        .NO_MASTERS (NO_XBAR_MASTERS),
+        .NO_SLVS (NO_XBAR_SLVS),
+        .NO_MSTS (NO_XBAR_MSTS),
         
         .MAX_TRANS (MAX_TRANS),
 
@@ -154,18 +153,15 @@ module adam_axil_xbar_tb;
     ) adam_axil_xbar (
         .clk  (clk),
         .rst  (rst),
-        .test (test),
         
         .pause_req (pause_req),
         .pause_ack (pause_ack),
 
-        .axil_slv (master),
-        .axil_mst (slave),
+        .axil_slvs (master),
+        .axil_msts (slave),
 
         .addr_map (addr_map)
     );
-
-    assign test = 0;
 
     `TEST_SUITE begin
         `TEST_CASE("test") begin
@@ -175,7 +171,7 @@ module adam_axil_xbar_tb;
             @(posedge clk);
 
             cycle_start();
-            while (done < NO_XBAR_SLAVES) begin
+            while (done < NO_XBAR_SLVS) begin
                 cycle_end();
                 cycle_start();
             end
@@ -184,7 +180,7 @@ module adam_axil_xbar_tb;
     end
 
     generate
-        for (genvar i = 0; i < NO_XBAR_SLAVES; i++) begin
+        for (genvar i = 0; i < NO_XBAR_SLVS; i++) begin
             initial begin
                 automatic addr_t addr_high;
                 automatic addr_t addr_low;
@@ -218,7 +214,7 @@ module adam_axil_xbar_tb;
                         join
 
                         assert (resp == axi_pkg::RESP_OKAY);
-                        assert (data == addr_low);
+                        assert (data == i);
                     end
                 end
 
@@ -226,7 +222,7 @@ module adam_axil_xbar_tb;
             end
         end
 
-        for (genvar i = 0; i < NO_XBAR_MASTERS; i++) begin
+        for (genvar i = 0; i < NO_XBAR_MSTS; i++) begin
             initial begin
                 automatic addr_t addr;
                 automatic prot_t prot;
@@ -245,7 +241,7 @@ module adam_axil_xbar_tb;
                         slave_bhv[i].recv_w(data, strb);
                     join
     
-                    assert (addr == (data & 32'hFFFF));
+                    assert ((data >> 16) == i);
                     
                     slave_bhv[i].send_b(resp);
                 end
@@ -265,7 +261,7 @@ module adam_axil_xbar_tb;
 
                 for (int j = 0; j < NO_TESTS; j++) begin    
                     slave_bhv[i].recv_ar(addr, prot);
-                    data = addr;
+                    data = (addr >> 16);
                     slave_bhv[i].send_r(data, resp);
                 end
             end

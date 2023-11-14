@@ -21,8 +21,8 @@ module adam_axil_xbar #(
     parameter ADDR_WIDTH = 32,
     parameter DATA_WIDTH = 32,
 
-    parameter NO_SLAVES  = 2,
-    parameter NO_MASTERS = 2,
+    parameter NO_SLVS = 2,
+    parameter NO_MSTS = 2,
     
     parameter MAX_TRANS = 7,
 
@@ -30,29 +30,28 @@ module adam_axil_xbar #(
 ) (
     input logic clk,
     input logic rst,
-    input logic test,
     
     input  logic pause_req,
     output logic pause_ack,
 
-    AXI_LITE.Slave  axil_slv [NO_SLAVES],
-    AXI_LITE.Master axil_mst [NO_MASTERS],
+    AXI_LITE.Slave  axil_slvs [NO_SLVS],
+    AXI_LITE.Master axil_msts [NO_MSTS],
 
-    input rule_t [NO_MASTERS-1:0] addr_map
+    input rule_t [NO_MSTS-1:0] addr_map
 );
 
     localparam STRB_WIDTH = DATA_WIDTH/8;
 
     localparam axi_pkg::xbar_cfg_t CFG = '{
-        NoSlvPorts:   NO_SLAVES,
-        NoMstPorts:   NO_MASTERS,
+        NoSlvPorts:   NO_SLVS,
+        NoMstPorts:   NO_MSTS,
         MaxMstTrans:  MAX_TRANS,
         MaxSlvTrans:  MAX_TRANS,
         FallThrough:  0,
         LatencyMode:  axi_pkg::CUT_ALL_AX,
         AxiAddrWidth: ADDR_WIDTH,
         AxiDataWidth: DATA_WIDTH,
-        NoAddrRules:  NO_MASTERS,
+        NoAddrRules:  NO_MSTS,
         default:      0
     };
 
@@ -68,21 +67,21 @@ module adam_axil_xbar #(
     `AXI_LITE_TYPEDEF_REQ_T(axil_req_t, aw_chan_t, w_chan_t, ar_chan_t);
     `AXI_LITE_TYPEDEF_RESP_T(axil_resp_t, b_chan_t, r_chan_t);
 
-    logic slave_pause_req [NO_SLAVES];
-    logic slave_pause_ack [NO_SLAVES];
+    logic slave_pause_req [NO_SLVS];
+    logic slave_pause_ack [NO_SLVS];
 
-    axil_req_t  [NO_MASTERS-1:0] axil_mst_req;
-    axil_resp_t [NO_MASTERS-1:0] axil_mst_resp;
-    axil_req_t  [NO_SLAVES-1:0]  axil_slv_req;
-    axil_resp_t [NO_SLAVES-1:0]  axil_slv_resp;
+    axil_req_t  [NO_MSTS-1:0] axil_mstsreq;
+    axil_resp_t [NO_MSTS-1:0] axil_mstsresp;
+    axil_req_t  [NO_SLVS-1:0] axil_slvs_req;
+    axil_resp_t [NO_SLVS-1:0] axil_slvs_resp;
 
     AXI_LITE #(
         .AXI_ADDR_WIDTH (ADDR_WIDTH),
         .AXI_DATA_WIDTH (DATA_WIDTH)
-    ) axil_pause [NO_MASTERS] ();
+    ) axil_pause [NO_MSTS] ();
 
     generate
-        for (genvar i = 0; i < NO_SLAVES; i++) begin
+        for (genvar i = 0; i < NO_SLVS; i++) begin
             adam_axil_pause #(
                 .ADDR_WIDTH (ADDR_WIDTH),
                 .DATA_WIDTH (DATA_WIDTH),
@@ -96,32 +95,17 @@ module adam_axil_xbar #(
                 .pause_req (slave_pause_req[i]),
                 .pause_ack (slave_pause_ack[i]), 
 
-                .slv (axil_slv[i]),
+                .slv (axil_slvs[i]),
                 .mst (axil_pause[i])
             );
 
-            `AXI_LITE_ASSIGN_TO_REQ(axil_slv_req[i], axil_pause[i]);
-            `AXI_LITE_ASSIGN_FROM_RESP(axil_pause[i], axil_slv_resp[i]);
+            `AXI_LITE_ASSIGN_TO_REQ(axil_slvs_req[i], axil_pause[i]);
+            `AXI_LITE_ASSIGN_FROM_RESP(axil_pause[i], axil_slvs_resp[i]);
         end
 
-        for (genvar i = 0; i < NO_MASTERS; i++) begin
-            assign axil_mst[i].aw_addr = axil_mst_req[i].aw.addr -
-                addr_map[i].start_addr;
-            
-            assign axil_mst[i].ar_addr = axil_mst_req[i].ar.addr -
-                addr_map[i].start_addr;
-
-            assign axil_mst[i].aw_prot  = axil_mst_req[i].aw.prot;
-            assign axil_mst[i].aw_valid = axil_mst_req[i].aw_valid;
-            assign axil_mst[i].w_data   = axil_mst_req[i].w.data;
-            assign axil_mst[i].w_strb   = axil_mst_req[i].w.strb;
-            assign axil_mst[i].w_valid  = axil_mst_req[i].w_valid;
-            assign axil_mst[i].b_ready  = axil_mst_req[i].b_ready;
-            assign axil_mst[i].ar_prot  = axil_mst_req[i].ar.prot;
-            assign axil_mst[i].ar_valid = axil_mst_req[i].ar_valid;
-            assign axil_mst[i].r_ready  = axil_mst_req[i].r_ready;
-
-            `AXI_LITE_ASSIGN_TO_RESP(axil_mst_resp[i], axil_mst[i]);
+        for (genvar i = 0; i < NO_MSTS; i++) begin
+            `AXI_LITE_ASSIGN_FROM_REQ(axil_msts[i], axil_mstsreq[i]);
+            `AXI_LITE_ASSIGN_TO_RESP(axil_mstsresp[i], axil_msts[i]);
         end
     endgenerate
     
@@ -140,10 +124,10 @@ module adam_axil_xbar #(
         .rst_ni (!rst),
         .test_i ('0),
         
-        .slv_ports_req_i  (axil_slv_req),
-        .slv_ports_resp_o (axil_slv_resp),
-        .mst_ports_req_o  (axil_mst_req),
-        .mst_ports_resp_i (axil_mst_resp),
+        .slv_ports_req_i  (axil_slvs_req),
+        .slv_ports_resp_o (axil_slvs_resp),
+        .mst_ports_req_o  (axil_mstsreq),
+        .mst_ports_resp_i (axil_mstsresp),
         
         .addr_map_i (addr_map),
         
@@ -152,19 +136,19 @@ module adam_axil_xbar #(
     );
 
     always_comb begin
-        for (int i = 0; i < NO_SLAVES; i++) begin
+        for (int i = 0; i < NO_SLVS; i++) begin
             slave_pause_req[i] = pause_req;
         end
 
         if (pause_req) begin
             pause_ack = 1;
-            for (int i = 0; i < NO_SLAVES; i++) begin
+            for (int i = 0; i < NO_SLVS; i++) begin
                 pause_ack &= slave_pause_ack[i];
             end
         end
         else begin
             pause_ack = 0;
-            for (int i = 0; i < NO_SLAVES; i++) begin
+            for (int i = 0; i < NO_SLVS; i++) begin
                 pause_ack |= slave_pause_ack[i];
             end
         end

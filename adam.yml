@@ -79,6 +79,7 @@ fsets:
       - periphs/uart/adam_periph_uart_rx.sv
       - periphs/uart/adam_periph_uart_tx.sv
       # Level 2
+      - axil/adam_axil_pause.sv
       - periphs/gpio/adam_periph_gpio.sv
       - periphs/spi/adam_periph_spi.sv
       - periphs/sysctrl/adam_periph_sysctrl.sv
@@ -86,17 +87,18 @@ fsets:
       - periphs/uart/adam_periph_uart.sv
       # Level 3
       - axil/adam_axil_apb_bridge.sv
-      - axil/adam_axil_pause.sv
-      - axil/adam_axil_ram.sv
       - axil/adam_axil_xbar.sv  
       - obi/adam_obi_axil_bridge.sv
       - periphs/adam_periphs.sv
-      - adam_clk_div.sv
       # Level 4
-      - adam.sv
+      - fabric/adam_fabric_root.sv
       # Level 5
-      - adam_synth.sv
+      - axil/adam_axil_ram.sv
+      - adam.sv
+      - adam_clk_div.sv
       # Level 6
+      - adam_synth.sv
+      # Level 7
       - adam_synth_intf.sv
 
   adam_cv32e40p_rtl:

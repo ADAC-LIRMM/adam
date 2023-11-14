@@ -135,7 +135,6 @@ module adam #(
 		localparam PERIPHS_E = PERIPHS_S + 1;
 
         for(genvar i = MEMS_S; i < MEMS_E; i++) begin
-            
 			`AXI_LITE_ASSIGN(
 				mem_axil[i - MEMS_S],
 				xbar_mst_axil[i]
