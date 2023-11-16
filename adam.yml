@@ -53,6 +53,8 @@ fsets:
       - axil/adam_axil_pause_tb.sv
       - axil/adam_axil_ram_tb.sv
       - axil/adam_axil_xbar_tb.sv
+      - axil/adam_axil_slave_simple_bhv.sv
+      - fabric/adam_fabric_hsdom_tb.sv
       - periphs/gpio/adam_periph_gpio_tb.sv
       - periphs/spi/adam_periph_spi_phy_tb.sv
       - periphs/spi/adam_periph_spi_tb.sv

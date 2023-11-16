@@ -14,7 +14,7 @@ module adam_fabric_hsdom #(
     parameter NO_CPUS = 2,
     parameter NO_DMAS = 2,
     parameter NO_MEMS = 2,
-    parameter NO_HSIP = 1,
+    parameter NO_HSIP = 2,
 
     parameter EN_DEBUG = 1,
 
@@ -43,7 +43,7 @@ module adam_fabric_hsdom #(
     AXI_LITE.Master to_lsdom
 );
     localparam NO_SLVS = NO_CPUS + NO_DMAS + EN_DEBUG + 1;
-    localparam NO_MSTS = NO_MEMS + 1;
+    localparam NO_MSTS = NO_MEMS + NO_HSIP + 1;
 
     typedef struct packed {
         int unsigned idx;
@@ -102,10 +102,10 @@ module adam_fabric_hsdom #(
         localparam HSIP_S = MEMS_E;
         localparam HSIP_E = HSIP_S + NO_HSIP;
 
-        localparam DEBUG_S = HSIP_E;
-        localparam DEBUG_E = DEBUG_S + EN_DEBUG;
+        localparam DEBUG_MST_S = HSIP_E;
+        localparam DEBUG_MST_E = DEBUG_MST_S + EN_DEBUG;
 
-        localparam TO_LSDOM_S = DEBUG_E;
+        localparam TO_LSDOM_S = DEBUG_MST_E;
         localparam TO_LSDOM_E = TO_LSDOM_S + 1;
 
         // Memories
@@ -122,14 +122,14 @@ module adam_fabric_hsdom #(
         for (genvar i = HSIP_S; i < HSIP_E; i++) begin
             assign addr_map[i] = '{
                 idx: i,
-                start_addr: 32'h0900_0000 + 32'h0000_0400*(i-HSIP_S),
-                end_addr:   32'h0900_0000 + 32'h0000_0400*(i-HSIP_E+1)
+                start_addr: 32'h0009_0000 + 32'h0000_0400*(i-HSIP_S),
+                end_addr:   32'h0009_0000 + 32'h0000_0400*(i-HSIP_E+1)
             };
             `AXI_LITE_OFFSET(hsip[i-HSIP_S], msts[i], addr_map[i]);
         end
 
         // Debug
-        for (genvar i = DEBUG_S; i < DEBUG_E; i++) begin
+        for (genvar i = DEBUG_MST_S; i < DEBUG_MST_E; i++) begin
             assign addr_map[i] = '{
                 idx: i,
                 start_addr: 32'h0000_8000,

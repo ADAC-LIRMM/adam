@@ -75,15 +75,15 @@ module adam_axil_xbar_tb;
         .MAX_TRANS (MAX_TRANS)
     ) master_bhv [NO_XBAR_SLVS];
 
-     adam_axil_slave_bhv #(
+    adam_axil_slave_bhv #(
         .ADDR_WIDTH (ADDR_WIDTH),
         .DATA_WIDTH (DATA_WIDTH),
-    
+
         .TA (TA),
         .TT (TT),
 
         .MAX_TRANS (MAX_TRANS)
-     ) slave_bhv [NO_XBAR_MSTS];
+    ) slave_bhv [NO_XBAR_MSTS];
 
     generate
         for (genvar i = 0; i < NO_XBAR_SLVS; i++) begin

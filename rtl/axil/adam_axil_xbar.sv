@@ -78,7 +78,7 @@ module adam_axil_xbar #(
     AXI_LITE #(
         .AXI_ADDR_WIDTH (ADDR_WIDTH),
         .AXI_DATA_WIDTH (DATA_WIDTH)
-    ) axil_pause [NO_MSTS] ();
+    ) axil_pause [NO_SLVS] ();
 
     generate
         for (genvar i = 0; i < NO_SLVS; i++) begin
