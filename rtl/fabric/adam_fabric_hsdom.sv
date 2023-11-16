@@ -148,7 +148,7 @@ module adam_fabric_hsdom #(
                 start_addr: 32'h0000_0000,
                 end_addr:   32'h0008_0000
             };
-            `AXI_LITE_OFFSET(to_lsdom, msts[i], addr_map[i].start_addr);
+            `AXI_LITE_ASSIGN(to_lsdom, msts[i]);
         end
     endgenerate
 

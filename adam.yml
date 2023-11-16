@@ -55,6 +55,7 @@ fsets:
       - axil/adam_axil_xbar_tb.sv
       - axil/adam_axil_slave_simple_bhv.sv
       - fabric/adam_fabric_hsdom_tb.sv
+      - fabric/adam_fabric_lsdom_tb.sv
       - periphs/gpio/adam_periph_gpio_tb.sv
       - periphs/spi/adam_periph_spi_phy_tb.sv
       - periphs/spi/adam_periph_spi_tb.sv
@@ -94,6 +95,7 @@ fsets:
       - periphs/adam_periphs.sv
       # Level 4
       - fabric/adam_fabric_hsdom.sv
+      - fabric/adam_fabric_lsdom.sv
       # Level 5
       - axil/adam_axil_ram.sv
       - adam.sv

@@ -31,7 +31,7 @@
     data_t data_r; \
     resp_t resp_b; \
     resp_t resp_d; \
-    for (int i = 0; i < 6; i++) begin \
+    for (int i = 0; i < 5; i++) begin \
         for (int j = 0; j < 2; j++) begin \
             if (j == 0) begin \
                 addr = map[i].start_addr; \
@@ -71,7 +71,7 @@ end
         .slv (SLV) \
     );
 
-module adam_fabric_hsdom_tb;
+module adam_fabric_lsdom_tb;
     import adam_axil_master_bhv::*;
     import adam_axil_slave_bhv::*;
 
@@ -105,45 +105,36 @@ module adam_fabric_hsdom_tb;
 
     logic pause_req;
     logic pause_ack;
-    
-    rule_t [5:0] map;
+        
+    rule_t [4:0] map;
     assign map = '{
-        '{ idx: 5, start_addr: 32'h0000_0000, end_addr: 32'h0008_0000},
-        '{ idx: 4, start_addr: 32'h0008_0000, end_addr: 32'h0008_4000},
-        '{ idx: 3, start_addr: 32'h0009_0400, end_addr: 32'h0009_0800},
-        '{ idx: 2, start_addr: 32'h0009_0000, end_addr: 32'h0009_0400},
-        '{ idx: 1, start_addr: 32'h0200_0400, end_addr: 32'h0200_0800},
-        '{ idx: 0, start_addr: 32'h0100_0000, end_addr: 32'h0200_0000}
+        '{ idx: 4, start_addr: 32'h0008_0000, end_addr: 32'hFFFF_FFFF},
+        '{ idx: 3, start_addr: 32'h0001_8000, end_addr: 32'h0002_0000},
+        '{ idx: 2, start_addr: 32'h0001_0000, end_addr: 32'h0001_8000},
+        '{ idx: 1, start_addr: 32'h0000_8000, end_addr: 32'h0000_8400},
+        '{ idx: 0, start_addr: 32'h0000_0000, end_addr: 32'h0000_8000} 
     };
 
-    `MST_FACTORY(cpu0);
-    `MST_FACTORY(cpu1);
-    `MST_FACTORY(cpu2);
-    `MST_FACTORY(cpu3);
-    `MST_FACTORY(dma0);
-    `MST_FACTORY(dma1);
-    `MST_FACTORY(debug_slv);
-    `MST_FACTORY(from_lsdom);
+    `MST_FACTORY(lpu0);
+    `MST_FACTORY(lpu1);
+    `MST_FACTORY(from_hsdom);
     
-    `SLV_FACTORY(mem0     , 0, 32'h0000_0000, 32'h0100_0000);
-    `SLV_FACTORY(mem1     , 1, 32'h0000_0000, 32'h0100_0000);
-    `SLV_FACTORY(hsip0    , 2, 32'h0000_0000, 32'h0000_0400);
-    `SLV_FACTORY(hsip1    , 3, 32'h0000_0000, 32'h0000_0400);
-    `SLV_FACTORY(debug_mst, 4, 32'h0000_0000, 32'h0000_4000);
-    `SLV_FACTORY(to_lsdom , 5, 32'h0000_0000, 32'h0008_0000);
+    `SLV_FACTORY(mem     , 0, 32'h0000_0000, 32'h0000_8000);
+    `SLV_FACTORY(syscfg  , 1, 32'h0000_0000, 32'h0000_0400);
+    `SLV_FACTORY(lsbp    , 2, 32'h0000_0000, 32'h0001_8000);
+    `SLV_FACTORY(lsip    , 3, 32'h0000_0000, 32'h0000_8000);
+    `SLV_FACTORY(to_hsdom, 4, 32'h0008_0000, 32'hFFFF_FFFF);
 
-    adam_fabric_hsdom #(
+    modified_fabric_lsdom #(
         .ADDR_WIDTH (ADDR_WIDTH),
         .DATA_WIDTH (DATA_WIDTH),
         
         .MAX_TRANS (MAX_TRANS),
 
-        .NO_CPUS (2),
-        .NO_DMAS (2),
-        .NO_MEMS (2),
-        .NO_HSIP (2),
-
-        .EN_DEBUG (1)
+        .EN_LPU  (1),
+        .EN_MEM  (1),
+        .EN_LSBP (1),
+        .EN_LSIP (1)
     ) dut (
         .clk (clk),
         .rst (rst),
@@ -151,15 +142,14 @@ module adam_fabric_hsdom_tb;
         .pause_req (pause_req),
         .pause_ack (pause_ack),
         
-        .cpus ('{cpu0, cpu1, cpu2, cpu3}),
-        .dmas ('{dma0, dma1}),
-        .debug_slv (debug_slv),
-        .from_lsdom (from_lsdom),
+        .lpu ('{lpu0, lpu1}),
+        .from_hsdom (from_hsdom),
 
-        .mems ('{mem0, mem1}),
-        .hsip ('{hsip0, hsip1}),
-        .debug_mst (debug_mst),
-        .to_lsdom (to_lsdom)
+        .mem (mem),
+        .syscfg (syscfg),
+        .lsbp (lsbp),
+        .lsip (lsip),
+        .to_hsdom (to_hsdom)
     );
 
     adam_clk_rst_bhv #(
@@ -186,20 +176,15 @@ module adam_fabric_hsdom_tb;
         .pause_req (pause_req),
         .pause_ack (pause_ack)
     );
-
+    
     `TEST_SUITE begin
         `TEST_CASE("test") begin
             @(negedge rst);
             @(posedge clk);
             
-            `MST_TEST(cpu0);
-            `MST_TEST(cpu1);
-            `MST_TEST(cpu2);
-            `MST_TEST(cpu3);
-            `MST_TEST(dma0);
-            `MST_TEST(dma1);
-            `MST_TEST(debug_slv);
-            `MST_TEST(from_lsdom);
+            `MST_TEST(lpu0);
+            `MST_TEST(lpu1);
+            `MST_TEST(from_hsdom);
         end
     end
 endmodule
