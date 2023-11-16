@@ -25,10 +25,36 @@
         ``MST``_bhv.loop(); \
     end
 
-// `define MST_TEST(MST) \
-//     `TEST_CASE("test") begin \
-       
-//     end
+`define MST_TEST(MST) begin \
+    addr_t addr; \
+    data_t data_w; \
+    data_t data_r; \
+    resp_t resp_b; \
+    resp_t resp_d; \
+    @(negedge rst); \
+    @(posedge clk); \
+    for (int i = 0; i < 6; i++) begin \
+        for (int j = 0; j < 2; j++) begin \
+            if (j == 0) begin \
+                addr = map[i].start_addr; \
+            end \
+            else begin \
+                addr = map[i].end_addr - 1; \
+            end \
+            data_w = map[i].idx; \
+            fork \
+                ``MST``_bhv.send_aw(addr, 3'b000); \
+                ``MST``_bhv.send_w(data_w, 4'b1111); \
+                ``MST``_bhv.recv_b(resp_b); \
+                ``MST``_bhv.send_ar(addr, 3'b000); \
+                ``MST``_bhv.recv_r(data_r, resp_d); \
+            join \
+            assert (resp_b == axi_pkg::RESP_OKAY); \
+            assert (resp_d == axi_pkg::RESP_OKAY); \
+            assert (data_r == data_w); \
+        end \
+    end \
+end
 
 `define SLV_FACTORY(SLV, ID, _ADDR_S, _ADDR_E) \
     `AXIL_I SLV (); \
@@ -164,35 +190,13 @@ module adam_fabric_hsdom_tb;
     );
 
     `TEST_SUITE begin
-        `TEST_CASE("test") begin
-            addr_t addr;
-            data_t data_w;
-            data_t data_r; 
-            resp_t resp_b;
-            resp_t resp_d;
-            @(negedge rst);
-            @(posedge clk);
-            for (int i = 0; i < 6; i++) begin
-                for (int j = 0; j < 2; j++) begin
-                    if (j == 0) begin
-                        addr = map[i].start_addr;
-                    end
-                    else begin
-                        addr = map[i].end_addr - 1;
-                    end
-                    data_w = map[i].idx;
-                    fork
-                        cpu0_bhv.send_aw(addr, 3'b000);
-                        cpu0_bhv.send_w(data_w, 4'b1111);
-                        cpu0_bhv.recv_b(resp_b);
-                        cpu0_bhv.send_ar(addr, 3'b000);
-                        cpu0_bhv.recv_r(data_r, resp_d);
-                    join
-                    assert (resp_b == axi_pkg::RESP_OKAY);
-                    assert (resp_d == axi_pkg::RESP_OKAY);
-                    assert (data_r == data_w);
-                end
-            end
-        end
+        `TEST_CASE("cpu0") `MST_TEST(cpu0);
+        `TEST_CASE("cpu1") `MST_TEST(cpu1);
+        `TEST_CASE("cpu2") `MST_TEST(cpu2);
+        `TEST_CASE("cpu3") `MST_TEST(cpu3);
+        `TEST_CASE("dma0") `MST_TEST(dma0);
+        `TEST_CASE("dma1") `MST_TEST(dma1);
+        `TEST_CASE("debug_slv") `MST_TEST(debug_slv);
+        `TEST_CASE("from_lsdom") `MST_TEST(from_lsdom);
     end
 endmodule
