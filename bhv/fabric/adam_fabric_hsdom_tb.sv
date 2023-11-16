@@ -1,50 +1,37 @@
 `include "axi/assign.svh"
 `include "vunit_defines.svh"
 
-// `define AXIL_I AXI_LITE #( \
-//     .AXI_ADDR_WIDTH (ADDR_WIDTH), \
-//     .AXI_DATA_WIDTH (DATA_WIDTH) \
-// )
+`define AXIL_I AXI_LITE #( \
+    .AXI_ADDR_WIDTH (ADDR_WIDTH), \
+    .AXI_DATA_WIDTH (DATA_WIDTH) \
+)
 
-// `define AXIL_DV_I AXI_LITE_DV #( \
-//     .AXI_ADDR_WIDTH(ADDR_WIDTH), \
-//     .AXI_DATA_WIDTH(DATA_WIDTH) \
-// )
-
-`define MST_FACTORY(MST, LEN) \
-    AXI_LITE #( \
-        .AXI_ADDR_WIDTH (ADDR_WIDTH), \
-        .AXI_DATA_WIDTH (DATA_WIDTH) \
-    ) MST [LEN] (); \
+`define MST_FACTORY(MST) \
+    `AXIL_I MST (); \
     AXI_LITE_DV #( \
         .AXI_ADDR_WIDTH(ADDR_WIDTH), \
         .AXI_DATA_WIDTH(DATA_WIDTH) \
-    ) ``MST``_dv [LEN] (clk); \
+    ) ``MST``_dv (clk); \
+    `AXI_LITE_ASSIGN(MST, ``MST``_dv); \
     adam_axil_master_bhv #( \
         .ADDR_WIDTH (ADDR_WIDTH), \
         .DATA_WIDTH (DATA_WIDTH), \
         .TA (TA), \
         .TT (TT), \
         .MAX_TRANS (MAX_TRANS) \
-    ) ``MST``_bhv [LEN]; \
-    generate \
-        for (genvar i = 0; i < LEN; i++) begin \
-            `AXI_LITE_ASSIGN(MST[i], ``MST``_dv[i]); \
-            initial begin \
-                $display(i); \
-                ``MST``_bhv[i] = new(``MST``_dv[i]); \
-                ``MST``_bhv[i].loop(); \
-            end \
-        end \
-    endgenerate 
-    
+    ) ``MST``_bhv; \
+    initial begin \
+        ``MST``_bhv = new(``MST``_dv); \
+        ``MST``_bhv.loop(); \
+    end
+
 // `define MST_TEST(MST) \
 //     `TEST_CASE("test") begin \
        
 //     end
 
 `define SLV_FACTORY(SLV, ID, _ADDR_S, _ADDR_E) \
-    `AXIL_I SLV [SIZE] (); \
+    `AXIL_I SLV (); \
     adam_axil_slave_simple_bhv #( \
         .ADDR_WIDTH (ADDR_WIDTH), \
         .DATA_WIDTH (DATA_WIDTH), \
@@ -97,30 +84,29 @@ module adam_fabric_hsdom_tb;
     
     rule_t [5:0] map;
     assign map = '{
-        '{ idx: 0, start_addr: 32'h0100_0000, end_addr: 32'h0200_0000},
-        '{ idx: 1, start_addr: 32'h0200_0400, end_addr: 32'h0300_0800},
-        '{ idx: 2, start_addr: 32'h0009_0000, end_addr: 32'h0009_0400},
+        '{ idx: 5, start_addr: 32'h0000_0000, end_addr: 32'h0008_0000},
+        '{ idx: 4, start_addr: 32'h0008_0000, end_addr: 32'h0008_4000},
         '{ idx: 3, start_addr: 32'h0009_0400, end_addr: 32'h0009_0800},
-        '{ idx: 4, start_addr: 32'h0000_8000, end_addr: 32'h0000_0400},
-        '{ idx: 5, start_addr: 32'h0000_0000, end_addr: 32'h0008_0000}
+        '{ idx: 2, start_addr: 32'h0009_0000, end_addr: 32'h0009_0400},
+        '{ idx: 1, start_addr: 32'h0200_0400, end_addr: 32'h0200_0800},
+        '{ idx: 0, start_addr: 32'h0100_0000, end_addr: 32'h0200_0000}
     };
 
-    //localparam LEN = 5;
-
-    //`MST_FACTORY;
-
-    `MST_FACTORY(cpus, 4);
-    `MST_FACTORY(dmas, 2);
-    `MST_FACTORY(debug_slv, 1);
-    `MST_FACTORY(from_lsdom, 1);
-
-    // `SLV_FACTORY(mem0     , 0, 32'h0000_0000, 32'h0100_0000);
-    // `SLV_FACTORY(mem1     , 1, 32'h0000_0000, 32'h0100_0000);
-    // `SLV_FACTORY(hsip0    , 2, 32'h0000_0000, 32'h0000_0400);
-    // `SLV_FACTORY(hsip1    , 3, 32'h0000_0000, 32'h0000_0400);
-    // `SLV_FACTORY(debug_mst, 4, 32'h0000_0000, 32'h0900_0400);
-    // `SLV_FACTORY(to_lsdom , 5, 32'h0000_0000, 32'h0008_0000);
-
+    `MST_FACTORY(cpu0);
+    `MST_FACTORY(cpu1);
+    `MST_FACTORY(cpu2);
+    `MST_FACTORY(cpu3);
+    `MST_FACTORY(dma0);
+    `MST_FACTORY(dma1);
+    `MST_FACTORY(debug_slv);
+    `MST_FACTORY(from_lsdom);
+    
+    `SLV_FACTORY(mem0     , 0, 32'h0000_0000, 32'h0100_0000);
+    `SLV_FACTORY(mem1     , 1, 32'h0000_0000, 32'h0100_0000);
+    `SLV_FACTORY(hsip0    , 2, 32'h0000_0000, 32'h0000_0400);
+    `SLV_FACTORY(hsip1    , 3, 32'h0000_0000, 32'h0000_0400);
+    `SLV_FACTORY(debug_mst, 4, 32'h0000_0000, 32'h0000_4000);
+    `SLV_FACTORY(to_lsdom , 5, 32'h0000_0000, 32'h0008_0000);
 
     adam_fabric_hsdom #(
         .ADDR_WIDTH (ADDR_WIDTH),
@@ -141,41 +127,41 @@ module adam_fabric_hsdom_tb;
         .pause_req (pause_req),
         .pause_ack (pause_ack),
         
-        .cpus (cpus),
-        .dmas (dmas),
-        .debug_slv (debug_slv[0]),
-        .from_lsdom (from_lsdom[0]),
+        .cpus ('{cpu0, cpu1, cpu2, cpu3}),
+        .dmas ('{dma0, dma1}),
+        .debug_slv (debug_slv),
+        .from_lsdom (from_lsdom),
 
-        .mems (mems),
-        .hsip (hsip),
+        .mems ('{mem0, mem1}),
+        .hsip ('{hsip0, hsip1}),
         .debug_mst (debug_mst),
         .to_lsdom (to_lsdom)
     );
 
-    // adam_clk_rst_bhv #(
-    //     .CLK_PERIOD (CLK_PERIOD),
-    //     .RST_CYCLES (RST_CYCLES),
+    adam_clk_rst_bhv #(
+        .CLK_PERIOD (CLK_PERIOD),
+        .RST_CYCLES (RST_CYCLES),
 
-    //     .TA (TA),
-    //     .TT (TT)
-    // ) adam_clk_rst_bhv (
-    //     .clk (clk),
-    //     .rst (rst)
-    // );
+        .TA (TA),
+        .TT (TT)
+    ) adam_clk_rst_bhv (
+        .clk (clk),
+        .rst (rst)
+    );
 
-    // adam_pause_bhv #(
-    //     .DELAY    (10us),
-    //     .DURATION (10us),
+    adam_pause_bhv #(
+        .DELAY    (10us),
+        .DURATION (10us),
 
-    //     .TA (TA),
-    //     .TT (TT)
-    // ) adam_pause_bhv (
-    //     .rst (rst),
-    //     .clk (clk),
+        .TA (TA),
+        .TT (TT)
+    ) adam_pause_bhv (
+        .rst (rst),
+        .clk (clk),
 
-    //     .pause_req (pause_req),
-    //     .pause_ack (pause_ack)
-    // );
+        .pause_req (pause_req),
+        .pause_ack (pause_ack)
+    );
 
     `TEST_SUITE begin
         `TEST_CASE("test") begin
@@ -186,16 +172,21 @@ module adam_fabric_hsdom_tb;
             resp_t resp_d;
             @(negedge rst);
             @(posedge clk);
-            forever begin
-                for (int i = 0; i < 12; i++) begin
-                    addr = (i % 2) ? map[i].start_addr : map[i].end_addr;
-                    data_w = i / 2;
+            for (int i = 0; i < 6; i++) begin
+                for (int j = 0; j < 2; j++) begin
+                    if (j == 0) begin
+                        addr = map[i].start_addr;
+                    end
+                    else begin
+                        addr = map[i].end_addr - 1;
+                    end
+                    data_w = map[i].idx;
                     fork
-                        // cpus_bhv[0].send_aw(addr, 3'b000);
-                        // cpus_bhv[0].send_w(data_w, 4'b1111);
-                        // cpus_bhv[0].recv_b(resp_b);
-                        // cpus_bhv[0].send_ar(addr, 3'b000);
-                        // cpus_bhv[0].recv_r(data_r, resp_d);
+                        cpu0_bhv.send_aw(addr, 3'b000);
+                        cpu0_bhv.send_w(data_w, 4'b1111);
+                        cpu0_bhv.recv_b(resp_b);
+                        cpu0_bhv.send_ar(addr, 3'b000);
+                        cpu0_bhv.recv_r(data_r, resp_d);
                     join
                     assert (resp_b == axi_pkg::RESP_OKAY);
                     assert (resp_d == axi_pkg::RESP_OKAY);

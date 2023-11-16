@@ -42,8 +42,8 @@ module adam_fabric_hsdom #(
     AXI_LITE.Master debug_mst,
     AXI_LITE.Master to_lsdom
 );
-    localparam NO_SLVS = NO_CPUS + NO_DMAS + EN_DEBUG + 1;
-    localparam NO_MSTS = NO_MEMS + NO_HSIP + 1;
+    localparam NO_SLVS = 2*NO_CPUS + NO_DMAS + EN_DEBUG + 1;
+    localparam NO_MSTS = NO_MEMS + NO_HSIP + EN_DEBUG + 1;
 
     typedef struct packed {
         int unsigned idx;
@@ -62,7 +62,7 @@ module adam_fabric_hsdom #(
 		localparam CPUS_E = CPUS_S + 2*NO_CPUS;
 
         localparam DMAS_S = CPUS_E;
-        localparam DMAS_E = DMAS_S + 2*NO_DMAS;
+        localparam DMAS_E = DMAS_S + NO_DMAS;
 
         localparam DEBUG_SLV_S = DMAS_E;
         localparam DEBUG_SLV_E = DEBUG_SLV_S + EN_DEBUG;
@@ -115,7 +115,7 @@ module adam_fabric_hsdom #(
                 start_addr: 32'h0100_0000 + 32'h0100_0000*(i-MEMS_S),
                 end_addr:   32'h0100_0000 + 32'h0100_0000*(i-MEMS_S+1)
             };
-            `AXI_LITE_OFFSET(mems[i-MEMS_S], msts[i], addr_map[i]);
+            `AXI_LITE_OFFSET(mems[i-MEMS_S], msts[i], addr_map[i].start_addr);
         end
 
         // High Speed Intermittent Peripherals (HSIP)
@@ -123,19 +123,19 @@ module adam_fabric_hsdom #(
             assign addr_map[i] = '{
                 idx: i,
                 start_addr: 32'h0009_0000 + 32'h0000_0400*(i-HSIP_S),
-                end_addr:   32'h0009_0000 + 32'h0000_0400*(i-HSIP_E+1)
+                end_addr:   32'h0009_0000 + 32'h0000_0400*(i-HSIP_S+1)
             };
-            `AXI_LITE_OFFSET(hsip[i-HSIP_S], msts[i], addr_map[i]);
+            `AXI_LITE_OFFSET(hsip[i-HSIP_S], msts[i], addr_map[i].start_addr);
         end
 
         // Debug
         for (genvar i = DEBUG_MST_S; i < DEBUG_MST_E; i++) begin
             assign addr_map[i] = '{
                 idx: i,
-                start_addr: 32'h0000_8000,
-                end_addr:   32'h0000_8400
+                start_addr: 32'h0008_0000,
+                end_addr:   32'h0008_4000
             };
-            `AXI_LITE_OFFSET(debug_mst, msts[i], addr_map[i]);
+            `AXI_LITE_OFFSET(debug_mst, msts[i], addr_map[i].start_addr);
         end
         if (!EN_DEBUG) begin
             `AXI_LITE_MASTER_TIE_OFF(debug_mst);
@@ -148,7 +148,7 @@ module adam_fabric_hsdom #(
                 start_addr: 32'h0000_0000,
                 end_addr:   32'h0008_0000
             };
-            `AXI_LITE_OFFSET(to_lsdom, msts[i], addr_map[i]);
+            `AXI_LITE_OFFSET(to_lsdom, msts[i], addr_map[i].start_addr);
         end
     endgenerate
 
@@ -169,8 +169,8 @@ module adam_fabric_hsdom #(
         .pause_req (pause_req),
 		.pause_ack (pause_ack),
 
-        .axil_slv (slvs),
-        .axil_mst (msts),
+        .axil_slvs (slvs),
+        .axil_msts (msts),
 
         .addr_map (addr_map)
     );

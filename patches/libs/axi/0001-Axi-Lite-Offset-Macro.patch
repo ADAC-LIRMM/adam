@@ -1,8 +1,8 @@
 diff --git a/include/axi/assign.svh b/include/axi/assign.svh
-index 80667eb0..559ec8a1 100644
+index 80667eb0..c39244b4 100644
 --- a/include/axi/assign.svh
 +++ b/include/axi/assign.svh
-@@ -537,6 +537,70 @@
+@@ -537,6 +537,74 @@
  `define AXI_LITE_ASSIGN_RESP_STRUCT(lhs, rhs) `__AXI_LITE_TO_RESP(assign, lhs, ., rhs, .)
  ////////////////////////////////////////////////////////////////////////////////////////////////////
  
@@ -20,14 +20,18 @@ index 80667eb0..559ec8a1 100644
 +// Usage:
 +// `AXI_LITE_OFFSET(axi_lite_master, axi_lite_slave, address_offset)
 +//
-+`define AXI_LITE_OFFSET(mst, slv, offset) \
-+    assign mst.aw_addr = slv.aw_addr - (offset); \
-+    `AXI_LITE_ASSIGN_AW(mst, slv) \
-+    `AXI_LITE_ASSIGN_W(mst, slv) \
-+    `AXI_LITE_ASSIGN_B(slv, mst) \
-+    assign mst.ar_addr = slv.ar_addr - (offset); \
-+    `AXI_LITE_ASSIGN_AR(mst, slv) \
-+    `AXI_LITE_ASSIGN_R(slv, mst)
++`define AXI_LITE_OFFSET(dst, src, offset) \
++    assign dst.aw_addr = src.aw_addr - (offset); \
++    assign dst.aw_prot = src.aw_prot; \
++    assign dst.aw_valid = src.aw_valid; \
++    assign src.aw_ready = dst.aw_ready; \
++    `AXI_LITE_ASSIGN_W(dst, src); \
++    `AXI_LITE_ASSIGN_B(src, dst); \
++    assign dst.ar_addr = src.ar_addr - (offset); \
++    assign dst.ar_prot = src.ar_prot; \
++    assign dst.ar_valid = src.ar_valid; \
++    assign src.ar_ready = dst.ar_ready; \
++    `AXI_LITE_ASSIGN_R(src, dst);
 +////////////////////////////////////////////////////////////////////////////////////////////////////
 +
 +////////////////////////////////////////////////////////////////////////////////////////////////////
