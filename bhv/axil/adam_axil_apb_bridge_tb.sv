@@ -4,7 +4,6 @@
 
 module adam_axil_apb_bridge_tb;
     import adam_axil_master_bhv::*;
-    import apb_test::*;
 
     localparam ADDR_WIDTH = 32;
     localparam DATA_WIDTH = 32;
