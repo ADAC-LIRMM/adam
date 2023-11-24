@@ -23,7 +23,6 @@ module adam #(
 ) (
 	input logic clk,
 	input logic rst,
-	input logic test,
 
 	input  logic pause_req,
 	output logic pause_ack,
@@ -180,7 +179,6 @@ module adam #(
 			`ADAM_CORE_CPU adam_core_cpu (
 				.clk  (clk),
 				.rst  (rst || core_srst[i]),
-				.test (test),
 
 				.pause_req (core_pause_req[i]),
 				.pause_ack (core_pause_ack[i]),
@@ -199,7 +197,6 @@ module adam #(
 			`ADAM_CORE_LPU adam_core_lpu (
 				.clk  (clk),
 				.rst  (rst || core_srst[i]),
-				.test (test),
 
 				.pause_req (core_pause_req[i]),
 				.pause_ack (core_pause_ack[i]),
@@ -228,7 +225,6 @@ module adam #(
     ) adam_axil_xbar (
         .clk  (clk),
         .rst  (rst),
-        .test (test),
         
         .pause_req (xbar_pause_req),
 		.pause_ack (xbar_pause_ack),
@@ -253,7 +249,6 @@ module adam #(
 	) adam_periphs (
 		.clk  (clk),
 		.rst  (rst),
-		.test (test),
 		
 		.pause_req (periphs_pause_req),
 		.pause_ack (periphs_pause_ack),

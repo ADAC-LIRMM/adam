@@ -23,7 +23,6 @@ module adam_periph_spi_tb;
 
     logic clk;
     logic rst;
-    logic test;
 
     logic pause_req;
     logic pause_ack;
@@ -88,7 +87,6 @@ module adam_periph_spi_tb;
     ) dut (
         .clk  (clk),
         .rst  (rst),
-        .test (test),
 
         .pause_req (pause_req),
         .pause_ack (pause_ack),
@@ -119,7 +117,6 @@ module adam_periph_spi_tb;
             
             automatic data_t check;
 
-            test = 0;
             strb = 4'b1111;
 
             critical = 0;

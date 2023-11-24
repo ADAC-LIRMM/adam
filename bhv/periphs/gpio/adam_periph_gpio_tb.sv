@@ -25,7 +25,6 @@ module adam_periph_gpio_tb;
 
     logic clk;
     logic rst;
-    logic test;
 
     logic pause_req;
     logic pause_ack;
@@ -107,7 +106,6 @@ module adam_periph_gpio_tb;
     ) dut (
         .clk  (clk),
         .rst  (rst),
-        .test (test),
         
         .pause_req (pause_req),
         .pause_ack (pause_ack),
@@ -159,8 +157,6 @@ module adam_periph_gpio_tb;
             automatic bit    write;
 
             automatic reg_t tmp;
-
-            test = 0;
 
             ref_irq    = 0;
             ref_idr    = 0;

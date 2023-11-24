@@ -17,7 +17,6 @@ module adam_periph_uart_tx_tb;
     
     logic clk;
     logic rst;
-    logic test;
 
     logic pause_req;
     logic pause_ack;
@@ -39,7 +38,6 @@ module adam_periph_uart_tx_tb;
     ) dut (
         .clk  (clk),
         .rst  (rst),
-        .test (test),
 
         .pause_req (pause_req),
         .pause_ack (pause_ack),
@@ -84,8 +82,6 @@ module adam_periph_uart_tx_tb;
     
     `TEST_SUITE begin
         `TEST_CASE("test") begin
-            test = 0;
-
             parity_select  = 0;
             parity_control = 1;
             data_length    = 8;

@@ -125,7 +125,7 @@ module adam_fabric_lsdom_tb;
     `SLV_FACTORY(lsip    , 3, 32'h0000_0000, 32'h0000_8000);
     `SLV_FACTORY(to_hsdom, 4, 32'h0008_0000, 32'hFFFF_FFFF);
 
-    modified_fabric_lsdom #(
+    adam_fabric_lsdom #(
         .ADDR_WIDTH (ADDR_WIDTH),
         .DATA_WIDTH (DATA_WIDTH),
         

@@ -28,7 +28,6 @@ module adam_axil_pause_tb;
 
     logic clk;
     logic rst;
-    logic test;
 
     logic pause_req;
     logic pause_ack;
@@ -96,7 +95,6 @@ module adam_axil_pause_tb;
     ) dut (
         .clk  (clk),
         .rst  (rst),
-        .test (test),
 
         .pause_req (pause_req),
         .pause_ack (pause_ack), 
@@ -104,8 +102,6 @@ module adam_axil_pause_tb;
         .slv (master),
         .mst (slave)
     );
-
-    assign test = 0;
 
     initial slave_bhv.loop();
     initial master_bhv.loop();

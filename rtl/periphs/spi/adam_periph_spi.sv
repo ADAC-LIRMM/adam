@@ -4,7 +4,6 @@ module adam_periph_spi #(
 ) (
     input logic clk,
     input logic rst,
-    input logic test,
     
     input  logic pause_req,
     output logic pause_ack,
@@ -87,7 +86,6 @@ module adam_periph_spi #(
     ) adam_periph_spi_phy (
         .clk  (clk),
         .rst  (rst),
-        .test (test),
 
         .pause_req (phy_pause_req),
         .pause_ack (phy_pause_ack),

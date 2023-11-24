@@ -27,7 +27,6 @@ module adam_tb;
 
     logic clk;
     logic rst;
-    logic test;
     
     logic pause_req;
     logic pause_ack;
@@ -51,8 +50,6 @@ module adam_tb;
 
     ADAM_IO uart_tx [NO_UARTS] ();
     ADAM_IO uart_rx [NO_UARTS] ();
-
-    assign test = 0;
 
     // TODO: implement pause
     assign pause_req = 0;
@@ -85,7 +82,6 @@ module adam_tb;
     ) dut (
         .clk  (clk),
         .rst  (rst),
-        .test (test),
 
         .pause_req (pause_req),
         .pause_ack (pause_ack),
@@ -113,7 +109,6 @@ module adam_tb;
         bootloader bootloader (
             .clk  (clk),
             .rst  (rst || mem_srst[0]),
-            .test (test),
 
             .pause_req (mem_pause_req[0]),
             .pause_ack (mem_pause_ack[0]),
@@ -130,7 +125,6 @@ module adam_tb;
             ) adam_axil_ram (
                 .clk  (clk),
                 .rst  (rst || mem_srst[i]),
-                .test (test),
 
                 .pause_req (mem_pause_req[i]),
                 .pause_ack (mem_pause_ack[i]),

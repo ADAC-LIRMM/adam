@@ -37,7 +37,6 @@ sverilog_template = Template("""
 module {{ module_name }} (
     input logic clk,
     input logic rst,
-    input logic test,
 
     input  logic pause_req,
     output logic pause_ack,

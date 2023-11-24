@@ -9,7 +9,6 @@ module adam_obi_axil_bridge #(
 ) (
     input logic clk,
     input logic rst,
-    input logic test,
 
     input  logic pause_req,
     output logic pause_ack,

@@ -6,7 +6,6 @@ module adam_axil_ram #(
 ) (
     input logic clk,
     input logic rst,
-    input logic test,
 
     input  logic pause_req,
     output logic pause_ack,

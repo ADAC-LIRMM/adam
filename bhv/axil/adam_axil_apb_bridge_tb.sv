@@ -35,7 +35,6 @@ module adam_axil_apb_bridge_tb;
     
     logic clk;
     logic rst;
-    logic test;
 
     logic pause_req;
     logic pause_ack;
@@ -125,7 +124,6 @@ module adam_axil_apb_bridge_tb;
     ) dut (
         .clk  (clk),
         .rst  (rst),
-        .test (test),
 
         .pause_req (pause_req),
         .pause_ack (pause_ack),
@@ -160,8 +158,6 @@ module adam_axil_apb_bridge_tb;
             addr_t addr;
             data_t data;
             resp_t resp;
-
-            test = 0;
 
             for (int i = 0; i < NO_APBS; i++) begin
                 pready [i] = 0;

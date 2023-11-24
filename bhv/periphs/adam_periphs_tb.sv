@@ -42,7 +42,6 @@ module adam_periphs_tb;
 
     logic clk;
     logic rst;
-    logic test;
         
     logic pause_req;
     logic pause_ack;
@@ -104,8 +103,6 @@ module adam_periphs_tb;
     );
 
     generate
-        assign test = 0;
-
         assign rst_boot_addr = 32'hBADCAB1E;
 
         assign mem_pause_ack[0] = 0;
@@ -149,7 +146,6 @@ module adam_periphs_tb;
     ) dut (
         .clk  (clk),
         .rst  (rst),
-        .test (test),
         
         .pause_req (pause_req),
         .pause_ack (pause_ack),

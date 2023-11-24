@@ -12,7 +12,6 @@ module adam_core_ibex #(
 ) (
 	input logic clk,
 	input logic rst,
-	input logic test,
 
 	input  logic pause_req,
 	output logic pause_ack,
@@ -138,7 +137,6 @@ module adam_core_ibex #(
 	) instr_adam_obi_axil_bridge (
 		.clk  (clk),
     	.rst  (rst),
-		.test (test),
 
     	.axil (inst_axil),
 
@@ -162,7 +160,6 @@ module adam_core_ibex #(
 	) data_adam_obi_axil_bridge (
 		.clk  (clk),
     	.rst  (rst),
-		.test (test),
 
     	.axil (data_axil),
 

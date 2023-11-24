@@ -90,8 +90,7 @@ module adam_axil_xbar #(
             ) adam_axil_pause (
                 .clk  (clk),
                 .rst  (rst),
-                .test (test),
-
+                
                 .pause_req (slave_pause_req[i]),
                 .pause_ack (slave_pause_ack[i]), 
 

@@ -21,7 +21,6 @@ module adam_synth #(
 ) (
     input logic clk,
 	input logic rst,
-	input logic test,
 
 	input  logic pause_req,
 	output logic pause_ack,
@@ -210,7 +209,6 @@ module adam_synth #(
     ) adam (
         .clk  (clk),
         .rst  (rst),
-        .test (test),
 
         .pause_req (pause_req),
         .pause_ack (pause_ack),

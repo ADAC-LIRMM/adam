@@ -24,7 +24,6 @@ module adam_periph_sysctrl_tb;
 
     logic clk;
     logic rst;
-    logic test;
 
     logic pause_req;
     logic pause_ack;
@@ -105,7 +104,6 @@ module adam_periph_sysctrl_tb;
     ) dut (
         .clk  (clk),
         .rst  (rst),
-        .test (test),
 
         .pause_req (pause_req),
         .pause_ack (pause_ack),
@@ -222,7 +220,6 @@ module adam_periph_sysctrl_tb;
             automatic addr_t base;
             automatic logic special;
 
-            test = 0;
             rst_boot_addr = 32'hDEADBEEF;
             periph_irq = {0, 1, 0, 0, 0, 0, 0, 0};
             

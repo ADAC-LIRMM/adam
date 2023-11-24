@@ -23,7 +23,6 @@ module adam_periph_uart_tb;
 
     logic clk;
     logic rst;
-    logic test;
 
     logic pause_req;
     logic pause_ack;
@@ -85,7 +84,6 @@ module adam_periph_uart_tb;
     ) dut (
         .clk  (clk),
         .rst  (rst),
-        .test (test),
 
         .pause_req (pause_req),
         .pause_ack (pause_ack),
@@ -115,7 +113,6 @@ module adam_periph_uart_tb;
             automatic int no_frames;
             automatic data_t frames [0:1];
 
-            test = 1;
             strb = 4'b1111;
             
             critical = 0;

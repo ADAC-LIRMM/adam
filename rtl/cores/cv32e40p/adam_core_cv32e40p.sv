@@ -12,7 +12,6 @@ module adam_core_cv32e40p #(
 ) (
 	input logic clk,
 	input logic rst,
-	input logic test,
 
 	input  logic pause_req,
 	output logic pause_ack,
@@ -71,7 +70,7 @@ module adam_core_cv32e40p #(
 		// Clock and reset
 		.rst_ni       (!rst),
 		.clk_i        (clk),
-		.scan_cg_en_i (test),
+		.scan_cg_en_i ('0),
 
 		// Special control signals
 		.fetch_enable_i  ('1),
@@ -120,7 +119,6 @@ module adam_core_cv32e40p #(
 	) instr_adam_obi_axil_bridge (
 		.clk  (clk),
     	.rst  (rst),
-		.test (test),
 
     	.axil (inst_axil),
 
@@ -144,7 +142,6 @@ module adam_core_cv32e40p #(
 	) data_adam_obi_axil_bridge (
 		.clk  (clk),
     	.rst  (rst),
-		.test (test),
 
     	.axil (data_axil),
 

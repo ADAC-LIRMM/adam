@@ -4,7 +4,6 @@ module adam_periph_uart #(
 ) (
     input logic clk,
     input logic rst,
-    input logic test,
 
     input  logic pause_req,
     output logic pause_ack,
@@ -91,7 +90,6 @@ module adam_periph_uart #(
     adam_clk_gate tx_adam_clk_gate (
         .clk  (clk),
         .rst  (rst),
-        .test (test),
         
         .enable    (tx_clk_en),
         .gated_clk (tx_clk)
@@ -100,7 +98,6 @@ module adam_periph_uart #(
     adam_clk_gate rx_adam_clk_gate (
         .clk  (clk),
         .rst  (rst),
-        .test (test),
         
         .enable    (rx_clk_en),
         .gated_clk (rx_clk)
@@ -111,7 +108,6 @@ module adam_periph_uart #(
     ) adam_periph_uart_tx (
         .clk  (tx_clk),
         .rst  (rst),
-        .test (test),
 
         .pause_req (tx_pause_req),
         .pause_ack (tx_pause_ack),
@@ -134,7 +130,6 @@ module adam_periph_uart #(
     ) adam_periph_uart_rx (
         .clk  (rx_clk),
         .rst  (rst),
-        .test (test),
 
         .pause_req (rx_pause_req),
         .pause_ack (rx_pause_ack),

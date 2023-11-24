@@ -19,7 +19,6 @@ module adam_periph_spi_phy_tb;
 
     logic clk;
     logic rst;
-    logic test;
 
     logic pause_req;
     logic pause_ack;
@@ -55,7 +54,6 @@ module adam_periph_spi_phy_tb;
     ) dut (
         .clk  (clk),
         .rst  (rst),
-        .test (test),
         
         .pause_req (pause_req),
         .pause_ack (pause_ack),
@@ -95,9 +93,7 @@ module adam_periph_spi_phy_tb;
     );
 
     `TEST_SUITE begin
-        `TEST_CASE("test") begin       
-            test = 0;
-            
+        `TEST_CASE("test") begin                   
             pause_req = 0;
 
             tx_enable      = 0;

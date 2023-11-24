@@ -14,7 +14,6 @@ module adam_periph_uart_rx #(
 ) (
     input logic clk,
     input logic rst,
-    input logic test,
 
     input  logic pause_req,
     output logic pause_ack,

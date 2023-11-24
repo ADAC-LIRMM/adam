@@ -27,7 +27,6 @@ module adam_synth_intf #(
 ) (
 	input logic clk,
 	input logic rst,
-	input logic test,
 
 	input  logic pause_req,
 	output logic pause_ack,
@@ -200,8 +199,7 @@ module adam_synth_intf #(
 	adam_flatten adam_flatten (
 		.clk              (clk),
 		.rst              (rst),
-		.test             (test),
-
+        
 		.pause_req        (pause_req),
 		.pause_ack        (pause_ack),
 		

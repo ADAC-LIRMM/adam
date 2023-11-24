@@ -31,7 +31,6 @@ module adam_axil_ram_tb;
 
     logic clk;
     logic rst;
-    logic test;
 
     logic pause_req;
     logic pause_ack;
@@ -80,7 +79,6 @@ module adam_axil_ram_tb;
     ) dut (
         .clk  (clk),
         .rst  (rst),
-        .test (test),
 
         .pause_req (pause_req),
         .pause_ack (pause_ack),
@@ -95,7 +93,6 @@ module adam_axil_ram_tb;
 
     `TEST_SUITE begin
         `TEST_CASE("test") begin
-            test = 0;
 
             @(negedge rst); 
             repeat (10) @(posedge clk);

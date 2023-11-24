@@ -27,7 +27,6 @@ module adam_axil_apb_bridge #(
 ) (
     input logic clk,
     input logic rst,
-    input logic test,
 
     input logic  pause_req,
     output logic pause_ack,
@@ -91,7 +90,6 @@ module adam_axil_apb_bridge #(
     ) adam_axil_pause (
         .clk  (clk),
         .rst  (rst),
-        .test (test),
 
         .pause_req (pause_req),
         .pause_ack (pause_ack), 

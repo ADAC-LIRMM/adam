@@ -1,16 +1,10 @@
 `include "axi/assign.svh"
 
-module adam_periphs #(
+module adam_fabric_lsxp #(
     parameter ADDR_WIDTH = 32,
     parameter DATA_WIDTH = 32,
-    parameter GPIO_WIDTH = 16,
 
-    parameter NO_CORES  = 2,
-    parameter NO_MEMS   = 3,
-    parameter NO_GPIOS  = 4,
-    parameter NO_SPIS   = 1,
-    parameter NO_TIMERS = 1,
-    parameter NO_UARTS  = 1,
+    parameter N = 2,
 
     // Dependent parameters bellow, do not override.
 
@@ -26,33 +20,9 @@ module adam_periphs #(
     input logic  pause_req,
     output logic pause_ack,
 
-    AXI_LITE.Slave axil,
-
-    input addr_t rst_boot_addr,
-
-    output logic mem_srst      [NO_MEMS],
-    output logic mem_pause_req [NO_MEMS],
-    input  logic mem_pause_ack [NO_MEMS],
-
-    output logic  core_srst      [NO_CORES],
-    output logic  core_pause_req [NO_CORES],
-    input  logic  core_pause_ack [NO_CORES],
-    output addr_t core_boot_addr [NO_CORES],    
-    output logic  core_irq       [NO_CORES],
-        
-    ADAM_IO.Master     gpio_io   [GPIO_WIDTH*NO_GPIOS],
-    output logic [1:0] gpio_func [GPIO_WIDTH*NO_GPIOS],
-
-    ADAM_IO.Master spi_sclk [NO_SPIS],
-    ADAM_IO.Master spi_mosi [NO_SPIS],
-    ADAM_IO.Master spi_miso [NO_SPIS],
-    ADAM_IO.Master spi_ss_n [NO_SPIS],
-
-    ADAM_IO.Master uart_tx [NO_UARTS],
-    ADAM_IO.Master uart_rx [NO_UARTS]
+    AXI_LITE.Slave slv,
+    APB.Master     msts
 );    
-
-    localparam NO_PERIPHS = 1 + NO_GPIOS + NO_SPIS + NO_TIMERS + NO_UARTS;
     
     typedef struct packed {
         int unsigned idx;
@@ -60,36 +30,14 @@ module adam_periphs #(
         addr_t end_addr;
     } rule_t;
 
-    APB #(
-        .ADDR_WIDTH(ADDR_WIDTH),
-        .DATA_WIDTH(DATA_WIDTH)
-    ) apb [NO_PERIPHS] ();
+    rule_t [N-1:0] addr_map;
 
-    rule_t [NO_PERIPHS-1:0] addr_map;
-
-    logic bridge_pause_req;
-    logic bridge_pause_ack;
-
-    logic sysctrl_pause_req;
-    logic sysctrl_pause_ack;
-
-    logic others_pause_req;
-    logic others_pause_ack;
-    
-    logic periph_pause_req [NO_PERIPHS];
-    logic periph_pause_ack [NO_PERIPHS];
-
-    logic periph_srst   [NO_PERIPHS];
-    logic scp_pause_req [NO_PERIPHS];
-    logic scp_pause_ack [NO_PERIPHS];
-    logic periph_irq    [NO_PERIPHS];
-    
     always_comb begin
-        for (int i = 0; i < NO_PERIPHS; i++) begin
+        for (int i = 0; i < N; i++) begin
             addr_map[i] = '{
                 idx: i,
-                start_addr: i << 16,
-                end_addr: (i + 1) << 16
+                start_addr: 1024*i,
+                end_addr:   1024*(i+1)
             };
         end
     end
@@ -105,8 +53,8 @@ module adam_periphs #(
         .clk  (clk),
         .rst  (rst),
 
-        .pause_req (bridge_pause_req),
-        .pause_ack (bridge_pause_ack),
+        .pause_req (pause_req),
+        .pause_ack (pause_ack),
 
         .axil (axil),
         
