@@ -32,11 +32,8 @@ module adam_axil_apb_bridge_tb;
         addr_t end_addr;
     } rule_t;
     
-    logic clk;
-    logic rst;
-
-    logic pause_req;
-    logic pause_ack;
+    ADAM_SEQ   seq   ();
+    ADAM_PAUSE pause ();
 
     rule_t [NO_APBS-1:0] addr_map;
 
@@ -59,7 +56,7 @@ module adam_axil_apb_bridge_tb;
     AXI_LITE_DV #(
         .AXI_ADDR_WIDTH(ADDR_WIDTH),
         .AXI_DATA_WIDTH(DATA_WIDTH)
-    ) axil_dv (clk);
+    ) axil_dv (seq.clk);
 
     `AXI_LITE_ASSIGN(axil, axil_dv);
 
@@ -95,7 +92,7 @@ module adam_axil_apb_bridge_tb;
         .TA (TA),
         .TT (TT)
     ) adam_clk_rst_bhv (
-        .clk (clk),
+        .clk (seq.clk),
         .rst (rst)
     );
 
@@ -106,11 +103,8 @@ module adam_axil_apb_bridge_tb;
         .TA (TA),
         .TT (TT)
     ) adam_pause_bhv (
-        .rst (rst),
-        .clk (clk),
-
-        .pause_req (pause_req),
-        .pause_ack (pause_ack)
+        .seq   (seq),
+        .pause (pause)
     );
 
     adam_axil_apb_bridge #(
@@ -121,11 +115,8 @@ module adam_axil_apb_bridge_tb;
     
         .rule_t (rule_t)
     ) dut (
-        .clk  (clk),
-        .rst  (rst),
-
-        .pause_req (pause_req),
-        .pause_ack (pause_ack),
+        .seq   (seq),
+        .pause (pause),
 
         .axil (axil),
         
@@ -164,8 +155,8 @@ module adam_axil_apb_bridge_tb;
                 pslverr[i] = 0;
             end
 
-            @(negedge rst);
-            @(posedge clk);
+            @(negedge seq.rst);
+            @(posedge seq.clk);
 
             for (int i = 0; i < NO_APBS; i++) begin
                 addr = (i << 16);
@@ -206,7 +197,7 @@ module adam_axil_apb_bridge_tb;
     endtask
 
     task cycle_end();
-        @(posedge clk);
+        @(posedge seq.clk);
     endtask
 
 endmodule

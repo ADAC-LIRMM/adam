@@ -25,11 +25,8 @@ module adam_axil_apb_bridge #(
   
     parameter type rule_t = logic
 ) (
-    input logic clk,
-    input logic rst,
-
-    input logic  pause_req,
-    output logic pause_ack,
+    ADAM_SEQ.Slave   seq,
+    ADAM_PAUSE.Slave pause,
 
     AXI_LITE.Slave axil,
     
@@ -88,11 +85,8 @@ module adam_axil_apb_bridge #(
 
         .MAX_TRANS  (NO_APBS)
     ) adam_axil_pause (
-        .clk  (clk),
-        .rst  (rst),
-
-        .pause_req (pause_req),
-        .pause_ack (pause_ack), 
+        .seq   (seq),
+        .pause (pause),
 
         .slv (axil),
         .mst (axil_pause)
@@ -111,7 +105,7 @@ module adam_axil_apb_bridge #(
         .apb_resp_t       (apb_resp_t),
         .rule_t           (rule_t)
     ) axi_lite_to_apb (
-        .clk_i  (clk),
+        .clk_i  (seq.clk),
         .rst_ni (!rst),
 
         .axi_lite_req_i  (axil_pause_req),

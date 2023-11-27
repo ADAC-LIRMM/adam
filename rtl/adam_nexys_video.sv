@@ -42,13 +42,13 @@ module adam_nexys_video (
     logic clk50;
     logic rst;
     
-    logic pause_req;
-    logic pause_ack;
+    logic pause.req;
+    logic pause.ack;
     
     logic  mem_srst      [NO_MEMS];
-	logic  mem_pause_req [NO_MEMS];
-	logic  mem_pause_ack [NO_MEMS];
-	
+    logic  mem_pause.req [NO_MEMS];
+    logic  mem_pause.ack [NO_MEMS];
+    
     AXI_LITE #(
         .AXI_ADDR_WIDTH (ADDR_WIDTH),
         .AXI_DATA_WIDTH (DATA_WIDTH)
@@ -67,12 +67,12 @@ module adam_nexys_video (
 
     logic [3:0] counter = 4'b1111;
 
-    assign pause_req = 0;
+    assign pause.req = 0;
 
     adam_clk_div #(
         .WIDTH (1)
     ) adam_clk_div (
-        .in  (clk),
+        .in  (seq.clk),
         .out (clk50)
     );
 
@@ -92,14 +92,12 @@ module adam_nexys_video (
         .clk  (clk50),
         .rst  (rst),
 
-        .pause_req (pause_req),
-        .pause_ack (pause_ack),
+        .pause (pause),
 
         .rst_boot_addr (32'h1000_0000),
 
         .mem_srst      (mem_srst),
-        .mem_pause_req (mem_pause_req),
-        .mem_pause_ack (mem_pause_ack),
+        .mem_pause (mem_pause),
         .mem_axil      (mem_axil),
 
         .gpio_func (gpio_func),
@@ -119,8 +117,8 @@ module adam_nexys_video (
             .clk  (clk50),
             .rst  (rst), // || mem_srst[0]
 
-            .pause_req (mem_pause_req[0]),
-            .pause_ack (mem_pause_ack[0]),
+            .pause.req (mem_pause.req[0]),
+            .pause.ack (mem_pause.ack[0]),
 
             .axil (mem_axil[0])
         );
@@ -135,8 +133,8 @@ module adam_nexys_video (
                 .clk  (clk50),
                 .rst  (rst), // || mem_srst[i]
 
-                .pause_req (mem_pause_req[i]),
-                .pause_ack (mem_pause_ack[i]),
+                .pause.req (mem_pause[i].req),
+                .pause.ack (mem_pause[i].ack),
 
                 .axil (mem_axil[i])
             );

@@ -1,36 +1,36 @@
 module adam_synth #(
     parameter ADDR_WIDTH = 32,
-	parameter DATA_WIDTH = 32,
-	parameter GPIO_WIDTH = 16,
+    parameter DATA_WIDTH = 32,
+    parameter GPIO_WIDTH = 16,
 
-	parameter NO_MEMS   = 5,
+    parameter NO_MEMS   = 5,
     parameter NO_GPIOS  = 4,
     parameter NO_SPIS   = 1,
     parameter NO_TIMERS = 1,
     parameter NO_UARTS  = 2,
-	parameter NO_CPUS   = 1,
+    parameter NO_CPUS   = 1,
     parameter NO_LPUS   = 1,
 
-	// Dependent parameters bellow, do not override.
+    // Dependent parameters bellow, do not override.
 
     parameter PROT_WIDTH = 3,
-	parameter STRB_WIDTH = DATA_WIDTH/8,
+    parameter STRB_WIDTH = DATA_WIDTH/8,
     parameter RESP_WIDTH = 2,
 
     parameter FUNC_WIDTH = 2
 ) (
     input logic clk,
-	input logic rst,
+    input logic rst,
 
-	input  logic pause_req,
-	output logic pause_ack,
+    input  logic pause.req,
+    output logic pause.ack,
 
-	input logic [ADDR_WIDTH-1:0] rst_boot_addr,
+    input logic [ADDR_WIDTH-1:0] rst_boot_addr,
 
-	output logic [NO_MEMS-1:0] mem_srst,
-	output logic [NO_MEMS-1:0] mem_pause_req,
-	input  logic [NO_MEMS-1:0] mem_pause_ack,
-	
+    output logic [NO_MEMS-1:0] mem_srst,
+    output logic [NO_MEMS-1:0] mem_pause.req,
+    input  logic [NO_MEMS-1:0] mem_pause.ack,
+    
     output logic [ADDR_WIDTH*NO_MEMS-1:0] mem_axil_aw_addr,
     output logic [PROT_WIDTH*NO_MEMS-1:0] mem_axil_aw_prot,
     output logic [NO_MEMS-1:0]            mem_axil_aw_valid,
@@ -51,12 +51,12 @@ module adam_synth #(
     input  logic [NO_MEMS-1:0]            mem_axil_r_valid,
     output logic [NO_MEMS-1:0]            mem_axil_r_ready,
 
-	input  logic [NO_GPIOS*GPIO_WIDTH-1:0] gpio_io_i,
+    input  logic [NO_GPIOS*GPIO_WIDTH-1:0] gpio_io_i,
     output logic [NO_GPIOS*GPIO_WIDTH-1:0] gpio_io_o,
     output logic [NO_GPIOS*GPIO_WIDTH-1:0] gpio_io_mode,
     output logic [NO_GPIOS*GPIO_WIDTH-1:0] gpio_io_otype,
 
-	output logic [FUNC_WIDTH*NO_GPIOS*GPIO_WIDTH-1:0] gpio_func,
+    output logic [FUNC_WIDTH*NO_GPIOS*GPIO_WIDTH-1:0] gpio_func,
     
     input  logic [NO_SPIS-1:0] spi_sclk_i,
     output logic [NO_SPIS-1:0] spi_sclk_o,
@@ -90,8 +90,8 @@ module adam_synth #(
 );
 
     logic _mem_srst      [NO_MEMS];
-	logic _mem_pause_req [NO_MEMS];
-	logic _mem_pause_ack [NO_MEMS];
+    logic _mem_pause.req [NO_MEMS];
+    logic _mem_pause.ack [NO_MEMS];
     
     AXI_LITE #(
         .AXI_ADDR_WIDTH (ADDR_WIDTH),
@@ -112,9 +112,9 @@ module adam_synth #(
     generate
         for (genvar i = 0; i < NO_MEMS; i++) begin
             assign mem_srst     [i] = _mem_srst[i];
-            assign mem_pause_req[i] = _mem_pause_req[i];
+            assign mem_pause[i].req = _mem_pause[i].req;
             
-            assign _mem_pause_ack[i] = mem_pause_ack[i];
+            assign _mem_pause[i].ack = mem_pause[i].ack;
             
             assign mem_axil_aw_addr[i*ADDR_WIDTH +: ADDR_WIDTH] =
                 mem_axil[i].aw_addr;
@@ -207,17 +207,14 @@ module adam_synth #(
         .NO_CPUS   (NO_CPUS),
         .NO_LPUS   (NO_LPUS)
     ) adam (
-        .clk  (clk),
-        .rst  (rst),
-
-        .pause_req (pause_req),
-        .pause_ack (pause_ack),
+        .seq   (seq),
+        .pause (pause),
 
         .rst_boot_addr (rst_boot_addr),
 
         .mem_srst      (_mem_srst),
-        .mem_pause_req (_mem_pause_req),
-        .mem_pause_ack (_mem_pause_ack),
+        .mem_pause.req (_mem_pause.req),
+        .mem_pause.ack (_mem_pause.ack),
         .mem_axil      (mem_axil),
 
         .gpio_func (_gpio_func),

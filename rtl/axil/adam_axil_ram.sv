@@ -4,11 +4,8 @@ module adam_axil_ram #(
 
     parameter SIZE = 4096
 ) (
-    input logic clk,
-    input logic rst,
-
-    input  logic pause_req,
-    output logic pause_ack,
+    ADAM_SEQ.Slave   seq,
+    ADAM_PAUSE.Slave pause,
 
     AXI_LITE.Slave axil
 );
@@ -34,13 +31,13 @@ module adam_axil_ram #(
     addr_t raddr;
 
     // TODO: implement pause
-    assign pause_ack = 0;
+    assign pause.ack = 0;
 
-    always_ff @(posedge clk) begin
+    always_ff @(posedge seq.clk) begin
         automatic unaligned_t unaligned;
         automatic aligned_t   aligned;
         
-        if (rst) begin
+        if (seq.rst) begin
             axil.aw_ready = 1;
             axil.w_ready  = 1;
             axil.b_resp   = 0;

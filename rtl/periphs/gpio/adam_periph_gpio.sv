@@ -11,13 +11,10 @@ module adam_periph_gpio #(
     parameter type data_t = logic [DATA_WIDTH-1:0],
     parameter type strb_t = logic [STRB_WIDTH-1:0],
     parameter type gpio_t = logic [GPIO_WIDTH-1:0]
-) (
-    input logic clk,
-    input logic rst,
-    
-    input  logic pause_req,
-    output logic pause_ack,
-    
+) (    
+    ADAM_SEQ.Slave   seq,
+    ADAM_PAUSE.Slave pause,
+
     APB.Slave apb,
 
     output logic irq,
@@ -95,15 +92,15 @@ module adam_periph_gpio #(
 
         // IRQ
         irq = 0;
-        if (!pause_req || !pause_ack) begin 
+        if (!pause.req || !pause.ack) begin 
             for (int i = 0; i < GPIO_WIDTH; i++) begin
                 irq |= ier[i] & idr[i];
             end
         end
     end
 
-    always_ff @(posedge clk) begin
-        if (rst) begin
+    always_ff @(posedge seq.clk) begin
+        if (seq.rst) begin
             odr     <= 0;
             moder   <= 0;
             otyper  <= 0;
@@ -115,14 +112,14 @@ module adam_periph_gpio #(
             pready  <= 0;
             pslverr <= 0;
 
-            pause_ack <= 0;
+            pause.ack <= 0;
         end
-        else if (pause_req && pause_ack) begin
+        else if (pause.req && pause.ack) begin
             // PAUSED
         end
         else begin
             if (
-                (!pause_req) &&   // no pause request
+                (!pause.req) &&   // no pause request
                 (psel && !pready) // pending APB transaction
             ) case (index) 
                  
@@ -210,7 +207,7 @@ module adam_periph_gpio #(
                 end
             endcase
             else if (
-                (!pause_ack) &&             // not paused
+                (!pause.ack) &&             // not paused
                 (psel && penable && pready) // transaction completed
             ) begin
                 // reset APB outputs.
@@ -218,18 +215,18 @@ module adam_periph_gpio #(
                 pready  <= 0;
                 pslverr <= 0;
             end
-            else if (pause_req && !pause_ack) begin
+            else if (pause.req && !pause.ack) begin
                 // pause
-                pause_ack <= 1;
+                pause.ack <= 1;
 
                 // tie APB interface off
                 prdata  <= 0;
                 pready  <= 1;
                 pslverr <= 1;
             end
-            else if (!pause_req && pause_ack) begin
+            else if (!pause.req && pause.ack) begin
                 // resume
-                pause_ack <= 0;
+                pause.ack <= 0;
 
                 // reset APB outputs
                 prdata  <= 0;

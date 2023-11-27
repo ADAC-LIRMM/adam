@@ -1,17 +1,17 @@
 module adam_clk_gate (
-    input logic clk,
-    input logic rst,
-    
-    input  logic enable,
-    output logic gated_clk
+    ADAM_SEQ.Slave  slv,
+    ADAM_SEQ.Master mst,
+
+    input  logic enable
 );
 
-  logic ctrl;
+    logic ctrl;
 
-  always_latch begin
-      if (clk == 0) ctrl <= enable | rst;
-  end
+    always_latch begin
+        if (slv.clk == 0) ctrl <= enable | slv.rst;
+    end
 
-  assign gated_clk = clk & ctrl;
+    assign mst.rst = slv.rst;
+    assign mst.clk = slv.clk & ctrl;
 
 endmodule

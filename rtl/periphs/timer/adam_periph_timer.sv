@@ -1,12 +1,9 @@
 module adam_periph_timer #(
     parameter ADDR_WIDTH = 32,
     parameter DATA_WIDTH = 32
-) (
-    input logic clk,
-    input logic rst,
-    
-    input  logic pause_req,
-    output logic pause_ack,
+) (    
+    ADAM_SEQ.Slave   seq,
+    ADAM_PAUSE.Slave pause,
 
     APB.Slave apb,
 
@@ -85,13 +82,13 @@ module adam_periph_timer #(
         auto_reload_event_ie = interrupt_enable[0];
 
         // IRQ
-        irq = (peripheral_enable && !pause_ack) && (
+        irq = (peripheral_enable && !pause.ack) && (
             (auto_reload_event && auto_reload_event_ie)
         );
     end
 
-    always_ff @(posedge clk) begin
-        if (rst) begin
+    always_ff @(posedge seq.clk) begin
+        if (seq.rst) begin
             control          <= 0;
             prescaler        <= 0;
             value            <= 0;
@@ -104,14 +101,14 @@ module adam_periph_timer #(
 
             clk_count <= 0;
 
-            pause_ack <= 0;
+            pause.ack <= 0;
         end
-        else if (pause_req && pause_ack) begin
+        else if (pause.req && pause.ack) begin
             // PAUSED
         end
         else begin
             if (
-                (!pause_req) &&   // no pause request
+                (!pause.req) &&   // no pause request
                 (psel && !pready) // pending APB transaction
             ) case (index)
 
@@ -189,7 +186,7 @@ module adam_periph_timer #(
                 end
             endcase
             else if (
-                (!pause_ack) &&             // not paused
+                (!pause.ack) &&             // not paused
                 (psel && penable && pready) // transaction completed
             ) begin
                 // reset APB outputs.
@@ -197,18 +194,18 @@ module adam_periph_timer #(
                 pready  <= 0;
                 pslverr <= 0;
             end
-            else if (pause_req && !pause_ack) begin
+            else if (pause.req && !pause.ack) begin
                 // pause
-                pause_ack <= 1;
+                pause.ack <= 1;
 
                 // tie APB interface off
                 prdata  <= 0;
                 pready  <= 1;
                 pslverr <= 1;
             end
-            else if (!pause_req && pause_ack) begin
+            else if (!pause.req && pause.ack) begin
                 // resume
-                pause_ack <= 0;
+                pause.ack <= 0;
 
                 // reset APB outputs
                 prdata  <= 0;

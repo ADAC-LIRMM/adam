@@ -33,9 +33,6 @@ Additional Standardized Signals:
 - ``rst`` (reset): A synchronous signal that initiates a reset operation. It
   should not be assumed that it persists for more than one clock cycle.
 
-- ``test``: Simplifies testing by bypassing or enabling all clock gates in
-  hierarchical operation.
-
 Protocol Flow
 =============
 
@@ -55,13 +52,7 @@ The core objective behind introducing this protocol is to allow safe
 clock-gating and power-gating during a paused state or stopped state for a
 given module. 
 
-The protocol is also designed to operate hierarchically, thereby possibly
-incorporating clock gates. Therefore, the ``test`` signal plays an important
-role.
-Thinking in lines of design for testability, this signal bypasses (or enables)
-all clock gates, simplifying the testing process.
-
-Moreover, a typical design should keep the ``pause_ack`` signal enabled during
+A typical design should keep the ``pause_ack`` signal enabled during
 a reset.
 This ensures that even when a module is reset, it still adheres to this
 protocol.
@@ -69,7 +60,7 @@ On the other hand, if a module wishes to indicate non-compliance or non-support
 for the protocol, it can permanently tie ``pause_ack`` low.
 
 Drawing a parallel with the AXI stream signals, just as the ``VALID`` signal
-cannot be retracted post-assertion if the transaction remains incomplete,
+cannot be retracted post-assertion while the transaction remains incomplete,
 ``pause_req``, following a transition, must await the corresponding transition
 by ``pause_ack`` before undergoing another transition.
 Conversely, ``pause_ack`` doesn't carry this restriction, but only in a

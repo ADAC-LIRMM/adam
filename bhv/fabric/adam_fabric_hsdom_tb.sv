@@ -11,7 +11,7 @@
     AXI_LITE_DV #( \
         .AXI_ADDR_WIDTH(ADDR_WIDTH), \
         .AXI_DATA_WIDTH(DATA_WIDTH) \
-    ) ``MST``_dv (clk); \
+    ) ``MST``_dv (seq.clk); \
     `AXI_LITE_ASSIGN(MST, ``MST``_dv); \
     adam_axil_master_bhv #( \
         .ADDR_WIDTH (ADDR_WIDTH), \
@@ -66,8 +66,7 @@ end
         .TT (TT), \
         .MAX_TRANS (MAX_TRANS) \
     ) ``SLV``_bhv ( \
-        .clk (clk), \
-	    .rst (rst), \
+        .seq (seq), \
         .slv (SLV) \
     );
 
@@ -100,11 +99,8 @@ module adam_fabric_hsdom_tb;
         addr_t end_addr;
     } rule_t;
 
-    logic clk;
-    logic rst;
-
-    logic pause_req;
-    logic pause_ack;
+    ADAM_SEQ   seq   ();
+    ADAM_PAUSE pause ();
     
     rule_t [5:0] map;
     assign map = '{
@@ -145,11 +141,8 @@ module adam_fabric_hsdom_tb;
 
         .EN_DEBUG (1)
     ) dut (
-        .clk (clk),
-        .rst (rst),
-        
-        .pause_req (pause_req),
-        .pause_ack (pause_ack),
+        .seq   (seq),
+        .pause (pause),
         
         .cpus ('{cpu0, cpu1, cpu2, cpu3}),
         .dmas ('{dma0, dma1}),
@@ -169,8 +162,7 @@ module adam_fabric_hsdom_tb;
         .TA (TA),
         .TT (TT)
     ) adam_clk_rst_bhv (
-        .clk (clk),
-        .rst (rst)
+        .seq (seq)
     );
 
     adam_pause_bhv #(
@@ -180,17 +172,14 @@ module adam_fabric_hsdom_tb;
         .TA (TA),
         .TT (TT)
     ) adam_pause_bhv (
-        .rst (rst),
-        .clk (clk),
-
-        .pause_req (pause_req),
-        .pause_ack (pause_ack)
+        .seq   (seq),
+        .pause (pause)
     );
 
     `TEST_SUITE begin
         `TEST_CASE("test") begin
-            @(negedge rst);
-            @(posedge clk);
+            @(negedge seq.rst);
+            @(posedge seq.clk);
             
             `MST_TEST(cpu0);
             `MST_TEST(cpu1);

@@ -13,9 +13,7 @@ module adam_axil_slave_simple_bhv #(
     
     parameter MAX_TRANS = 4
 ) (
-    input logic clk,
-	input logic rst,
-
+    ADAM_SEQ.Slave seq,
     AXI_LITE.Slave slv
 );
     import adam_axil_slave_bhv::*;
@@ -31,7 +29,7 @@ module adam_axil_slave_simple_bhv #(
     AXI_LITE_DV #(
         .AXI_ADDR_WIDTH(ADDR_WIDTH),
         .AXI_DATA_WIDTH(DATA_WIDTH)
-    ) slv_dv (clk);
+    ) slv_dv (seq.clk);
 
     adam_axil_slave_bhv #(
         .ADDR_WIDTH (ADDR_WIDTH),
@@ -57,8 +55,8 @@ module adam_axil_slave_simple_bhv #(
         strb_t strb;
         resp_t resp;
 
-        @(negedge rst);
-        @(posedge clk);
+        @(negedge seq.rst);
+        @(posedge seq.clk);
 
         forever begin
             fork
@@ -86,8 +84,8 @@ module adam_axil_slave_simple_bhv #(
         strb_t strb;
         resp_t resp;
 
-        @(negedge rst);
-        @(posedge clk);
+        @(negedge seq.rst);
+        @(posedge seq.clk);
 
         forever begin
             slv_bhv.recv_ar(addr, prot);

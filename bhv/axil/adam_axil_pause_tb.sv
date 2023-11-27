@@ -26,11 +26,8 @@ module adam_axil_pause_tb;
     typedef logic [STRB_WIDTH-1:0] strb_t;
     typedef logic [1:0]            resp_t;
 
-    logic clk;
-    logic rst;
-
-    logic pause_req;
-    logic pause_ack;
+    ADAM_SEQ   seq   ();
+    ADAM_PAUSE pause ();
 
     AXI_LITE #(
         .AXI_ADDR_WIDTH (ADDR_WIDTH),
@@ -40,7 +37,7 @@ module adam_axil_pause_tb;
     AXI_LITE_DV #(
         .AXI_ADDR_WIDTH(ADDR_WIDTH),
         .AXI_DATA_WIDTH(DATA_WIDTH)
-    ) slave_dv (clk);
+    ) slave_dv (seq.clk);
 
     `AXI_LITE_ASSIGN(slave_dv, slave);
 
@@ -62,7 +59,7 @@ module adam_axil_pause_tb;
     AXI_LITE_DV #(
         .AXI_ADDR_WIDTH(ADDR_WIDTH),
         .AXI_DATA_WIDTH(DATA_WIDTH)
-    ) master_dv (clk);
+    ) master_dv (seq.clk);
 
     `AXI_LITE_ASSIGN(master, master_dv);
 
@@ -83,8 +80,7 @@ module adam_axil_pause_tb;
         .TA (TA),
         .TT (TT)
     ) adam_clk_rst_bhv (
-        .clk (clk),
-        .rst (rst)
+        .seq (seq)
     );
 
     adam_axil_pause #(
@@ -93,11 +89,8 @@ module adam_axil_pause_tb;
 
         .MAX_TRANS  (MAX_TRANS)
     ) dut (
-        .clk  (clk),
-        .rst  (rst),
-
-        .pause_req (pause_req),
-        .pause_ack (pause_ack), 
+        .seq   (seq),
+        .pause (pause), 
 
         .slv (master),
         .mst (slave)
@@ -108,14 +101,14 @@ module adam_axil_pause_tb;
 
     `TEST_SUITE begin
         `TEST_CASE("test") begin
-            pause_req = 0;
+            pause.req = 0;
 
             repeat (NO_TESTS) begin
                 random_delay(100);
 
-                pause_req <= #TA 1;
+                pause.req <= #TA 1;
                 cycle_start();
-                while (pause_ack != 1) begin
+                while (pause.ack != 1) begin
                     cycle_end();
                     cycle_start();
                 end
@@ -123,9 +116,9 @@ module adam_axil_pause_tb;
 
                 random_delay(100);
 
-                pause_req <= #TA 0;
+                pause.req <= #TA 0;
                 cycle_start();
-                while (pause_ack != 0) begin
+                while (pause.ack != 0) begin
                     cycle_end();
                     cycle_start();
                 end
@@ -135,8 +128,8 @@ module adam_axil_pause_tb;
     end
 
     initial begin
-        @(negedge rst);
-        @(posedge clk);
+        @(negedge seq.rst);
+        @(posedge seq.clk);
         
         forever begin
             fork
@@ -178,8 +171,8 @@ module adam_axil_pause_tb;
     end
 
     initial begin
-        @(negedge rst);
-        @(posedge clk);
+        @(negedge seq.rst);
+        @(posedge seq.clk);
         
         forever begin
             fork
@@ -227,7 +220,7 @@ module adam_axil_pause_tb;
     endtask
 
     task cycle_end();
-        @(posedge clk);
+        @(posedge seq.clk);
     endtask
 
 endmodule

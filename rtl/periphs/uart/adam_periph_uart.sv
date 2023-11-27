@@ -2,11 +2,8 @@ module adam_periph_uart #(
     parameter ADDR_WIDTH = 32,
     parameter DATA_WIDTH = 32
 ) (
-    input logic clk,
-    input logic rst,
-
-    input  logic pause_req,
-    output logic pause_ack,
+    ADAM_SEQ.Slave   seq,
+    ADAM_PAUSE.Slave pause,
 
     APB.Slave apb,
 
@@ -23,17 +20,15 @@ module adam_periph_uart #(
     typedef logic [STRB_WIDTH-1:0] strb_t;
     typedef logic [DATA_WIDTH-1:0] reg_t;
 
-    logic tx_clk;
-    logic tx_clk_en;
-    logic tx_pause_req;
-    logic tx_pause_ack;
+    ADAM_SEQ   tx_seq   ();
+    ADAM_PAUSE tx_pause ();
+    logic      tx_en;
 
-    logic rx_clk;
-    logic rx_clk_en;
-    logic rx_pause_req;
-    logic rx_pause_ack;
+    ADAM_SEQ   rx_seq   ();
+    ADAM_PAUSE rx_pause ();
+    logic      rx_en;
 
-    logic apb_pause_ack;
+    ADAM_PAUSE apb_pause ();
 
     // Data (TX)
     reg_t tx_buf;
@@ -88,29 +83,24 @@ module adam_periph_uart #(
     logic rx_i;
 
     adam_clk_gate tx_adam_clk_gate (
-        .clk  (clk),
-        .rst  (rst),
-        
-        .enable    (tx_clk_en),
-        .gated_clk (tx_clk)
+        .slv (seq),
+        .mst (tx_seq),
+
+        .enable (tx_en)
     );
 
     adam_clk_gate rx_adam_clk_gate (
-        .clk  (clk),
-        .rst  (rst),
-        
-        .enable    (rx_clk_en),
-        .gated_clk (rx_clk)
+        .slv (seq),
+        .mst (rx_seq),
+
+        .enable (rx_en)
     );
 
     adam_periph_uart_tx #(
         .DATA_WIDTH(DATA_WIDTH)
     ) adam_periph_uart_tx (
-        .clk  (tx_clk),
-        .rst  (rst),
-
-        .pause_req (tx_pause_req),
-        .pause_ack (tx_pause_ack),
+        .seq   (tx_seq),
+        .pause (tx_pause),
 
         .parity_select  (parity_select),
         .parity_control (parity_control),
@@ -128,11 +118,8 @@ module adam_periph_uart #(
     adam_periph_uart_rx #(
         .DATA_WIDTH(DATA_WIDTH)
     ) adam_periph_uart_rx (
-        .clk  (rx_clk),
-        .rst  (rst),
-
-        .pause_req (rx_pause_req),
-        .pause_ack (rx_pause_ack),
+        .seq   (rx_seq),
+        .pause (rx_pause),
 
         .parity_select  (parity_select),
         .parity_control (parity_control),
@@ -189,9 +176,9 @@ module adam_periph_uart #(
         rx_buf_full_ie   = interrupt_enable[1];
 
         // IRQ
-        irq = (periph_enable && !pause_ack) && (
-            (tx_buf_empty && tx_buf_empty_ie && !tx_pause_ack) |
-            (rx_buf_full  && rx_buf_full_ie  && !rx_pause_ack)
+        irq = (periph_enable && !pause.ack) && (
+            (tx_buf_empty && tx_buf_empty_ie && !tx_pause.ack) |
+            (rx_buf_full  && rx_buf_full_ie  && !rx_pause.ack)
         );
             
         // Submodule transfers
@@ -207,25 +194,25 @@ module adam_periph_uart #(
         rx.mode  = 0;
         rx.otype = 0;
 
-        // pause_ack
-        if (pause_req) begin
-            pause_ack = apb_pause_ack && tx_pause_ack && rx_pause_ack;
+        // pause.ack
+        if (pause.req) begin
+            pause.ack = apb_pause.ack && tx_pause.ack && rx_pause.ack;
         end
         else begin
-            pause_ack = apb_pause_ack || tx_pause_ack || rx_pause_ack;
+            pause.ack = apb_pause.ack || tx_pause.ack || rx_pause.ack;
         end
 
         // clk
-        tx_clk_en = !tx_pause_req || !tx_pause_ack;
-        rx_clk_en = !rx_pause_req || !rx_pause_ack;
+        tx_en = !tx_pause.req || !tx_pause.ack;
+        rx_en = !rx_pause.req || !rx_pause.ack;
 
         tx_data = tx_buf;
     end
 
-    always_ff @(posedge clk) begin
+    always_ff @(posedge seq.clk) begin
         automatic reg_t new_control;
 
-        if (rst) begin
+        if (seq.rst) begin
             tx_buf           <= 0;
             rx_buf           <= 0;
             control          <= 0;
@@ -239,14 +226,14 @@ module adam_periph_uart #(
             pready  <= 0;
             pslverr <= 0;
 
-            tx_pause_req <= 0;
-            rx_pause_req <= 0;
+            tx_pause.req <= 0;
+            rx_pause.req <= 0;
 
-            apb_pause_ack <= 0;
+            apb_pause.ack <= 0;
         end
         else begin
             if (
-                (!pause_req) &&   // no pause request
+                (!apb_pause.req) &&   // no pause request
                 (psel && !pready) // pending APB transaction
             ) case (index)
                 
@@ -288,22 +275,22 @@ module adam_periph_uart #(
                         if (new_control != control && new_control[0]) begin
                             // changes will affect the phy
                             if (
-                                (tx_pause_req && tx_pause_ack) &&
-                                (rx_pause_req && rx_pause_ack)
+                                (tx_pause.req && tx_pause.ack) &&
+                                (rx_pause.req && rx_pause.ack)
                             ) begin
                                 // on phy pause forward change
                                 control <= new_control;
                             end
                             else begin
                                 // else request pause
-                                tx_pause_req <= 1;
-                                rx_pause_req <= 1;
+                                tx_pause.req <= 1;
+                                rx_pause.req <= 1;
                             end
                         end
                         else begin
                             // phy resume (or changes wont affect it)
-                            tx_pause_req <= 0;
-                            rx_pause_req <= 0;
+                            tx_pause.req <= 0;
+                            rx_pause.req <= 0;
                             control <= new_control;
                             pready <= 1;
                         end 
@@ -352,7 +339,7 @@ module adam_periph_uart #(
                 end
             endcase
             else if (
-                (!apb_pause_ack) &&         // not paused
+                (!pause.ack) &&             // not paused
                 (psel && penable && pready) // transaction completed
             ) begin
                 // reset APB outputs.
@@ -361,14 +348,14 @@ module adam_periph_uart #(
                 pslverr <= 0;
             end
             else if (
-                (pause_req && !apb_pause_ack) &&    // external pause init
-                (!tx_pause_req && !tx_pause_ack) && // no tx pause
-                (!rx_pause_req && !rx_pause_ack)    // no rx pause
+                (pause.req && !apb_pause.ack) &&     // external pause init
+                (!tx_pause.req && !tx_pause.ack) &&  // no tx pause
+                (!rx_pause.req && !rx_pause.ack)     // no rx pause
             ) begin
                 // pause
-                tx_pause_req  <= 1;
-                rx_pause_req  <= 1;
-                apb_pause_ack <= 1;
+                tx_pause.req  <= 1;
+                rx_pause.req  <= 1;
+                apb_pause.ack <= 1;
                 
                 // tie APB interface off
                 prdata  <= 0;
@@ -376,14 +363,14 @@ module adam_periph_uart #(
                 pslverr <= 1;
             end
             else if (
-                (!pause_req && apb_pause_ack) &&  // external pause end
-                (tx_pause_req && tx_pause_ack) && // tx pause
-                (rx_pause_req && rx_pause_ack)    // rx pause
+                (!pause.req && apb_pause.ack) &&  // external pause end
+                (tx_pause.req && tx_pause.ack) && // tx pause
+                (rx_pause.req && rx_pause.ack)    // rx pause
             ) begin
                 // resume
-                tx_pause_req  <= 0;
-                rx_pause_req  <= 0;
-                apb_pause_ack <= 0;
+                tx_pause.req  <= 0;
+                rx_pause.req  <= 0;
+                apb_pause.ack <= 0;
 
                 // reset APB outputs
                 prdata  <= 0;

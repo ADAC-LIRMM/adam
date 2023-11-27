@@ -15,11 +15,8 @@ module adam_periph_uart_rx_tb;
 
     typedef logic [DATA_WIDTH-1:0] word_t;
 
-    logic clk;
-    logic rst;
-
-    logic pause_req;
-    logic pause_ack;
+    ADAM_SEQ   seq   ();
+    ADAM_PAUSE pause ();
 
     logic       parity_select;
     logic       parity_control;
@@ -36,11 +33,8 @@ module adam_periph_uart_rx_tb;
     adam_periph_uart_rx #(
         .DATA_WIDTH (DATA_WIDTH)
     ) dut (
-        .clk  (clk),
-        .rst  (rst),
-
-        .pause_req (pause_req),
-        .pause_ack (pause_ack),
+        .seq   (seq),
+        .pause (pause),
 
         .parity_select  (parity_select),
         .parity_control (parity_control),
@@ -62,8 +56,7 @@ module adam_periph_uart_rx_tb;
         .TA (TA),
         .TT (TT)
     ) adam_clk_rst_bhv (
-        .clk (clk),
-        .rst (rst)
+        .seq (seq)
     );
 
     adam_pause_bhv #(
@@ -73,11 +66,8 @@ module adam_periph_uart_rx_tb;
         .TA (TA),
         .TT (TT)
     ) adam_pause_bhv (
-        .rst (rst),
-        .clk (clk),
-
-        .pause_req (pause_req),
-        .pause_ack (pause_ack)
+        .seq   (seq),
+        .pause (pause)
     );
 
     `TEST_SUITE begin
@@ -88,17 +78,35 @@ module adam_periph_uart_rx_tb;
             stop_bits      = 1;
             baud_rate      = 1s / (BAUD_RATE * CLK_PERIOD);
             data_ready     = 1;
-            
+
+            @(negedge seq.rst);
+            @(posedge seq.clk);
+
+            for (int i = 0; i < MSG_LEN; i++) begin
+                cycle_start();
+                while (!data_valid || !data_ready) begin
+                    cycle_end();
+                    cycle_start();
+                end
+                assert(data == word_t'(i));
+                cycle_end();
+            end
+        end
+    end
+
+    initial begin
+        automatic logic parity;
+
         rx = 1;
 
-        @(negedge rst);
-        @(posedge clk);
+        @(negedge seq.rst);
+        @(posedge seq.clk);
         
         for (int i = 0; i < MSG_LEN; i++) begin
             
             // wait for pause signals
             cycle_start();
-            while (pause_req == 1 || pause_ack == 1) begin
+            while (pause.req == 1 || pause.ack == 1) begin
                 cycle_end();
                 cycle_start();
             end
@@ -128,7 +136,7 @@ module adam_periph_uart_rx_tb;
     endtask
 
     task cycle_end();
-        @(posedge clk);
+        @(posedge seq.clk);
     endtask
 
 endmodule

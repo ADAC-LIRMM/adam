@@ -24,11 +24,8 @@ module adam_fabric_lsdom #(
     parameter type data_t = logic [DATA_WIDTH-1:0],
     parameter type strb_t = logic [STRB_WIDTH-1:0]    
 ) (
-    input logic clk,
-    input logic rst,
- 
-    input  logic pause_req,
-    output logic pause_ack,
+    ADAM_SEQ.Slave   seq,
+    ADAM_PAUSE.Slave pause,
 
     AXI_LITE.Slave lpu [2],
     AXI_LITE.Slave from_hsdom,
@@ -165,11 +162,8 @@ module adam_fabric_lsdom #(
 
         .rule_t (rule_t)
     ) adam_axil_xbar (
-        .clk  (clk),
-        .rst  (rst),
-        
-        .pause_req (pause_req),
-		.pause_ack (pause_ack),
+        .seq   (seq),
+        .pause (pause),
 
         .axil_slvs (slvs),
         .axil_msts (msts),

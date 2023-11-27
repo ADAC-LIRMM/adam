@@ -28,11 +28,8 @@ module adam_axil_xbar #(
 
     parameter type rule_t = logic
 ) (
-    input logic clk,
-    input logic rst,
-    
-    input  logic pause_req,
-    output logic pause_ack,
+    ADAM_SEQ.Slave   seq,
+    ADAM_PAUSE.Slave pause,
 
     AXI_LITE.Slave  axil_slvs [NO_SLVS],
     AXI_LITE.Master axil_msts [NO_MSTS],
@@ -67,11 +64,10 @@ module adam_axil_xbar #(
     `AXI_LITE_TYPEDEF_REQ_T(axil_req_t, aw_chan_t, w_chan_t, ar_chan_t);
     `AXI_LITE_TYPEDEF_RESP_T(axil_resp_t, b_chan_t, r_chan_t);
 
-    logic slave_pause_req [NO_SLVS];
-    logic slave_pause_ack [NO_SLVS];
+    ADAM_PAUSE slave_pause [NO_SLVS] ();
 
-    axil_req_t  [NO_MSTS-1:0] axil_mstsreq;
-    axil_resp_t [NO_MSTS-1:0] axil_mstsresp;
+    axil_req_t  [NO_MSTS-1:0] axil_msts_req;
+    axil_resp_t [NO_MSTS-1:0] axil_msts_resp;
     axil_req_t  [NO_SLVS-1:0] axil_slvs_req;
     axil_resp_t [NO_SLVS-1:0] axil_slvs_resp;
 
@@ -88,11 +84,8 @@ module adam_axil_xbar #(
 
                 .MAX_TRANS  (MAX_TRANS)
             ) adam_axil_pause (
-                .clk  (clk),
-                .rst  (rst),
-                
-                .pause_req (slave_pause_req[i]),
-                .pause_ack (slave_pause_ack[i]), 
+                .seq   (seq),
+                .pause (slave_pause[i]),
 
                 .slv (axil_slvs[i]),
                 .mst (axil_pause[i])
@@ -103,8 +96,8 @@ module adam_axil_xbar #(
         end
 
         for (genvar i = 0; i < NO_MSTS; i++) begin
-            `AXI_LITE_ASSIGN_FROM_REQ(axil_msts[i], axil_mstsreq[i]);
-            `AXI_LITE_ASSIGN_TO_RESP(axil_mstsresp[i], axil_msts[i]);
+            `AXI_LITE_ASSIGN_FROM_REQ(axil_msts[i], axil_msts_req[i]);
+            `AXI_LITE_ASSIGN_TO_RESP(axil_msts_resp[i], axil_msts[i]);
         end
     endgenerate
     
@@ -119,36 +112,36 @@ module adam_axil_xbar #(
         .axi_resp_t (axil_resp_t),
         .rule_t     (rule_t)
     ) axi_lite_xbar (
-        .clk_i  (clk),
+        .clk_i  (seq.clk),
         .rst_ni (!rst),
         .test_i ('0),
         
         .slv_ports_req_i  (axil_slvs_req),
         .slv_ports_resp_o (axil_slvs_resp),
-        .mst_ports_req_o  (axil_mstsreq),
-        .mst_ports_resp_i (axil_mstsresp),
+        .mst_ports_req_o  (axil_msts_req),
+        .mst_ports_resp_i (axil_msts_resp),
         
         .addr_map_i (addr_map),
         
         .en_default_mst_port_i ('0),
         .default_mst_port_i    ('0)
     );
-
+    
     always_comb begin
         for (int i = 0; i < NO_SLVS; i++) begin
-            slave_pause_req[i] = pause_req;
+            slave_pause[i].req = pause.req;
         end
 
-        if (pause_req) begin
-            pause_ack = 1;
+        if (pause.req) begin
+            pause.ack = 1;
             for (int i = 0; i < NO_SLVS; i++) begin
-                pause_ack &= slave_pause_ack[i];
+                pause.ack &= slave_pause[i].ack;
             end
         end
         else begin
-            pause_ack = 0;
+            pause.ack = 0;
             for (int i = 0; i < NO_SLVS; i++) begin
-                pause_ack |= slave_pause_ack[i];
+                pause.ack |= slave_pause[i].ack;
             end
         end
     end

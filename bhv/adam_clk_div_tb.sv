@@ -10,10 +10,9 @@ module adam_clk_div_tb;
     localparam TA = 1ns;
     localparam TT = CLK_PERIOD - TA;
 
-    logic rst;
-    logic in;
-    logic out;
-
+    ADAM_SEQ mst ();
+    ADAM_SEQ slv ();
+    
     adam_clk_rst_bhv #(
         .CLK_PERIOD (CLK_PERIOD),
         .RST_CYCLES (RST_CYCLES),
@@ -21,16 +20,14 @@ module adam_clk_div_tb;
         .TA (TA),
         .TT (TT)
     ) adam_clk_rst_bhv (
-        .clk (in),
-        .rst (rst)
+        .seq (mst)
     );
 
     adam_clk_div #(
         .WIDTH (WIDTH)
     ) dut (
-        .rst (rst),
-        .in  (in),
-        .out (out)
+        .slv (mst),
+        .mst (slv)
     );
 
     `TEST_SUITE begin

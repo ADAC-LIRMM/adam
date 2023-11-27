@@ -1,5 +1,5 @@
 /*
- * This module adds non-standard functionality to pause_req and pause_ack.
+ * This module adds non-standard functionality to pause.req and pause.ack.
  * In addition to their conventional roles, when both are asserted, the
  * modification of the configuration signals is allowed. This functionality is
  * NOT part of the standard "pause protocol".
@@ -12,11 +12,8 @@ module adam_periph_uart_tx #(
 
     parameter type data_t = logic [DATA_WIDTH-1:0]
 ) (
-    input logic clk,
-    input logic rst,
-
-    input  logic pause_req,
-    output logic pause_ack,
+    ADAM_SEQ.Slave   seq,
+    ADAM_PAUSE.Slave pause,
 
     input  logic       parity_select,
     input  logic       parity_control,
@@ -45,14 +42,14 @@ module adam_periph_uart_tx #(
 
     assign frame_size = 2 + stop_bits + data_length + parity_control;
 
-    always_ff @(posedge clk) begin
-        if (rst) begin
+    always_ff @(posedge seq.clk) begin
+        if (seq.rst) begin
             clk_count  <= 0;
             bit_count  <= 0;
             shift      <= 0;
             parity     <= 0;
             data_ready <= 0;
-            pause_ack  <= 0;
+            pause.ack  <= 0;
         end
         else begin
             if (clk_count == 0 && bit_count == 0) begin
@@ -61,7 +58,7 @@ module adam_periph_uart_tx #(
                     // transfer complete
                     data_ready <= 0;
                 end 
-                else if (!pause_req && !pause_ack && data_valid) begin
+                else if (!pause.req && !pause.ack && data_valid) begin
                     // start
                     clk_count <= 1;
                     bit_count <= 0;
@@ -70,7 +67,7 @@ module adam_periph_uart_tx #(
                 end
                 else begin
                     // able to pause
-                    pause_ack <= pause_req;
+                    pause.ack <= pause.req;
                 end
             end
             else if (clk_count >= baud_rate) begin

@@ -4,11 +4,8 @@ module adam_axil_pause #(
 
     parameter MAX_TRANS = 7
 ) (
-    input logic clk,
-    input logic rst,
-
-    input  logic pause_req,
-    output logic pause_ack,
+    ADAM_SEQ.Slave   seq,
+    ADAM_PAUSE.Slave pause,
 
     AXI_LITE.Slave  slv,
     AXI_LITE.Master mst
@@ -58,8 +55,8 @@ module adam_axil_pause #(
         mst.r_ready = (r_en) ? slv.r_ready : 0;
     end
 
-    always_ff @(posedge clk) begin
-        if (rst) begin
+    always_ff @(posedge seq.clk) begin
+        if (seq.rst) begin
             aw_trans = 0;
             w_trans  = 0;
             ar_trans = 0;
@@ -70,9 +67,9 @@ module adam_axil_pause #(
             ar_en <= 0;
             r_en  <= 0;
 
-            pause_ack <= 1;
+            pause.ack <= 1;
         end
-        else if (pause_req && pause_ack) begin
+        else if (pause.req && pause.ack) begin
             // PAUSED
         end
         else begin
@@ -103,7 +100,7 @@ module adam_axil_pause #(
                 ar_trans -= 1;
             end
 
-            if (pause_req && !pause_ack) begin
+            if (pause.req && !pause.ack) begin
                 // Pausing
 
                 if (aw_trans >= w_trans) begin
@@ -125,10 +122,10 @@ module adam_axil_pause #(
                 end
 
                 if (aw_trans == 0 && w_trans == 0 && ar_trans == 0) begin
-                    pause_ack <= 1;
+                    pause.ack <= 1;
                 end
             end
-            else if (!pause_req && pause_ack) begin
+            else if (!pause.req && pause.ack) begin
                 // Resuming 
 
                 aw_en <= 1;
@@ -137,7 +134,7 @@ module adam_axil_pause #(
                 ar_en <= 1;
                 r_en  <= 1;
 
-                pause_ack <= 0;    
+                pause.ack <= 0;    
             end
         end
     end

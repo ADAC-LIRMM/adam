@@ -14,11 +14,8 @@ module adam_fabric_lsxp #(
     parameter type data_t = logic [DATA_WIDTH-1:0],
     parameter type strb_t = logic [STRB_WIDTH-1:0]
 ) (
-    input logic clk,
-    input logic rst,
-    
-    input logic  pause_req,
-    output logic pause_ack,
+    ADAM_SEQ.Slave   seq,
+    ADAM_PAUSE.Slave pause,
 
     AXI_LITE.Slave slv,
     APB.Master     msts [NO_MSTS]
@@ -50,11 +47,8 @@ module adam_fabric_lsxp #(
     
         .rule_t (rule_t)
     ) adam_axil_apb_bridge (
-        .clk  (clk),
-        .rst  (rst),
-
-        .pause_req (pause_req),
-        .pause_ack (pause_ack),
+        .seq   (seq),
+        .pause (pause),
 
         .axil (slv),
         

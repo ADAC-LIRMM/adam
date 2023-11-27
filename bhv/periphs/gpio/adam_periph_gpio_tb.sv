@@ -23,16 +23,13 @@ module adam_periph_gpio_tb;
     typedef logic [STRB_WIDTH-1:0] strb_t;
     typedef logic [GPIO_WIDTH-1:0] reg_t;
 
-    logic clk;
-    logic rst;
-
-    logic pause_req;
-    logic pause_ack;
+    ADAM_SEQ   seq   ();
+    ADAM_PAUSE pause ();
 
     ADAM_IO     io   [GPIO_WIDTH] ();
     logic [1:0] func [GPIO_WIDTH];
 
-    logic pause_req_auto;
+    ADAM_PAUSE pause_auto ();
     logic critical;
 
     logic irq;
@@ -58,7 +55,7 @@ module adam_periph_gpio_tb;
     APB_DV #(
         .ADDR_WIDTH(ADDR_WIDTH),
         .DATA_WIDTH(DATA_WIDTH)
-    ) slave_dv (clk);
+    ) slave_dv (seq.clk);
 
     APB #(
         .ADDR_WIDTH(ADDR_WIDTH),
@@ -81,8 +78,7 @@ module adam_periph_gpio_tb;
         .TA (TA),
         .TT (TT)
     ) adam_clk_rst_bhv (
-        .clk (clk),
-        .rst (rst)
+        .seq (seq)
     );
 
     adam_pause_bhv #(
@@ -92,11 +88,8 @@ module adam_periph_gpio_tb;
         .TA (TA),
         .TT (TT)
     ) adam_pause_bhv (
-        .rst (rst),
-        .clk (clk),
-
-        .pause_req (pause_req_auto),
-        .pause_ack (pause_ack)
+        .seq   (seq),
+        .pause (pause_auto)
     );
 
     adam_periph_gpio #(
@@ -104,11 +97,8 @@ module adam_periph_gpio_tb;
         .DATA_WIDTH(DATA_WIDTH),
         .GPIO_WIDTH(GPIO_WIDTH)
     ) dut (
-        .clk  (clk),
-        .rst  (rst),
-        
-        .pause_req (pause_req),
-        .pause_ack (pause_ack),
+        .seq   (seq),
+        .pause (pause),
 
         .apb (slave),
         
@@ -145,7 +135,7 @@ module adam_periph_gpio_tb;
     end
 
     always_comb begin
-        pause_req = pause_req_auto && !critical;
+        pause.req = pause_auto.req && !critical;
     end
     
     `TEST_SUITE begin
@@ -169,9 +159,9 @@ module adam_periph_gpio_tb;
 
             critical = 0;
 
-            @(negedge rst);
+            @(negedge seq.rst);
             master.reset_master();
-            repeat (10) @(posedge clk);
+            repeat (10) @(posedge seq.clk);
 
             for(int i = 0; i < NO_TESTS; i++) begin
                 addr  = $urandom_range(0, 6) << $clog2(ADDR_WIDTH/8);
@@ -247,14 +237,14 @@ module adam_periph_gpio_tb;
 
             end
             
-            repeat (10) @(posedge clk);   
+            repeat (10) @(posedge seq.clk);   
         end
     end
 
     task critical_begin();
 
         cycle_start();
-        while (pause_req || pause_ack) begin
+        while (pause.req || pause.ack) begin
             cycle_end();
             cycle_start();
         end 
@@ -277,7 +267,7 @@ module adam_periph_gpio_tb;
     endtask
 
     task cycle_end();
-        @(posedge clk);
+        @(posedge seq.clk);
     endtask
 
 endmodule

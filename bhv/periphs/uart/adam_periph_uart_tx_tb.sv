@@ -15,11 +15,8 @@ module adam_periph_uart_tx_tb;
 
     typedef logic [DATA_WIDTH-1:0] word_t;
     
-    logic clk;
-    logic rst;
-
-    logic pause_req;
-    logic pause_ack;
+    ADAM_SEQ   seq   ();
+    ADAM_PAUSE pause ();
 
     logic       parity_select;
     logic       parity_control;
@@ -36,11 +33,8 @@ module adam_periph_uart_tx_tb;
     adam_periph_uart_tx #(
         .DATA_WIDTH (DATA_WIDTH)
     ) dut (
-        .clk  (clk),
-        .rst  (rst),
-
-        .pause_req (pause_req),
-        .pause_ack (pause_ack),
+        .seq   (seq),
+        .pause (pause),
 
         .parity_select  (parity_select),
         .parity_control (parity_control),
@@ -62,8 +56,7 @@ module adam_periph_uart_tx_tb;
         .TA (TA),
         .TT (TT)
     ) adam_clk_rst_bhv (
-        .clk (clk),
-        .rst (rst)
+        .seq (seq)
     );
 
     adam_pause_bhv #(
@@ -73,11 +66,8 @@ module adam_periph_uart_tx_tb;
         .TA (TA),
         .TT (TT)
     ) adam_pause_bhv (
-        .rst (rst),
-        .clk (clk),
-
-        .pause_req (pause_req),
-        .pause_ack (pause_ack)
+        .seq   (seq),
+        .pause (pause)
     );
     
     `TEST_SUITE begin
@@ -90,8 +80,8 @@ module adam_periph_uart_tx_tb;
             data           = 0;
             data_valid     = 0;
             
-            @(negedge rst);
-            @(posedge clk);
+            @(negedge seq.rst);
+            @(posedge seq.clk);
 
             for(int i = 0; i < MSG_LEN; i++) begin
                 
@@ -142,7 +132,7 @@ module adam_periph_uart_tx_tb;
     endtask
 
     task cycle_end();
-        @(posedge clk);
+        @(posedge seq.clk);
     endtask
 
 endmodule

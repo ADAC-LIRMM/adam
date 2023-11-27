@@ -6,8 +6,8 @@
 )
 
 module adam_fabric_hsdom #(
-	parameter ADDR_WIDTH = 32,
-	parameter DATA_WIDTH = 32,
+    parameter ADDR_WIDTH = 32,
+    parameter DATA_WIDTH = 32,
 
     parameter MAX_TRANS = 7,
 
@@ -26,11 +26,8 @@ module adam_fabric_hsdom #(
     parameter type data_t = logic [DATA_WIDTH-1:0],
     parameter type strb_t = logic [STRB_WIDTH-1:0]    
 ) (
-    input logic clk,
-	input logic rst,
- 
-	input  logic pause_req,
-	output logic pause_ack,
+    ADAM_SEQ.Slave   seq,
+    ADAM_PAUSE.Slave pause,
 
     AXI_LITE.Slave cpus [2*NO_CPUS],
     AXI_LITE.Slave dmas [NO_DMAS],
@@ -59,7 +56,7 @@ module adam_fabric_hsdom #(
     // Slave Mapping
     generate 
         localparam CPUS_S = 0;
-		localparam CPUS_E = CPUS_S + 2*NO_CPUS;
+        localparam CPUS_E = CPUS_S + 2*NO_CPUS;
 
         localparam DMAS_S = CPUS_E;
         localparam DMAS_E = DMAS_S + NO_DMAS;
@@ -71,14 +68,14 @@ module adam_fabric_hsdom #(
         localparam FROM_LSDOM_E = FROM_LSDOM_S + 1;
 
         // Cores
-		for (genvar i = CPUS_S; i < CPUS_E; i++) begin
-			`AXI_LITE_ASSIGN(slvs[i], cpus[i-CPUS_S]);
-		end
+        for (genvar i = CPUS_S; i < CPUS_E; i++) begin
+            `AXI_LITE_ASSIGN(slvs[i], cpus[i-CPUS_S]);
+        end
 
         // DMAs
         for (genvar i = DMAS_S; i < DMAS_E; i++) begin
-			`AXI_LITE_ASSIGN(slvs[i], dmas[i-DMAS_S]);
-		end
+            `AXI_LITE_ASSIGN(slvs[i], dmas[i-DMAS_S]);
+        end
 
         // Debug
         for (genvar i = DEBUG_SLV_S; i < DEBUG_SLV_E; i++) begin
@@ -90,14 +87,14 @@ module adam_fabric_hsdom #(
 
         // From Low Speed Domain (LSDOM)
         for (genvar i = FROM_LSDOM_S; i < FROM_LSDOM_E; i++) begin
-			`AXI_LITE_ASSIGN(slvs[i], from_lsdom);
-		end
+            `AXI_LITE_ASSIGN(slvs[i], from_lsdom);
+        end
     endgenerate
 
     // Master Mapping
     generate
         localparam MEMS_S = 0;
-		localparam MEMS_E = MEMS_S + NO_MEMS;
+        localparam MEMS_E = MEMS_S + NO_MEMS;
 
         localparam HSIP_S = MEMS_E;
         localparam HSIP_E = HSIP_S + NO_HSIP;
@@ -163,11 +160,8 @@ module adam_fabric_hsdom #(
 
         .rule_t (rule_t)
     ) adam_axil_xbar (
-        .clk  (clk),
-        .rst  (rst),
-        
-        .pause_req (pause_req),
-		.pause_ack (pause_ack),
+        .seq   (seq),
+        .pause (pause),
 
         .axil_slvs (slvs),
         .axil_msts (msts),

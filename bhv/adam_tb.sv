@@ -25,16 +25,13 @@ module adam_tb;
     localparam TA = 2ns;
     localparam TT = CLK_PERIOD - TA;
 
-    logic clk;
-    logic rst;
+    ADAM_SEQ   seq   ();
+    ADAM_PAUSE pause ();
     
-    logic pause_req;
-    logic pause_ack;
+    logic      mem_srst  [NO_MEMS];
+    ADAM_SEQ   mem_seq   [NO_MEMS] ();
+    ADAM_PAUSE mem_pause [NO_MEMS] ();
     
-    logic  mem_srst      [NO_MEMS];
-	logic  mem_pause_req [NO_MEMS];
-	logic  mem_pause_ack [NO_MEMS];
-	
     AXI_LITE #(
         .AXI_ADDR_WIDTH (ADDR_WIDTH),
         .AXI_DATA_WIDTH (DATA_WIDTH)
@@ -52,7 +49,7 @@ module adam_tb;
     ADAM_IO uart_rx [NO_UARTS] ();
 
     // TODO: implement pause
-    assign pause_req = 0;
+    assign pause.req = 0;
 
     assign uart_rx[0].i = uart_tx[0].o; // loopback
     
@@ -63,8 +60,7 @@ module adam_tb;
         .TA (TA),
         .TT (TT)
     ) adam_clk_rst_bhv (
-        .clk (clk),
-        .rst (rst)
+        .seq (seq)
     );
 
     adam #(
@@ -80,18 +76,14 @@ module adam_tb;
         .NO_CPUS   (NO_CPUS),
         .NO_LPUS   (NO_LPUS)
     ) dut (
-        .clk  (clk),
-        .rst  (rst),
-
-        .pause_req (pause_req),
-        .pause_ack (pause_ack),
+        .seq   (seq),
+        .pause (pause),
 
         .rst_boot_addr (32'h1000_0000),
 
-        .mem_srst      (mem_srst),
-        .mem_pause_req (mem_pause_req),
-        .mem_pause_ack (mem_pause_ack),
-        .mem_axil      (mem_axil),
+        .mem_srst  (mem_srst),
+        .mem_pause (mem_pause),
+        .mem_axil  (mem_axil),
 
         .gpio_func (gpio_func),
         .gpio_io   (gpio_io),
@@ -105,13 +97,17 @@ module adam_tb;
         .uart_rx (uart_rx)
     );
 
+    generate
+        for(genvar i = 0; i < NO_MEMS; i++) begin
+            assign mem_seq[i].clk = seq.clk;
+            assign mem_seq[i].rst = seq.rst || mem_srst[i];
+        end
+    endgenerate
+
     generate 
         bootloader bootloader (
-            .clk  (clk),
-            .rst  (rst || mem_srst[0]),
-
-            .pause_req (mem_pause_req[0]),
-            .pause_ack (mem_pause_ack[0]),
+            .seq   (mem_seq[0]),
+            .pause (mem_pause[0]),
 
             .axil (mem_axil[0])
         );
@@ -123,11 +119,8 @@ module adam_tb;
 
                 .SIZE (MEM_SIZE[i])
             ) adam_axil_ram (
-                .clk  (clk),
-                .rst  (rst || mem_srst[i]),
-
-                .pause_req (mem_pause_req[i]),
-                .pause_ack (mem_pause_ack[i]),
+                .seq   (mem_seq[i]),
+                .pause (mem_pause[i]),
 
                 .axil (mem_axil[i])
             );

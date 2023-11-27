@@ -5,19 +5,18 @@ module adam_clk_rst_bhv #(
     parameter TA = 2ns,
     parameter TT = CLK_PERIOD - TA
 ) (
-    output logic clk,
-    output logic rst
+    ADAM_SEQ.Master seq
 );
 
     initial begin
-        clk <= 1;
-        forever #(CLK_PERIOD/2) clk <= ~clk;
+        seq.clk <= 1;
+        forever #(CLK_PERIOD/2) seq.clk <= ~seq.clk;
     end
 
     initial begin
-        rst <= 1;
-        repeat (RST_CYCLES) @(posedge clk);
-        rst <= #TA 0;
+        seq.rst <= 1;
+        repeat (RST_CYCLES) @(posedge seq.clk);
+        seq.rst <= #TA 0;
     end
 
 endmodule

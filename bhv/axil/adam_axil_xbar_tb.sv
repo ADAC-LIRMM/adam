@@ -37,11 +37,8 @@ module adam_axil_xbar_tb;
     
     integer done;
 
-    logic clk;
-    logic rst;
-
-    logic pause_req;
-    logic pause_ack;
+    ADAM_SEQ   seq   ();
+    ADAM_PAUSE pause ();
 
     rule_t [NO_XBAR_SLVS-1:0] addr_map;
 
@@ -58,12 +55,12 @@ module adam_axil_xbar_tb;
     AXI_LITE_DV #(
         .AXI_ADDR_WIDTH(ADDR_WIDTH),
         .AXI_DATA_WIDTH(DATA_WIDTH)
-    ) master_dv [NO_XBAR_SLVS] (clk);
+    ) master_dv [NO_XBAR_SLVS] (seq.clk);
 
     AXI_LITE_DV #(
         .AXI_ADDR_WIDTH(ADDR_WIDTH),
         .AXI_DATA_WIDTH(DATA_WIDTH)
-    ) slave_dv [NO_XBAR_MSTS] (clk);
+    ) slave_dv [NO_XBAR_MSTS] (seq.clk);
 
     adam_axil_master_bhv #(
         .ADDR_WIDTH (ADDR_WIDTH),
@@ -122,8 +119,7 @@ module adam_axil_xbar_tb;
         .TA (TA),
         .TT (TT)
     ) adam_clk_rst_bhv (
-        .clk (clk),
-        .rst (rst)
+        .seq (seq)
     );
     
     adam_pause_bhv #(
@@ -133,11 +129,8 @@ module adam_axil_xbar_tb;
         .TA (TA),
         .TT (TT)
     ) adam_pause_bhv (
-        .rst (rst),
-        .clk (clk),
-
-        .pause_req (pause_req),
-        .pause_ack (pause_ack)
+        .seq   (seq),
+        .pause (pause)
     );
 
     adam_axil_xbar #(
@@ -151,11 +144,8 @@ module adam_axil_xbar_tb;
 
         .rule_t (rule_t)
     ) adam_axil_xbar (
-        .clk  (clk),
-        .rst  (rst),
-        
-        .pause_req (pause_req),
-        .pause_ack (pause_ack),
+        .seq   (seq),
+        .pause (pause),
 
         .axil_slvs (master),
         .axil_msts (slave),
@@ -167,8 +157,8 @@ module adam_axil_xbar_tb;
         `TEST_CASE("test") begin
             done = 0;
 
-            @(negedge rst); 
-            @(posedge clk);
+            @(negedge seq.rst); 
+            @(posedge seq.clk);
 
             cycle_start();
             while (done < NO_XBAR_SLVS) begin
@@ -188,8 +178,8 @@ module adam_axil_xbar_tb;
                 automatic data_t data;
                 automatic resp_t resp;
 
-                @(negedge rst); 
-                @(posedge clk);
+                @(negedge seq.rst); 
+                @(posedge seq.clk);
 
                 for (int j = 0; j < NO_TESTS; j++) begin
                     addr_high = i << 16;
@@ -230,8 +220,8 @@ module adam_axil_xbar_tb;
                 automatic strb_t strb;
                 automatic resp_t resp;
 
-                @(negedge rst); 
-                @(posedge clk);
+                @(negedge seq.rst); 
+                @(posedge seq.clk);
 
                 resp = axi_pkg::RESP_OKAY;
 
@@ -254,8 +244,8 @@ module adam_axil_xbar_tb;
                 automatic strb_t strb;
                 automatic resp_t resp;
 
-                @(negedge rst); 
-                @(posedge clk);
+                @(negedge seq.rst); 
+                @(posedge seq.clk);
 
                 resp = axi_pkg::RESP_OKAY;
 
@@ -273,7 +263,7 @@ module adam_axil_xbar_tb;
     endtask
 
     task cycle_end();
-        @(posedge clk);
+        @(posedge seq.clk);
     endtask
 
 endmodule

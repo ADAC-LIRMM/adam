@@ -7,11 +7,8 @@ module adam_obi_axil_bridge #(
     // Dependent parameters, do not override.
     parameter STRB_WIDTH = (DATA_WIDTH/8)
 ) (
-    input logic clk,
-    input logic rst,
-
-    input  logic pause_req,
-    output logic pause_ack,
+    ADAM_SEQ.Slave   seq,
+    ADAM_PAUSE.Slave pause,
 
     input  logic                  req,
     output logic                  gnt,
@@ -31,22 +28,22 @@ module adam_obi_axil_bridge #(
     logic aw_ok;
     logic w_ok;
 
-    always_ff @(posedge clk) begin
-        if (rst) begin
+    always_ff @(posedge seq.clk) begin
+        if (seq.rst) begin
             transfers = 0;
             is_write  = 0;
 
             aw_ok = 0;
             w_ok  = 0;
 
-            pause_ack = 0;
+            pause.ack = 0;
         end
-        else if (pause_req && pause_ack) begin
+        else if (pause.req && pause.ack) begin
             // PAUSED
         end
-        else if (!pause_req && pause_ack) begin
+        else if (!pause.req && pause.ack) begin
             // resume
-            pause_ack = 0;
+            pause.ack = 0;
         end
         else begin 
             if (req && gnt) begin
@@ -72,15 +69,15 @@ module adam_obi_axil_bridge #(
                 transfers = transfers - 1;
             end
 
-            if (pause_req && transfers == 0) begin
+            if (pause.req && transfers == 0) begin
                 // pause
-                pause_ack = pause_req;
+                pause.ack = pause.req;
             end
         end
     end
 
     always_comb begin
-        if (req && transfers < MAX_TRANS && !pause_req) begin
+        if (req && transfers < MAX_TRANS && !pause.req) begin
             if (we) begin
                 axil.aw_valid = !aw_ok;
                 axil.w_valid  = !w_ok;

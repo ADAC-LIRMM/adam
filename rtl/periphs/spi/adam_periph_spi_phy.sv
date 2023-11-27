@@ -1,5 +1,5 @@
 /*
- * This module adds non-standard functionality to pause_req and pause_ack.
+ * This module adds non-standard functionality to pause.req and pause.ack.
  * In addition to their conventional roles, when both are asserted, the
  * modification of the configuration signals is allowed. This functionality is
  * NOT part of the standard "pause protocol".
@@ -12,11 +12,8 @@ module adam_periph_spi_phy #(
 
     parameter type data_t = logic [DATA_WIDTH-1:0]
 ) (
-    input logic clk,
-    input logic rst,
-
-    input  logic pause_req,
-    output logic pause_ack,
+    ADAM_SEQ.Slave   seq,
+    ADAM_PAUSE.Slave pause,
 
     input  logic        tx_enable,
     input  logic        rx_enable,
@@ -117,9 +114,9 @@ module adam_periph_spi_phy #(
     end
 
     // Generates clock and select signals while in master mode.
-    always_ff @(posedge clk) begin
+    always_ff @(posedge seq.clk) begin
         if (
-            (rst) ||
+            (seq.rst) ||
             (!mode_select) ||
             (!tx_ok || !rx_ok) ||
             (!tx_enable && !rx_enable) 
@@ -158,12 +155,12 @@ module adam_periph_spi_phy #(
     end
 
     // Main logic
-    always_ff @(posedge clk) begin
-        if (rst) begin
+    always_ff @(posedge seq.clk) begin
+        if (seq.rst) begin
             tx_ready <= 0;
             rx_valid <= 0;
 
-            pause_ack <= 0;
+            pause.ack <= 0;
 
             tx_reg <= 0;
             rx_reg <= 0;
@@ -178,7 +175,7 @@ module adam_periph_spi_phy #(
             lpclk     <= 0;
             lselected <= 0;
         end
-        else if (pause_req && pause_ack) begin
+        else if (pause.req && pause.ack) begin
             // paused
             tx_ok <= !tx_enable;
             rx_ok <= 1;
@@ -186,7 +183,7 @@ module adam_periph_spi_phy #(
         else begin
             if (
                 // pause (handles the rx-only slave case)
-                (pause_req && !tx_enable && index == 0) ||
+                (pause.req && !tx_enable && index == 0) ||
                 // waiting for stream
                 (!tx_ok || !rx_ok) ||     
                 // tx and rx disabled (invalid config)  
@@ -200,12 +197,12 @@ module adam_periph_spi_phy #(
                     tx_ready <= 0;
                     tx_ok    <= 1;
                 end
-                else if (!tx_ok && (!pause_req && !pause_ack)) begin
+                else if (!tx_ok && (!pause.req && !pause.ack)) begin
                     tx_ready <= 1;
                 end
                 else if (rx_ok || (rx_valid && rx_ready)) begin
                     // able to pause
-                    pause_ack <= pause_req;
+                    pause.ack <= pause.req;
                 end
 
                 // rx transfer

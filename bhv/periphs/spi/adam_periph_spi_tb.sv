@@ -21,11 +21,8 @@ module adam_periph_spi_tb;
     typedef logic [DATA_WIDTH-1:0] data_t;
     typedef logic [STRB_WIDTH-1:0] strb_t;
 
-    logic clk;
-    logic rst;
-
-    logic pause_req;
-    logic pause_ack;
+    ADAM_SEQ   seq   ();
+    ADAM_PAUSE pause ();
 
     logic irq;
     
@@ -34,13 +31,13 @@ module adam_periph_spi_tb;
     ADAM_IO miso();
     ADAM_IO ss_n();
 
-    logic pause_req_auto;
+    ADAM_PAUSE pause_auto ();
     logic critical;
 
     APB_DV #(
         .ADDR_WIDTH(ADDR_WIDTH),
         .DATA_WIDTH(DATA_WIDTH)
-    ) slave_dv(clk);
+    ) slave_dv(seq.clk);
 
     APB #(
         .ADDR_WIDTH(ADDR_WIDTH),
@@ -56,8 +53,7 @@ module adam_periph_spi_tb;
         .TA (TA),
         .TT (TT)
     ) adam_clk_rst_bhv (
-        .clk (clk),
-        .rst (rst)
+        .seq (seq)
     );
 
     adam_pause_bhv #(
@@ -67,11 +63,8 @@ module adam_periph_spi_tb;
         .TA (TA),
         .TT (TT)
     ) adam_pause_bhv (
-        .rst (rst),
-        .clk (clk),
-
-        .pause_req (pause_req_auto),
-        .pause_ack (pause_ack)
+        .seq   (seq),
+        .pause (pause_auto)
     );
 
     apb_test::apb_driver #(
@@ -85,11 +78,8 @@ module adam_periph_spi_tb;
         .ADDR_WIDTH(ADDR_WIDTH),
         .DATA_WIDTH(DATA_WIDTH)
     ) dut (
-        .clk  (clk),
-        .rst  (rst),
-
-        .pause_req (pause_req),
-        .pause_ack (pause_ack),
+        .seq   (seq),
+        .pause (pause),
 
         .apb (slave),
         
@@ -103,7 +93,7 @@ module adam_periph_spi_tb;
 
     // loopback
     always_comb begin
-        pause_req = pause_req_auto && !critical;
+        pause.req = pause_auto.req && !critical;
 
         miso.i = mosi.o;
     end
@@ -121,9 +111,9 @@ module adam_periph_spi_tb;
 
             critical = 0;
             
-            @(negedge rst);
+            @(negedge seq.rst);
             master.reset_master();
-            repeat (10) @(posedge clk);
+            repeat (10) @(posedge seq.clk);
 
             critical_begin();
 
@@ -211,7 +201,6 @@ module adam_periph_spi_tb;
                     assert (resp == apb_pkg::RESP_OKAY);
                 end while (data[1] == 0); // Receive Buffer Full (RBF)
 
-
                 addr = 32'h0000; // Data Register (DR)
                 data = data_t'(i);
                 master.read(addr, check, resp);
@@ -223,13 +212,13 @@ module adam_periph_spi_tb;
 
             end
             
-            repeat (10) @(posedge clk);
+            repeat (10) @(posedge seq.clk);
         end
     end
 
     task critical_begin();
         cycle_start();
-        while (pause_req || pause_ack) begin
+        while (pause.req || pause.ack) begin
             cycle_end();
             cycle_start();
         end 
@@ -251,7 +240,7 @@ module adam_periph_spi_tb;
     endtask
 
     task cycle_end();
-        @(posedge clk);
+        @(posedge seq.clk);
     endtask
 
 endmodule

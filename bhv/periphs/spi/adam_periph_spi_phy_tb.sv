@@ -17,11 +17,8 @@ module adam_periph_spi_phy_tb;
 
     typedef logic [DATA_WIDTH-1:0] data_t;
 
-    logic clk;
-    logic rst;
-
-    logic pause_req;
-    logic pause_ack;
+    ADAM_SEQ   seq   ();
+    ADAM_PAUSE pause ();
 
     logic       tx_enable;
     logic       rx_enable;
@@ -52,11 +49,8 @@ module adam_periph_spi_phy_tb;
     adam_periph_spi_phy #(
         .DATA_WIDTH (DATA_WIDTH)
     ) dut (
-        .clk  (clk),
-        .rst  (rst),
-        
-        .pause_req (pause_req),
-        .pause_ack (pause_ack),
+        .seq   (seq),
+        .pause (pause),
 
         .tx_enable      (tx_enable),
         .rx_enable      (rx_enable),
@@ -88,13 +82,12 @@ module adam_periph_spi_phy_tb;
         .TA (TA),
         .TT (TT)
     ) adam_clk_rst_bhv (
-        .clk (clk),
-        .rst (rst)
+        .seq (seq)
     );
 
     `TEST_SUITE begin
         `TEST_CASE("test") begin                   
-            pause_req = 0;
+            pause.req = 0;
 
             tx_enable      = 0;
             rx_enable      = 0; 
@@ -112,8 +105,8 @@ module adam_periph_spi_phy_tb;
             miso.i = 0;
             ss_n.i = 1;
 
-            @(negedge rst);
-            @(posedge clk);
+            @(negedge seq.rst);
+            @(posedge seq.clk);
 
             /* Random Tests */
 
@@ -143,9 +136,9 @@ module adam_periph_spi_phy_tb;
     end
     
     task random_config();
-        pause_req <= #TA 1;
+        pause.req <= #TA 1;
         cycle_start();
-        while (pause_ack != 1) begin
+        while (pause.ack != 1) begin
             cycle_end();
             cycle_start();
         end
@@ -164,9 +157,9 @@ module adam_periph_spi_phy_tb;
         cycle_start();
         cycle_end();
 
-        pause_req <= #TA 0;
+        pause.req <= #TA 0;
         cycle_start();
-        while (pause_ack != 0) begin
+        while (pause.ack != 0) begin
             cycle_end();
             cycle_start();
         end
@@ -353,7 +346,7 @@ module adam_periph_spi_phy_tb;
     endtask
 
     task cycle_end();
-        @(posedge clk);
+        @(posedge seq.clk);
     endtask
 
     function automatic logic [7:0] reverse(

@@ -7,12 +7,16 @@ interface ADAM_IO;
 
     modport Master (
         input  i,
-        output o, mode, otype
+        output o,
+        output mode,
+        output otype
     );
 
     modport Slave (
         output i,
-        input  o, mode, otype
+        input  o,
+        input  mode,
+        input  otype
     );
 
 endinterface

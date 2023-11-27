@@ -1,62 +1,62 @@
 module adam_core_ibex #(
-	parameter ADDR_WIDTH = 32,
-	parameter DATA_WIDTH = 32,
+    parameter ADDR_WIDTH = 32,
+    parameter DATA_WIDTH = 32,
 
-	// Dependent parameters bellow, do not override.
+    // Dependent parameters bellow, do not override.
     
-	parameter STRB_WIDTH = (DATA_WIDTH/8),
+    parameter STRB_WIDTH = (DATA_WIDTH/8),
 
-	parameter type addr_t = logic [ADDR_WIDTH-1:0],
-	parameter type data_t = logic [DATA_WIDTH-1:0],
-	parameter type strb_t = logic [STRB_WIDTH-1:0]
+    parameter type addr_t = logic [ADDR_WIDTH-1:0],
+    parameter type data_t = logic [DATA_WIDTH-1:0],
+    parameter type strb_t = logic [STRB_WIDTH-1:0]
 ) (
-	input logic clk,
-	input logic rst,
+    input logic clk,
+    input logic rst,
 
-	input  logic pause_req,
-	output logic pause_ack,
+    input  logic pause.req,
+    output logic pause.ack,
 
-	input  addr_t boot_addr,
-	input  data_t hart_id,
+    input  addr_t boot_addr,
+    input  data_t hart_id,
 
-	AXI_LITE.Master inst_axil,
-	AXI_LITE.Master data_axil,
+    AXI_LITE.Master inst_axil,
+    AXI_LITE.Master data_axil,
 
-	input  logic irq
+    input  logic irq
 );
 
-	logic  inst_pause_req;
-	logic  inst_pause_ack;
+    logic  inst_pause.req;
+    logic  inst_pause.ack;
 
-	logic  inst_req_o;
-	logic  inst_gnt_i;
-	logic  inst_rvalid_i;
-	logic  inst_rready_o;
-	addr_t inst_addr_o;
-	strb_t inst_be_o;
-	data_t inst_wdata_o;
-	logic  inst_we_o;
-	data_t inst_rdata_i;
+    logic  inst_req_o;
+    logic  inst_gnt_i;
+    logic  inst_rvalid_i;
+    logic  inst_rready_o;
+    addr_t inst_addr_o;
+    strb_t inst_be_o;
+    data_t inst_wdata_o;
+    logic  inst_we_o;
+    data_t inst_rdata_i;
 
-	logic  data_pause_req;
-	logic  data_pause_ack;
+    logic  data_pause.req;
+    logic  data_pause.ack;
 
-	logic  data_req_o;
-	logic  data_gnt_i;
-	logic  data_rvalid_i;
-	logic  data_rready_o;
-	addr_t data_addr_o;
-	strb_t data_be_o;
-	data_t data_wdata_o;
-	logic  data_we_o;
-	data_t data_rdata_i;
-	
-	assign inst_rready_o = 1;
-	assign inst_be_o     = 0;
-	assign inst_wdata_o  = 0;
-	assign inst_we_o     = 0;
+    logic  data_req_o;
+    logic  data_gnt_i;
+    logic  data_rvalid_i;
+    logic  data_rready_o;
+    addr_t data_addr_o;
+    strb_t data_be_o;
+    data_t data_wdata_o;
+    logic  data_we_o;
+    data_t data_rdata_i;
+    
+    assign inst_rready_o = 1;
+    assign inst_be_o     = 0;
+    assign inst_wdata_o  = 0;
+    assign inst_we_o     = 0;
 
-	assign data_rready_o = 1;
+    assign data_rready_o = 1;
 
     ibex_top #(
         .PMPEnable        (0),
@@ -80,7 +80,7 @@ module adam_core_ibex #(
         .DmExceptionAddr  (32'hFFFF_FFFF)
     ) ibex_top (
         // Clock and reset
-        .clk_i       (clk),
+        .clk_i       (seq.clk),
         .rst_ni      (!rst),
         .test_en_i   ('0),
         .scan_rst_ni (test),
@@ -131,62 +131,56 @@ module adam_core_ibex #(
         // .core_sleep_o           ()
     );
 
-	adam_obi_axil_bridge #(
-		.ADDR_WIDTH(ADDR_WIDTH),
-		.DATA_WIDTH(DATA_WIDTH)
-	) instr_adam_obi_axil_bridge (
-		.clk  (clk),
-    	.rst  (rst),
+    adam_obi_axil_bridge #(
+        .ADDR_WIDTH(ADDR_WIDTH),
+        .DATA_WIDTH(DATA_WIDTH)
+    ) instr_adam_obi_axil_bridge (
+        .seq   (seq),
+        .pause (inst_seq),
 
-    	.axil (inst_axil),
+        .axil (inst_axil),
 
-		.pause_req (inst_pause_req),
-    	.pause_ack (inst_pause_ack),
+        .req    (inst_req_o),
+        .gnt    (inst_gnt_i),
+        .addr   (inst_addr_o),
+        .we     ('0),
+        .be     (strb_t'(0)),
+        .wdata  ('0),
+        .rvalid (inst_rvalid_i),
+        .rready (inst_rready_o),
+        .rdata  (inst_rdata_i) 
+    );
 
-		.req    (inst_req_o),
-    	.gnt    (inst_gnt_i),
-    	.addr   (inst_addr_o),
-    	.we     ('0),
-    	.be     (strb_t'(0)),
-    	.wdata  ('0),
-    	.rvalid (inst_rvalid_i),
-    	.rready (inst_rready_o),
-    	.rdata  (inst_rdata_i) 
-	);
+    adam_obi_axil_bridge #(
+        .ADDR_WIDTH (ADDR_WIDTH),
+        .DATA_WIDTH (DATA_WIDTH)
+    ) data_adam_obi_axil_bridge (
+        .seq   (seq),
+        .pause (data_pause),
 
-	adam_obi_axil_bridge #(
-		.ADDR_WIDTH (ADDR_WIDTH),
-		.DATA_WIDTH (DATA_WIDTH)
-	) data_adam_obi_axil_bridge (
-		.clk  (clk),
-    	.rst  (rst),
+        .axil (data_axil),
 
-    	.axil (data_axil),
+        .req    (data_req_o),
+        .gnt    (data_gnt_i),
+        .addr   (data_addr_o),
+        .we     (data_we_o),
+        .be     (data_be_o),
+        .wdata  (data_wdata_o),
+        .rvalid (data_rvalid_i),
+        .rready (data_rready_o),
+        .rdata  (data_rdata_i) 
+    );
 
-		.pause_req (data_pause_req),
-    	.pause_ack (data_pause_ack),
+    always_comb begin
+        inst_pause.req = pause.req;
+        data_pause.req = pause.req;
 
-		.req    (data_req_o),
-    	.gnt    (data_gnt_i),
-    	.addr   (data_addr_o),
-    	.we     (data_we_o),
-    	.be     (data_be_o),
-    	.wdata  (data_wdata_o),
-    	.rvalid (data_rvalid_i),
-    	.rready (data_rready_o),
-    	.rdata  (data_rdata_i) 
-	);
-
-	always_comb begin
-		inst_pause_req = pause_req;
-		data_pause_req = pause_req;
-
-		if (pause_req) begin
-			pause_ack = inst_pause_ack && data_pause_ack;
-		end
-		else begin
-			pause_ack = inst_pause_ack || data_pause_ack;
-		end
-	end
+        if (pause.req) begin
+            pause.ack = inst_pause.ack && data_pause.ack;
+        end
+        else begin
+            pause.ack = inst_pause.ack || data_pause.ack;
+        end
+    end
 
 endmodule

@@ -31,11 +31,8 @@ module adam_fabric_lsxp_tb;
         addr_t end_addr;
     } rule_t;
 
-    logic clk;
-    logic rst;
-
-    logic pause_req;
-    logic pause_ack;
+    ADAM_SEQ   seq   ();
+    ADAM_PAUSE pause ();
 
     rule_t [NO_MSTS-1:0] addr_map;
 
@@ -47,7 +44,7 @@ module adam_fabric_lsxp_tb;
     AXI_LITE_DV #(
         .AXI_ADDR_WIDTH(ADDR_WIDTH),
         .AXI_DATA_WIDTH(DATA_WIDTH)
-    ) mst_dv (clk);
+    ) mst_dv (seq.clk);
 
     APB #(
         .ADDR_WIDTH(ADDR_WIDTH),
@@ -73,8 +70,7 @@ module adam_fabric_lsxp_tb;
         .TA (TA),
         .TT (TT)
     ) clk_rst_gen (
-        .clk (clk),
-        .rst (rst)
+        .seq (seq)
     );
 
     adam_pause_bhv #(
@@ -84,11 +80,8 @@ module adam_fabric_lsxp_tb;
         .TA (TA),
         .TT (TT)
     ) adam_pause_bhv (
-        .rst (rst),
-        .clk (clk),
-
-        .pause_req (pause_req),
-        .pause_ack (pause_ack)
+        .seq   (seq),
+        .pause (pause)
     );
 
     adam_axil_master_bhv #(
@@ -105,11 +98,8 @@ module adam_fabric_lsxp_tb;
         
         .NO_MSTS (NO_MSTS)
     ) dut (
-        .clk  (clk),
-        .rst  (rst),
-
-        .pause_req (pause_req),
-        .pause_ack (pause_ack),
+        .seq   (seq),
+        .pause (pause),
         
         .slv  (mst),
         .msts (slvs)
@@ -134,8 +124,8 @@ module adam_fabric_lsxp_tb;
             data_t wdata, rdata;
             resp_t wresp, rresp;
 
-            @(negedge rst);
-            @(posedge clk);
+            @(negedge seq.rst);
+            @(posedge seq.clk);
 
             for (int i = 0; i < NO_MSTS; i++) begin
                 for (int j = 0; j < 2; j++) begin

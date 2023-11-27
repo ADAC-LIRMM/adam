@@ -29,11 +29,8 @@ module adam_axil_ram_tb;
     typedef logic [STRB_WIDTH-1:0] strb_t;
     typedef logic [1:0]            resp_t;
 
-    logic clk;
-    logic rst;
-
-    logic pause_req;
-    logic pause_ack;
+    ADAM_SEQ   seq   ();
+    ADAM_PAUSE pause ();
 
     AXI_LITE #(
         .AXI_ADDR_WIDTH (ADDR_WIDTH),
@@ -43,7 +40,7 @@ module adam_axil_ram_tb;
     AXI_LITE_DV #(
         .AXI_ADDR_WIDTH(ADDR_WIDTH),
         .AXI_DATA_WIDTH(DATA_WIDTH)
-    ) axil_dv (clk);
+    ) axil_dv (seq.clk);
 
     `AXI_LITE_ASSIGN(axil, axil_dv)
 
@@ -58,7 +55,7 @@ module adam_axil_ram_tb;
     ) master = new(axil_dv);
 
     // TODO: implement pause
-    assign pause_ack = 0;
+    assign pause.ack = 0;
 
     adam_clk_rst_bhv #(
         .CLK_PERIOD (CLK_PERIOD),
@@ -67,8 +64,7 @@ module adam_axil_ram_tb;
         .TA (TA),
         .TT (TT)
     ) adam_clk_rst_bhv (
-        .clk (clk),
-        .rst (rst)
+        .seq (seq)
     );
 
     adam_axil_ram #(
@@ -77,25 +73,22 @@ module adam_axil_ram_tb;
         
         .SIZE (SIZE)
     ) dut (
-        .clk  (clk),
-        .rst  (rst),
-
-        .pause_req (pause_req),
-        .pause_ack (pause_ack),
+        .seq   (seq),
+        .pause (pause),
 
         .axil (axil)
     );
 
     // TODO: implement pause
-    assign pause_req = 0;
+    assign pause.req = 0;
 
     initial master.loop();
 
     `TEST_SUITE begin
         `TEST_CASE("test") begin
 
-            @(negedge rst); 
-            repeat (10) @(posedge clk);
+            @(negedge seq.rst); 
+            repeat (10) @(posedge seq.clk);
 
             // Write
             for (addr_t addr = 0; addr < SIZE; addr += STRB_WIDTH) begin

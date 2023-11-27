@@ -2,11 +2,8 @@ module adam_periph_spi #(
     parameter ADDR_WIDTH = 32,
     parameter DATA_WIDTH = 32
 ) (
-    input logic clk,
-    input logic rst,
-    
-    input  logic pause_req,
-    output logic pause_ack,
+    ADAM_SEQ.Slave   seq,
+    ADAM_PAUSE.Slave pause,
 
     APB.Slave apb,
 
@@ -25,11 +22,8 @@ module adam_periph_spi #(
     typedef logic [STRB_WIDTH-1:0] strb_t;
     typedef logic [DATA_WIDTH-1:0] reg_t;
     
-    logic phy_pause_req;
-    logic phy_pause_ack;
-
-    logic apb_pause_req;
-    logic apb_pause_ack;
+    ADAM_PAUSE phy_pause ();
+    ADAM_PAUSE apb_pause ();
 
     // Data (TX)
     reg_t tx_buf;
@@ -84,11 +78,8 @@ module adam_periph_spi #(
     adam_periph_spi_phy #(
         .DATA_WIDTH (DATA_WIDTH)
     ) adam_periph_spi_phy (
-        .clk  (clk),
-        .rst  (rst),
-
-        .pause_req (phy_pause_req),
-        .pause_ack (phy_pause_ack),
+        .seq   (seq),
+        .pause (phy_pause),
         
         .tx_enable      (tx_enable),
         .rx_enable      (rx_enable),
@@ -156,19 +147,19 @@ module adam_periph_spi #(
         rx_buf_full_ie   = interrupt_enable[1];
 
         // IRQ
-        irq = (periph_enable && !pause_ack) && (
+        irq = (periph_enable && !pause.ack) && (
             (tx_buf_empty && tx_buf_empty_ie && tx_enable) |
             (rx_buf_full  && rx_buf_full_ie  && rx_enable)
         );
 
-        apb_pause_req = pause_req;
+        apb_pause.req = pause.req;
 
-        // pause_ack
-        if (pause_req) begin
-            pause_ack = apb_pause_ack && phy_pause_ack;
+        // pause.ack
+        if (pause.req) begin
+            pause.ack = apb_pause.ack && phy_pause.ack;
         end
         else begin
-            pause_ack = apb_pause_ack || phy_pause_ack;
+            pause.ack = apb_pause.ack || phy_pause.ack;
         end
 
         // Submodule transfers
@@ -178,10 +169,10 @@ module adam_periph_spi #(
         tx_data = tx_buf;
     end
 
-    always_ff @(posedge clk) begin
+    always_ff @(posedge seq.clk) begin
         automatic reg_t new_control;
 
-        if (rst) begin
+        if (seq.rst) begin
             tx_buf           <= 0;
             rx_buf           <= 0;
             control          <= 0;
@@ -195,16 +186,16 @@ module adam_periph_spi #(
             pready  <= 0;
             pslverr <= 0;
 
-            phy_pause_req <= 0;
+            phy_pause.req <= 0;
 
-            apb_pause_ack <= 0;
+            apb_pause.ack <= 0;
         end
-        else if (apb_pause_req && apb_pause_ack) begin
+        else if (apb_pause.req && apb_pause.ack) begin
             // PAUSED
         end
         else begin
             if (
-                (!apb_pause_req) &&   // no pause request
+                (!apb_pause.req) &&   // no pause request
                 (psel && !pready) // pending APB transaction
             ) case (index)
 
@@ -244,18 +235,18 @@ module adam_periph_spi #(
                         
                         if (new_control != control && new_control[0]) begin
                             // changes will affect the phy
-                            if (phy_pause_req && phy_pause_ack) begin
+                            if (phy_pause.req && phy_pause.ack) begin
                                 // on phy pause forward change
                                 control <= new_control;
                             end
                             else begin
                                 // else request pause
-                                phy_pause_req <= 1;
+                                phy_pause.req <= 1;
                             end
                         end
                         else begin
                             // phy resume (or changes wont affect it)
-                            phy_pause_req <= 0;
+                            phy_pause.req <= 0;
                             control <= new_control;
                             pready <= 1;
                         end 
@@ -307,7 +298,7 @@ module adam_periph_spi #(
                 end
             endcase
             else if (
-                (!apb_pause_ack) &&         // not paused
+                (!apb_pause.ack) &&         // not paused
                 (psel && penable && pready) // transaction completed
             ) begin
                 // reset APB outputs.
@@ -316,12 +307,12 @@ module adam_periph_spi #(
                 pslverr <= 0;
             end
             else if (
-                (pause_req && !apb_pause_ack) &&   // apb pause init
-                (!phy_pause_req && !phy_pause_ack) // no phy pause
+                (pause.req && !apb_pause.ack) &&   // apb pause init
+                (!phy_pause.req && !phy_pause.ack) // no phy pause
             ) begin
                 // pause
-                phy_pause_req <= 1;
-                apb_pause_ack <= 1;
+                phy_pause.req <= 1;
+                apb_pause.ack <= 1;
 
                 // tie APB interface off
                 prdata  <= 0;
@@ -329,12 +320,12 @@ module adam_periph_spi #(
                 pslverr <= 1;
             end
             else if (
-                (!apb_pause_req && apb_pause_ack) && // apb pause end
-                (phy_pause_req && phy_pause_ack)     // phy pause
+                (!apb_pause.req && apb_pause.ack) && // apb pause end
+                (phy_pause.req && phy_pause.ack)     // phy pause
             ) begin
                 // resume
-                phy_pause_req <= 0;
-                apb_pause_ack <= 0;
+                phy_pause.req <= 0;
+                apb_pause.ack <= 0;
 
                 // reset APB outputs
                 prdata  <= 0;

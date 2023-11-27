@@ -1,17 +1,17 @@
 module adam_clk_div #(
     parameter WIDTH = 2
 ) (
-    input  logic rst,
-    input  logic in,
-    output logic out
+    ADAM_SEQ.Slave  slv,
+    ADAM_SEQ.Master mst
 );
 
     logic [WIDTH-1:0] counter;
 
-    assign out = counter[WIDTH-1];
+    assign mst.clk = counter[WIDTH-1];
+    assign mst.rst = slv.rst;
 
-    always_ff @(posedge in) begin
-        if (rst) begin
+    always_ff @(posedge slv.clk) begin
+        if (slv.rst) begin
             counter <= 0;
         end
         else begin
