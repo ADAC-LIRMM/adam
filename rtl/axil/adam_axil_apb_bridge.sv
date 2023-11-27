@@ -106,7 +106,7 @@ module adam_axil_apb_bridge #(
         .rule_t           (rule_t)
     ) axi_lite_to_apb (
         .clk_i  (seq.clk),
-        .rst_ni (!rst),
+        .rst_ni (!seq.rst),
 
         .axi_lite_req_i  (axil_pause_req),
         .axi_lite_resp_o (axil_pause_resp),

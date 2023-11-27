@@ -92,8 +92,7 @@ module adam_axil_apb_bridge_tb;
         .TA (TA),
         .TT (TT)
     ) adam_clk_rst_bhv (
-        .clk (seq.clk),
-        .rst (rst)
+        .seq (seq)
     );
 
     adam_pause_bhv #(
