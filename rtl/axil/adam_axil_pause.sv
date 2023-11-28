@@ -88,8 +88,6 @@ module adam_axil_pause #(
             if (mst.b_valid && mst.b_ready) begin
                 aw_trans -= 1;
                 w_trans  -= 1;
-
-                $display("fadfasdf");
             end
 
             // AR Stream

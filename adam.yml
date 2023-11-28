@@ -43,12 +43,17 @@ fsets:
 
     root: bhv/
     sources:
-      # Level 0
+      - adam_clk_rst_bhv.sv
+
+      - pause/adam_pause_bhv.sv
+
+      - stream/adam_stream_mst_bhv.sv
+      - stream/adam_stream_slv_bhv.sv
+      - stream/adam_stream_skid_tb.sv
+      
       - axil/adam_axil_master_bhv.sv
       - axil/adam_axil_slave_bhv.sv
-      - pause/adam_pause_bhv.sv
-      - adam_clk_rst_bhv.sv
-      # Level 1
+      
       - axil/adam_axil_apb_bridge_tb.sv
       - axil/adam_axil_skid_tb.sv
       - axil/adam_axil_pause_tb.sv
@@ -77,18 +82,23 @@ fsets:
       - apb_rtl
 
     root: rtl/
+    includes:
+      - ../include/
+
     sources:
-      # Level 0
       - intf/adam_intf_io.sv
       - intf/adam_intf_pause.sv
       - intf/adam_intf_seq.sv
-      # Level 1
+      - intf/adam_intf_stream.sv
+
       - pause/adam_pause_demux.sv
-      # Level 2
+
+      - stream/adam_stream_skid.sv
+
       - periphs/spi/adam_periph_spi_phy.sv
       - periphs/uart/adam_periph_uart_rx.sv
       - periphs/uart/adam_periph_uart_tx.sv
-      # Level 3
+
       - axil/adam_axil_pause.sv
       - axil/adam_axil_skid.sv
       - periphs/gpio/adam_periph_gpio.sv
@@ -96,22 +106,22 @@ fsets:
       - periphs/sysctrl/adam_periph_sysctrl.sv
       - periphs/timer/adam_periph_timer.sv
       - periphs/uart/adam_periph_uart.sv
-      # Level 4
+
       - axil/adam_axil_apb_bridge.sv
 #      - axil/adam_axil_xbar.sv  
       - obi/adam_obi_axil_bridge.sv
       - periphs/adam_periphs.sv
-      # Level 5
+
       - fabric/adam_fabric_hsdom.sv
       - fabric/adam_fabric_lsdom.sv
       - fabric/adam_fabric_lsxp.sv
-      # Level 6
+
 #      - axil/adam_axil_ram.sv
 #      - adam.sv
       - adam_clk_div.sv
-      # Level 7
+
 #      - adam_synth.sv
-      # Level 8
+
 #      - adam_synth_intf.sv
 
   adam_cv32e40p_rtl:

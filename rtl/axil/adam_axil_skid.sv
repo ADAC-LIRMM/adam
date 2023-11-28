@@ -62,21 +62,18 @@ module adam_axil_skid #(
             assign mst_aw = slv_aw;
         end
         else begin
-            fall_through_register #(
+            adam_skid #(
                 .T (aw_chan_t)
-            ) aw_chan_fall_through (
-                .clk_i      (seq.clk),
-                .rst_ni     (!seq.rst),
-                .clr_i      ('0),
-                .testmode_i ('0),
+            ) aw_chan_skid (
+                .seq (seq),
 
-                .valid_i (slv.aw_valid),
-                .ready_o (slv.aw_ready),
-                .data_i  (slv_aw),
+                .slv_data  (slv_aw),
+                .slv_valid (slv.aw_valid),
+                .slv_ready (slv.aw_ready),
                 
-                .valid_o (mst.aw_valid),
-                .ready_i (mst.aw_ready),
-                .data_o  (mst_aw)
+                .mst_data  (mst_aw),
+                .mst_valid (mst.aw_valid),
+                .mst_ready (mst.aw_ready)
             );
         end
 
@@ -86,21 +83,18 @@ module adam_axil_skid #(
             assign mst_w = slv_w;
         end
         else begin
-            fall_through_register #(
+            adam_skid #(
                 .T (w_chan_t)
-            ) w_chan_fall_through (
-                .clk_i      (seq.clk),
-                .rst_ni     (!seq.rst),
-                .clr_i      ('0),
-                .testmode_i ('0),
+            ) w_chan_skid (
+                .seq (seq),
 
-                .valid_i (slv.w_valid),
-                .ready_o (slv.w_ready),
-                .data_i  (slv_w),
+                .slv_data  (slv_w),
+                .slv_valid (slv.w_valid),
+                .slv_ready (slv.w_ready),
                 
-                .valid_o (mst.w_valid),
-                .ready_i (mst.w_ready),
-                .data_o  (mst_w)
+                .mst_data  (mst_w),
+                .mst_valid (mst.w_valid),
+                .mst_ready (mst.w_ready)
             );
         end
 
@@ -110,21 +104,18 @@ module adam_axil_skid #(
             assign slv_b = mst_b;
         end
         else begin
-            fall_through_register #(
+            adam_skid #(
                 .T (b_chan_t)
-            ) b_chan_fall_through (
-                .clk_i      (seq.clk),
-                .rst_ni     (!seq.rst),
-                .clr_i      ('0),
-                .testmode_i ('0),
+            ) b_chan_skid (
+                .seq (seq),
 
-                .valid_i (mst.b_valid),
-                .ready_o (mst.b_ready),
-                .data_i  (mst_b),
+                .slv_data  (mst_b),
+                .slv_valid (mst.b_valid),
+                .slv_ready (mst.b_ready),
                 
-                .valid_o (slv.b_valid),
-                .ready_i (slv.b_ready),
-                .data_o  (slv_b)
+                .mst_data  (slv_b),
+                .mst_valid (slv.b_valid),
+                .mst_ready (slv.b_ready)
             );
         end
 
@@ -134,21 +125,18 @@ module adam_axil_skid #(
             assign mst_ar = slv_ar;
         end
         else begin
-            fall_through_register #(
+            adam_skid #(
                 .T (ar_chan_t)
-            ) ar_chan_fall_through (
-                .clk_i      (seq.clk),
-                .rst_ni     (!seq.rst),
-                .clr_i      ('0),
-                .testmode_i ('0),
+            ) ar_chan_skid (
+                .seq (seq),
 
-                .valid_i (slv.ar_valid),
-                .ready_o (slv.ar_ready),
-                .data_i  (slv_ar),
+                .slv_data  (slv_ar),
+                .slv_valid (slv.ar_valid),
+                .slv_ready (slv.ar_ready),
                 
-                .valid_o (mst.ar_valid),
-                .ready_i (mst.ar_ready),
-                .data_o  (mst_ar)
+                .mst_data  (mst_ar),
+                .mst_valid (mst.ar_valid),
+                .mst_ready (mst.ar_ready)
             );
         end
 
@@ -158,21 +146,18 @@ module adam_axil_skid #(
             assign slv_r = mst_r;
         end
         else begin
-            fall_through_register #(
+            adam_skid #(
                 .T (r_chan_t)
-            ) r_chan_fall_through (
-                .clk_i      (seq.clk),
-                .rst_ni     (!seq.rst),
-                .clr_i      ('0),
-                .testmode_i ('0),
+            ) r_chan_skid (
+                .seq (seq),
 
-                .valid_i (mst.r_valid),
-                .ready_o (mst.r_ready),
-                .data_i  (mst_r),
+                .slv_data  (mst_r),
+                .slv_valid (mst.r_valid),
+                .slv_ready (mst.r_ready),
                 
-                .valid_o (slv.r_valid),
-                .ready_i (slv.r_ready),
-                .data_o  (slv_r)
+                .mst_data  (slv_r),
+                .mst_valid (slv.r_valid),
+                .mst_ready (slv.r_ready)
             );
         end
 

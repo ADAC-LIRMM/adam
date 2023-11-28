@@ -1,3 +1,8 @@
+`define AXIL_I AXI_LITE #( \
+    .AXI_ADDR_WIDTH (ADDR_WIDTH), \
+    .AXI_DATA_WIDTH (DATA_WIDTH) \
+)
+
 module adam_axil_ram #(
     parameter ADDR_WIDTH = 32,
     parameter DATA_WIDTH = 32,
@@ -19,37 +24,39 @@ module adam_axil_ram #(
     typedef logic [DATA_WIDTH-1:0] data_t;
     typedef logic [STRB_WIDTH-1:0] strb_t;
     
-    addr_t waddr;
+    `AXIL_I axil_pause ();
+    `AXIL_I axil_skid  ();
+
+    logic [ALIGNED_WIDTH-1:0] addr_aligned;
     data_t wdata;
     strb_t wstrb;
-    addr_t raddr;
+    data_t rdata;
 
-    addr_t                      addr;
-    logic [ALIGNED_WIDTH-1:0]   addr_aligned;
-    logic [UNALIGNED_WIDTH-1:0] addr_unaligned;
-    
-    assign addr_aligned = addr[DATA_WIDTH-1:UNALIGNED_WIDTH];
-    assign addr_unaligned = addr[UNALIGNED_WIDTH-1:0];
+    adam_axil_pause #(
+        .ADDR_WIDTH (ADDR_WIDTH),
+        .DATA_WIDTH (DATA_WIDTH),
 
-    // TODO: implement pause
-    assign pause.ack = 0;
+        .MAX_TRANS  (3)
+    ) adam_axil_pause (
+        .seq   (seq),
+        .pause (pause),
 
-    fall_through_register #(
-        .T (aw_chan_t)
-    ) (
-    input  logic    clk_i,          // Clock
-    input  logic    rst_ni,         // Asynchronous active-low reset
-    input  logic    clr_i,          // Synchronous clear
-    input  logic    testmode_i,     // Test mode to bypass clock gating
-    // Input port
-    input  logic    valid_i,
-    output logic    ready_o,
-    input  T        data_i,
-    // Output port
-    output logic    valid_o,
-    input  logic    ready_i,
-    output T        data_o
-);
+        .slv (slv),
+        .mst (axil_pause)
+    );
+
+    adam_axil_skid #(
+        .ADDR_WIDTH(ADDR_WIDTH),
+        .DATA_WIDTH(DATA_WIDTH),
+
+        .BYPASS_B  (1),
+        .BYPASS_R  (1)
+    ) adam_axil_skid (
+        .seq (seq),
+
+        .slv (axil_pause),
+        .mst (axil_skid)
+    );
 
     adam_axil_ram__phy #(
         .ADDR_WIDTH (ALIGNED_WIDTH),
@@ -62,6 +69,17 @@ module adam_axil_ram #(
         .wstrb (wstrb),
         .rdata (rdata)
     );
+
+    always_ff @(posedge seq.clk) begin
+        automatic bit write;
+        automatic bit read;
+
+        write = axil.aw_valid && axil.w_valid;
+
+        axil.aw_ready <= ;
+        axil.w_ready  <= axil.aw_valid && axil.w_valid;
+
+    end
 
     always_ff @(posedge seq.clk) begin  
         automatic bit aw_ok, w_ok, b_ok, ar_ok, r_ok;

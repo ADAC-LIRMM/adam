@@ -27,20 +27,20 @@ module adam_axil_skid_tb;
     ADAM_SEQ seq();
 
     AXI_LITE #(
-        .AXI_ADDR_WIDTH(ADDR_WIDTH),
-        .AXI_DATA_WIDTH(DATA_WIDTH)
+        .AXI_ADDR_WIDTH (ADDR_WIDTH),
+        .AXI_DATA_WIDTH (DATA_WIDTH)
     ) mst ();
 
     AXI_LITE_DV #(
-        .AXI_ADDR_WIDTH(ADDR_WIDTH),
-        .AXI_DATA_WIDTH(DATA_WIDTH)
+        .AXI_ADDR_WIDTH (ADDR_WIDTH),
+        .AXI_DATA_WIDTH (DATA_WIDTH)
     ) mst_dv(seq.clk);
 
     `AXI_LITE_ASSIGN(mst, mst_dv);
 
     adam_axil_master_bhv #(
-        .ADDR_WIDTH(ADDR_WIDTH),
-        .DATA_WIDTH(DATA_WIDTH),
+        .ADDR_WIDTH (ADDR_WIDTH),
+        .DATA_WIDTH (DATA_WIDTH),
 
         .TA(TA),
         .TT(TT),
@@ -61,8 +61,8 @@ module adam_axil_skid_tb;
     `AXI_LITE_ASSIGN(slv_dv, slv);
 
     adam_axil_slave_bhv #(
-        .ADDR_WIDTH(ADDR_WIDTH),
-        .DATA_WIDTH(DATA_WIDTH),
+        .ADDR_WIDTH (ADDR_WIDTH),
+        .DATA_WIDTH (DATA_WIDTH),
 
         .TA(TA),
         .TT(TT),
@@ -107,18 +107,12 @@ module adam_axil_skid_tb;
     end
 
     `TEST_SUITE begin
-        `TEST_CASE("without_backpressure") begin
-            automatic addr_t addr;
-            automatic prot_t prot;
-            automatic data_t data;
-            automatic strb_t strb;
-            automatic resp_t resp;
-            
-            addr = $urandom();
-            prot = 3'b000;
-            data = $urandom();
-            strb = 4'b1111;
-            resp = 2'b00;
+        `TEST_CASE("basic") begin
+            automatic addr_t addr = $urandom();
+            automatic prot_t prot = 3'b000;
+            automatic data_t data = $urandom();
+            automatic strb_t strb = 4'b1111;
+            automatic resp_t resp = 2'b00;
 
             @(negedge seq.rst);
             @(posedge seq.clk);
@@ -139,7 +133,7 @@ module adam_axil_skid_tb;
             mst_bhv.recv_r(data, resp);
         end
 
-        `TEST_CASE("with_backpressure") begin            
+        `TEST_CASE("with_stalling") begin            
             automatic addr_t addr;
             automatic prot_t prot;
             automatic data_t data;
