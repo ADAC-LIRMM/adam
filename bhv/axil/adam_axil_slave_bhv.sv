@@ -148,17 +148,19 @@ class adam_axil_slave_bhv #(
             cycle_start();
             
             end_transfer = axil_dv.aw_valid && axil_dv.aw_ready;
-            
+                        
+            if (end_transfer) begin
+                aw.addr = axil_dv.aw_addr;
+                aw.prot = axil_dv.aw_prot;
+                aw_queue.push_front(aw);
+            end
+
             start_transfer = (aw_queue.size() < MAX_TRANS);
-            
-            aw.addr = axil_dv.aw_addr;
-            aw.prot = axil_dv.aw_prot;
 
             cycle_end();
             
             if (end_transfer) begin
                 axil_dv.aw_ready <= #TA 0;
-                aw_queue.push_front(aw);
             end
             
             if (start_transfer) begin
@@ -181,16 +183,18 @@ class adam_axil_slave_bhv #(
             
             end_transfer = axil_dv.w_valid && axil_dv.w_ready;
             
+            if (end_transfer) begin
+                w.data = axil_dv.w_data;
+                w.strb = axil_dv.w_strb;
+                w_queue.push_front(w);
+            end
+
             start_transfer = (w_queue.size() < MAX_TRANS);
             
-            w.data = axil_dv.w_data;
-            w.strb = axil_dv.w_strb;
-
             cycle_end();
             
             if (end_transfer) begin
                 axil_dv.w_ready <= #TA 0;
-                w_queue.push_front(w);
             end
             
             if (start_transfer) begin
@@ -246,16 +250,18 @@ class adam_axil_slave_bhv #(
             
             end_transfer = axil_dv.ar_valid && axil_dv.ar_ready;
             
+            if (end_transfer) begin
+                ar.addr = axil_dv.ar_addr;
+                ar.prot = axil_dv.ar_prot;
+                ar_queue.push_front(ar);
+            end
+
             start_transfer = (ar_queue.size() < MAX_TRANS);
             
-            ar.addr = axil_dv.ar_addr;
-            ar.prot = axil_dv.ar_prot;
-
             cycle_end();
             
             if (end_transfer) begin
                 axil_dv.ar_ready <= #TA 0;
-                ar_queue.push_front(ar);
             end
             
             if (start_transfer) begin

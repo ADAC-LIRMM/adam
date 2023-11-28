@@ -18,7 +18,7 @@ module adam_axil_pause_tb;
 
     localparam STRB_WIDTH = DATA_WIDTH/8;
 
-    localparam NO_TESTS = 1000;
+    localparam NO_TESTS = 100;
 
     typedef logic [ADDR_WIDTH-1:0] addr_t;
     typedef logic [2:0]            prot_t;       

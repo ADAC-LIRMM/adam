@@ -50,8 +50,9 @@ fsets:
       - adam_clk_rst_bhv.sv
       # Level 1
       - axil/adam_axil_apb_bridge_tb.sv
+      - axil/adam_axil_fall_through_tb.sv
       - axil/adam_axil_pause_tb.sv
-      - axil/adam_axil_ram_tb.sv
+#      - axil/adam_axil_ram_tb.sv
 #      - axil/adam_axil_xbar_tb.sv
       - axil/adam_axil_slave_simple_bhv.sv
       - pause/adam_pause_demux_tb.sv
@@ -89,6 +90,7 @@ fsets:
       - periphs/uart/adam_periph_uart_tx.sv
       # Level 3
       - axil/adam_axil_pause.sv
+      - axil/adam_axil_fall_through.sv
       - periphs/gpio/adam_periph_gpio.sv
       - periphs/spi/adam_periph_spi.sv
       - periphs/sysctrl/adam_periph_sysctrl.sv
@@ -104,7 +106,7 @@ fsets:
       - fabric/adam_fabric_lsdom.sv
       - fabric/adam_fabric_lsxp.sv
       # Level 6
-      - axil/adam_axil_ram.sv
+#      - axil/adam_axil_ram.sv
 #      - adam.sv
       - adam_clk_div.sv
       # Level 7

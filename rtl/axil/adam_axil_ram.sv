@@ -7,108 +7,180 @@ module adam_axil_ram #(
     ADAM_SEQ.Slave   seq,
     ADAM_PAUSE.Slave pause,
 
-    AXI_LITE.Slave axil
+    AXI_LITE.Slave slv
 );
 
-    localparam STRB_WIDTH      = DATA_WIDTH/8;
-    localparam UNALIGNED_WIDTH = $clog2(STRB_WIDTH);
-    localparam ALIGNED_WIDTH   = ADDR_WIDTH - UNALIGNED_WIDTH;
-    localparam ALIGNED_SIZE    = SIZE / STRB_WIDTH;
+    localparam STRB_WIDTH = DATA_WIDTH/8;
+    localparam UNALIGNED_WIDTH = $clog2(STRB_WIDTH);         
+    localparam ALIGNED_WIDTH = ADDR_WIDTH - UNALIGNED_WIDTH;
+    localparam ALIGNED_SIZE  = SIZE / STRB_WIDTH;          
 
     typedef logic [ADDR_WIDTH-1:0] addr_t;
     typedef logic [DATA_WIDTH-1:0] data_t;
     typedef logic [STRB_WIDTH-1:0] strb_t;
     
-    typedef logic [UNALIGNED_WIDTH-1:0] unaligned_t;
-    typedef logic [ALIGNED_WIDTH-1:0]   aligned_t;
-
-    // (* RAM_STYLE="BLOCK" *)
-    data_t mem [ALIGNED_SIZE-1:0];
-
     addr_t waddr;
     data_t wdata;
     strb_t wstrb;
     addr_t raddr;
 
+    addr_t                      addr;
+    logic [ALIGNED_WIDTH-1:0]   addr_aligned;
+    logic [UNALIGNED_WIDTH-1:0] addr_unaligned;
+    
+    assign addr_aligned = addr[DATA_WIDTH-1:UNALIGNED_WIDTH];
+    assign addr_unaligned = addr[UNALIGNED_WIDTH-1:0];
+
     // TODO: implement pause
     assign pause.ack = 0;
 
-    always_ff @(posedge seq.clk) begin
-        automatic unaligned_t unaligned;
-        automatic aligned_t   aligned;
+    fall_through_register #(
+        .T (aw_chan_t)
+    ) (
+    input  logic    clk_i,          // Clock
+    input  logic    rst_ni,         // Asynchronous active-low reset
+    input  logic    clr_i,          // Synchronous clear
+    input  logic    testmode_i,     // Test mode to bypass clock gating
+    // Input port
+    input  logic    valid_i,
+    output logic    ready_o,
+    input  T        data_i,
+    // Output port
+    output logic    valid_o,
+    input  logic    ready_i,
+    output T        data_o
+);
+
+    adam_axil_ram__phy #(
+        .ADDR_WIDTH (ALIGNED_WIDTH),
+        .DATA_WIDTH (DATA_WIDTH),
+        .SIZE       (ALIGNED_SIZE) 
+    ) adam_axil_ram__phy (
+        .clk   (seq.clk),
+        .addr  (addr_aligned),
+        .wdata (wdata),
+        .wstrb (wstrb),
+        .rdata (rdata)
+    );
+
+    always_ff @(posedge seq.clk) begin  
+        automatic bit aw_ok, w_ok, b_ok, ar_ok, r_ok;
         
-        if (seq.rst) begin
+        if(axil.r_valid && axil.r_ready) begin
+            r_ok = 0;
+        end
+
+        if(axil.b_valid && axil.b_ready) begin
+            b_ok = 0;
+        end
+
+        if(axil.aw_valid && axil.aw_ready) begin
+            waddr <= axil.aw_addr;
+            aw_ok = 0;
+        end
+
+        if(axil.w_valid && axil.w_ready) begin
+            wdata = axil.w_data;
+            wstrb = axil.w_strb;
+            w_ok = 0;
+        end
+
+        if(axil.ar_valid && axil.ar_ready) begin
+            raddr = axil.ar_addr;
+            axil.ar_ready = 0;
+        end
+
+        if(!axil.aw_ready && !axil.w_ready && !axil.b_valid) begin
+            unaligned = waddr[UNALIGNED_WIDTH-1:0];
+            aligned   = waddr[DATA_WIDTH-1:UNALIGNED_WIDTH];
+
+            if (unaligned == 0 && aligned < ALIGNED_SIZE) begin
+                for (int i = 0; i < STRB_WIDTH; i++) begin
+                    if (wstrb[i]) begin
+                        mem[aligned][i*8 +: 8] = wdata[i*8 +: 8]; 
+                    end
+                end
+                axil.b_resp = axi_pkg::RESP_OKAY;
+            end
+            else begin
+                axil.b_resp = axi_pkg::RESP_DECERR;
+            end
+            axil.b_valid  = 1;
             axil.aw_ready = 1;
             axil.w_ready  = 1;
-            axil.b_resp   = 0;
-            axil.b_valid  = 0;
-
-            axil.ar_ready = 1;
-            axil.r_data   = 0;
-            axil.r_resp   = 0;
-            axil.r_valid  = 0;
         end
-        else begin
-            if(axil.r_valid && axil.r_ready) begin
-                axil.r_valid = 0;
-            end
+        else if(!axil.ar_ready && !axil.r_valid) begin
+            unaligned = raddr[UNALIGNED_WIDTH-1:0];
+            aligned   = raddr[DATA_WIDTH-1:UNALIGNED_WIDTH];
 
-            if(axil.b_valid && axil.b_ready) begin
-                axil.b_valid = 0;
+            if (unaligned == 0 && aligned < ALIGNED_SIZE) begin 
+                axil.r_data = mem[aligned];
+                axil.r_resp = axi_pkg::RESP_OKAY;
             end
-
-            if(axil.aw_valid && axil.aw_ready) begin
-                waddr = axil.aw_addr;
-                axil.aw_ready = 0;
+            else begin
+                axil.r_data = 0;
+                axil.r_resp = axi_pkg::RESP_DECERR;
             end
+            axil.r_valid  = 1;
+            axil.ar_ready = 1;
+        end
 
-            if(axil.w_valid && axil.w_ready) begin
-                wdata = axil.w_data;
-                wstrb = axil.w_strb;
-                axil.w_ready = 0;
-            end
+        axil.aw_ready <= aw_r;
+        axil.w_ready  <= w_r;
+        axil.b_valid  <= b_v;
 
-            if(axil.ar_valid && axil.ar_ready) begin
-                raddr = axil.ar_addr;
-                axil.ar_ready = 0;
-            end
+        axil.ar_ready <= ar_r;
+        axil.r_valid  <= r_v;
 
-            if(!axil.aw_ready && !axil.w_ready && !axil.b_valid) begin
-                unaligned = waddr[UNALIGNED_WIDTH-1:0];
-                aligned   = waddr[DATA_WIDTH-1:UNALIGNED_WIDTH];
+        if (seq.rst) begin
+            axil.aw_ready <= 0;
+            axil.w_ready  <= 0;
+            axil.b_resp   <= 0;
+            axil.b_valid  <= 0;
 
-                if (unaligned == 0 && aligned < ALIGNED_SIZE) begin
-                    for (int i = 0; i < STRB_WIDTH; i++) begin
-                        if (wstrb[i]) begin
-                            mem[aligned][i*8 +: 8] = wdata[i*8 +: 8]; 
-                        end
-                    end
-                    axil.b_resp = axi_pkg::RESP_OKAY;
-                end
-                else begin
-                    axil.b_resp = axi_pkg::RESP_DECERR;
-                end
-                axil.b_valid  = 1;
-                axil.aw_ready = 1;
-                axil.w_ready  = 1;
-            end
-            else if(!axil.ar_ready && !axil.r_valid) begin
-                unaligned = raddr[UNALIGNED_WIDTH-1:0];
-                aligned   = raddr[DATA_WIDTH-1:UNALIGNED_WIDTH];
-
-                if (unaligned == 0 && aligned < ALIGNED_SIZE) begin 
-                    axil.r_data = mem[aligned];
-                    axil.r_resp = axi_pkg::RESP_OKAY;
-                end
-                else begin
-                    axil.r_data = 0;
-                    axil.r_resp = axi_pkg::RESP_DECERR;
-                end
-                axil.r_valid  = 1;
-                axil.ar_ready = 1;
-            end
+            axil.ar_ready <= 0;
+            axil.r_data   <= 0;
+            axil.r_resp   <= 0;
+            axil.r_valid  <= 0;
         end
     end
 
 endmodule
 
+module adam_axil_ram__phy #(
+    parameter ADDR_WIDTH = 10,
+    parameter DATA_WIDTH = 32,
+    parameter SIZE       = 1024,
+
+    // Dependent parameters bellow, do not override.
+
+    parameter STRB_WIDTH  = DATA_WIDTH/8,
+
+    parameter type addr_t = logic [ADDR_WIDTH-1:0],
+    parameter type data_t = logic [DATA_WIDTH-1:0],
+    parameter type strb_t = logic [STRB_WIDTH-1:0]  
+) (
+    input  logic  clk,
+    input  quot_t addr,
+    input  data_t wdata,
+    input  strb_t wstrb,
+    output data_t rdata
+);
+    // (* RAM_STYLE="BLOCK" *)
+    data_t mem [SIZE-1:0];
+
+    always_ff @(posedge clk) begin
+        for (int i = 0; i < STRB_WIDTH; i++) begin
+            if (addr > SIZE) begin
+                rdata <= '0;
+            end
+            else if (wstrb[i]) begin
+                mem[addr][i*8 +: 8] <= wdata[i*8 +: 8]; 
+                rdata[i*8 +: 8]     <= wdata[i*8 +: 8];
+            end
+            else begin
+                rdata[i*8 +: 8] <= mem[addr][i*8 +: 8];
+            end
+        end
+    end
+endmodule

@@ -309,8 +309,10 @@ def vunit(*args, **kargs):
 
     cmd = ['python', py_path, '-o', vunit_path]
     cmd += ['-g'] if gui else []
-    cmd += [f'lib.{top}.*'] if top else []
-
+    
+    if top:
+        cmd += [f'lib.{top}' if '.' in top else f'lib.{top}.*']
+ 
     exec_cmd(cmd, vunit_path, loggers['vunit'])
 
 def bitst(*args, **kargs):

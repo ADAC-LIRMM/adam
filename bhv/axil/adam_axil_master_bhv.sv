@@ -210,15 +210,17 @@ class adam_axil_master_bhv #(
             
             end_transfer = axil_dv.b_valid && axil_dv.b_ready;
             
+            if (end_transfer) begin
+                b.resp = axil_dv.b_resp;
+                b_queue.push_front(b);
+            end
+
             start_transfer = (b_queue.size() < MAX_TRANS);
-            
-            b.resp = axil_dv.b_resp;
 
             cycle_end();
             
             if (end_transfer) begin
                 axil_dv.b_ready <= #TA 0;
-                b_queue.push_front(b);
             end
             
             if (start_transfer) begin
@@ -277,16 +279,18 @@ class adam_axil_master_bhv #(
             
             end_transfer = axil_dv.r_valid && axil_dv.r_ready;
             
+            if (end_transfer) begin
+                r.data = axil_dv.r_data;
+                r.resp = axil_dv.r_resp;
+                r_queue.push_front(r);
+            end
+
             start_transfer = (r_queue.size() < MAX_TRANS);
             
-            r.data = axil_dv.r_data;
-            r.resp = axil_dv.r_resp;
-
             cycle_end();
             
             if (end_transfer) begin
                 axil_dv.r_ready <= #TA 0;
-                r_queue.push_front(r);
             end
             
             if (start_transfer) begin
