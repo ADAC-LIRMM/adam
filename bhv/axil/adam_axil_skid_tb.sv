@@ -1,7 +1,7 @@
 `include "axi/assign.svh"
 `include "vunit_defines.svh"
 
-module adam_axil_fall_through_tb;
+module adam_axil_skid_tb;
     import adam_axil_master_bhv::*;
     import adam_axil_slave_bhv::*;
 
@@ -80,7 +80,7 @@ module adam_axil_fall_through_tb;
         .seq(seq)
     );
 
-    adam_axil_fall_through #(
+    adam_axil_skid #(
         .ADDR_WIDTH(ADDR_WIDTH),
         .DATA_WIDTH(DATA_WIDTH),
 

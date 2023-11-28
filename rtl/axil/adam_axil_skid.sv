@@ -1,7 +1,7 @@
 `include "axi/assign.svh"
 `include "axi/typedef.svh"
 
-module adam_axil_fall_through #(
+module adam_axil_skid #(
     parameter ADDR_WIDTH = 32,
     parameter DATA_WIDTH = 32,
         
