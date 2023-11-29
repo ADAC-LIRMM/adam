@@ -155,7 +155,7 @@ module adam_periph_spi_phy #(
             tx.ready <= 0;
             rx.valid <= 0;
 
-            pause.ack <= 0;
+            pause.ack <= 1;
 
             tx_reg <= 0;
             rx_reg <= 0;

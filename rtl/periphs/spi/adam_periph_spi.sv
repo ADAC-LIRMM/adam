@@ -27,15 +27,15 @@ module adam_periph_spi #(
 
     // Data (TX)
     reg_t tx_buf;
-    reg_t tx_data;
-    logic tx_data_valid;
-    logic tx_data_ready;
+    ADAM_STREAM #(
+        .data_t (data_t)
+    ) tx ();
     
     // Data (RX)
     reg_t rx_buf;
-    reg_t rx_data;
-    logic rx_data_valid;
-    logic rx_data_ready;
+    ADAM_STREAM #(
+        .data_t (data_t)
+    ) rx ();
 
     // Normal Registers
     reg_t control;
@@ -90,13 +90,8 @@ module adam_periph_spi #(
         .data_length    (data_length),
         .baud_rate      (baud_rate),
 
-        .tx       (tx_data),
-        .tx_valid (tx_data_valid),
-        .tx_ready (tx_data_ready),
-
-        .rx       (rx_data),
-        .rx_valid (rx_data_valid),
-        .rx_ready (rx_data_ready),
+        .tx (tx),
+        .rx (rx),
 
         .sclk (sclk),
         .mosi (mosi),
@@ -163,10 +158,10 @@ module adam_periph_spi #(
         end
 
         // Submodule transfers
-        tx_data_valid = !tx_buf_empty;
-        rx_data_ready = !rx_buf_full;
+        tx.valid = !tx_buf_empty;
+        rx.ready = !rx_buf_full;
 
-        tx_data = tx_buf;
+        tx.data = tx_buf;
     end
 
     always_ff @(posedge seq.clk) begin
@@ -186,9 +181,9 @@ module adam_periph_spi #(
             pready  <= 0;
             pslverr <= 0;
 
-            phy_pause.req <= 0;
+            phy_pause.req <= 1;
 
-            apb_pause.ack <= 0;
+            apb_pause.ack <= 1;
         end
         else if (apb_pause.req && apb_pause.ack) begin
             // PAUSED
@@ -340,13 +335,13 @@ module adam_periph_spi #(
              */
             
             // TX complete, buffer is empty
-            if (tx_data_valid && tx_data_ready) begin
+            if (tx.valid && tx.ready) begin
                 tx_buf_empty <= 1;
             end
 
             // RX complete, buffer is full
-            if (rx_data_valid && rx_data_ready) begin
-                rx_buf <= rx_data;
+            if (rx.valid && rx.ready) begin
+                rx_buf <= rx.data;
                 rx_buf_full <= 1;
             end
         end
