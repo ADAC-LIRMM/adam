@@ -143,7 +143,7 @@ module adam_axil_xbar_tb;
         .MAX_TRANS (MAX_TRANS),
 
         .rule_t (rule_t)
-    ) adam_axil_xbar (
+    ) dut (
         .seq   (seq),
         .pause (pause),
 
@@ -170,7 +170,7 @@ module adam_axil_xbar_tb;
     end
 
     initial begin
-        #10us $error("timeout");
+        #1000us $error("timeout");
     end
 
     generate

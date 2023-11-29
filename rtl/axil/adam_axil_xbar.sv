@@ -64,12 +64,12 @@ module adam_axil_xbar #(
     `AXI_LITE_TYPEDEF_REQ_T(axil_req_t, aw_chan_t, w_chan_t, ar_chan_t);
     `AXI_LITE_TYPEDEF_RESP_T(axil_resp_t, b_chan_t, r_chan_t);
 
-    ADAM_PAUSE slave_pause [NO_SLVS] ();
-
     axil_req_t  [NO_MSTS-1:0] axil_msts_req;
     axil_resp_t [NO_MSTS-1:0] axil_msts_resp;
     axil_req_t  [NO_SLVS-1:0] axil_slvs_req;
     axil_resp_t [NO_SLVS-1:0] axil_slvs_resp;
+
+    ADAM_PAUSE slv_pause [NO_SLVS] ();
 
     AXI_LITE #(
         .AXI_ADDR_WIDTH (ADDR_WIDTH),
@@ -85,7 +85,7 @@ module adam_axil_xbar #(
                 .MAX_TRANS  (MAX_TRANS)
             ) adam_axil_pause (
                 .seq   (seq),
-                .pause (slave_pause[i]),
+                .pause (slv_pause[i]),
 
                 .slv (axil_slvs[i]),
                 .mst (axil_pause[i])
@@ -101,6 +101,16 @@ module adam_axil_xbar #(
         end
     endgenerate
     
+    adam_pause_demux #(
+        .NO_MSTS  (NO_SLVS),
+        .PARALLEL (1)
+    ) adam_pause_demux (
+        .seq (seq),
+
+        .slv  (pause),
+        .msts (slv_pause)
+    );
+
     axi_lite_xbar #(
         .Cfg        (CFG),
         .aw_chan_t  (aw_chan_t),
@@ -111,9 +121,9 @@ module adam_axil_xbar #(
         .axi_req_t  (axil_req_t),
         .axi_resp_t (axil_resp_t),
         .rule_t     (rule_t)
-    ) axi_lite_xbar (
+    ) dut (
         .clk_i  (seq.clk),
-        .rst_ni (!rst),
+        .rst_ni (!seq.rst),
         .test_i ('0),
         
         .slv_ports_req_i  (axil_slvs_req),
@@ -127,22 +137,4 @@ module adam_axil_xbar #(
         .default_mst_port_i    ('0)
     );
     
-    always_comb begin
-        for (int i = 0; i < NO_SLVS; i++) begin
-            slave_pause[i].req = pause.req;
-        end
-
-        if (pause.req) begin
-            pause.ack = 1;
-            for (int i = 0; i < NO_SLVS; i++) begin
-                pause.ack &= slave_pause[i].ack;
-            end
-        end
-        else begin
-            pause.ack = 0;
-            for (int i = 0; i < NO_SLVS; i++) begin
-                pause.ack |= slave_pause[i].ack;
-            end
-        end
-    end
 endmodule
