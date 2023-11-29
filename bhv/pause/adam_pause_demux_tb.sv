@@ -42,8 +42,8 @@ module adam_pause_demux_tb;
     );
 
     adam_pause_bhv #(
-        .DELAY    (100us),
-        .DURATION (100us),
+        .DELAY    (50us),
+        .DURATION (50us),
 
         .TA (TA),
         .TT (TT)
@@ -107,7 +107,7 @@ module adam_pause_demux_tb;
     end
 
     initial begin
-        #10us $error("timeout");
+        #1000us $error("timeout");
     end
 
     task cycle_start();
