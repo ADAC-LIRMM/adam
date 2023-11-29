@@ -11,7 +11,7 @@
 // `include "vunit_defines.svh"
 
 // module adam_periphs_tb;
-//     import adam_axil_master_bhv::*;
+//     import adam_axil_mst_bhv::*;
 
 //     localparam ADDR_WIDTH = 32;
 //     localparam DATA_WIDTH = 32;
@@ -81,7 +81,7 @@
 
 //     `AXI_LITE_ASSIGN(axil, axil_dv);
 
-//     adam_axil_master_bhv #(
+//     adam_axil_mst_bhv #(
 //         .ADDR_WIDTH (ADDR_WIDTH),
 //         .DATA_WIDTH (DATA_WIDTH),
     

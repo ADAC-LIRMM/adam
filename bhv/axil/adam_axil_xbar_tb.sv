@@ -2,8 +2,8 @@
 `include "vunit_defines.svh"
 
 module adam_axil_xbar_tb;
-    import adam_axil_master_bhv::*;
-    import adam_axil_slave_bhv::*;
+    import adam_axil_mst_bhv::*;
+    import adam_axil_slv_bhv::*;
 
     localparam ADDR_WIDTH = 32;
     localparam DATA_WIDTH = 32;
@@ -62,7 +62,7 @@ module adam_axil_xbar_tb;
         .AXI_DATA_WIDTH(DATA_WIDTH)
     ) slave_dv [NO_XBAR_MSTS] (seq.clk);
 
-    adam_axil_master_bhv #(
+    adam_axil_mst_bhv #(
         .ADDR_WIDTH (ADDR_WIDTH),
         .DATA_WIDTH (DATA_WIDTH),
     
@@ -72,7 +72,7 @@ module adam_axil_xbar_tb;
         .MAX_TRANS (MAX_TRANS)
     ) master_bhv [NO_XBAR_SLVS];
 
-    adam_axil_slave_bhv #(
+    adam_axil_slv_bhv #(
         .ADDR_WIDTH (ADDR_WIDTH),
         .DATA_WIDTH (DATA_WIDTH),
 

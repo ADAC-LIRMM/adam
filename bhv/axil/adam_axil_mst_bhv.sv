@@ -1,6 +1,6 @@
-package adam_axil_master_bhv;
+package adam_axil_mst_bhv;
 
-class adam_axil_master_bhv #(
+class adam_axil_mst_bhv #(
     parameter ADDR_WIDTH = 32,
     parameter DATA_WIDTH = 32,
     

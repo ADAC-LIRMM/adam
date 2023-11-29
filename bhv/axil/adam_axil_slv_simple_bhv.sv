@@ -1,6 +1,6 @@
 `include "axi/assign.svh"
 
-module adam_axil_slave_simple_bhv #(
+module adam_axil_slv_simple_bhv #(
     parameter ADDR_WIDTH = 32,
     parameter DATA_WIDTH = 32,
     
@@ -16,7 +16,7 @@ module adam_axil_slave_simple_bhv #(
     ADAM_SEQ.Slave seq,
     AXI_LITE.Slave slv
 );
-    import adam_axil_slave_bhv::*;
+    import adam_axil_slv_bhv::*;
     
     localparam STRB_WIDTH = DATA_WIDTH/8;
 
@@ -31,7 +31,7 @@ module adam_axil_slave_simple_bhv #(
         .AXI_DATA_WIDTH(DATA_WIDTH)
     ) slv_dv (seq.clk);
 
-    adam_axil_slave_bhv #(
+    adam_axil_slv_bhv #(
         .ADDR_WIDTH (ADDR_WIDTH),
         .DATA_WIDTH (DATA_WIDTH),
         

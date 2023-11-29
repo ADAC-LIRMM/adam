@@ -13,7 +13,7 @@
         .AXI_DATA_WIDTH(DATA_WIDTH) \
     ) ``MST``_dv (seq.clk); \
     `AXI_LITE_ASSIGN(MST, ``MST``_dv); \
-    adam_axil_master_bhv #( \
+    adam_axil_mst_bhv #( \
         .ADDR_WIDTH (ADDR_WIDTH), \
         .DATA_WIDTH (DATA_WIDTH), \
         .TA (TA), \
@@ -56,7 +56,7 @@ end
 
 `define SLV_FACTORY(SLV, ID, _ADDR_S, _ADDR_E) \
     `AXIL_I SLV (); \
-    adam_axil_slave_simple_bhv #( \
+    adam_axil_slv_simple_bhv #( \
         .ADDR_WIDTH (ADDR_WIDTH), \
         .DATA_WIDTH (DATA_WIDTH), \
         .ADDR_S (_ADDR_S), \
@@ -71,8 +71,8 @@ end
     );
 
 module adam_fabric_lsdom_tb;
-    import adam_axil_master_bhv::*;
-    import adam_axil_slave_bhv::*;
+    import adam_axil_mst_bhv::*;
+    import adam_axil_slv_bhv::*;
 
     localparam ADDR_WIDTH = 32;
     localparam DATA_WIDTH = 32;

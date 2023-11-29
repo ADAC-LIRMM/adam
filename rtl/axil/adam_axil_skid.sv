@@ -63,7 +63,7 @@ module adam_axil_skid #(
         end
         else begin
             adam_skid #(
-                .T (aw_chan_t)
+                .data_t (aw_chan_t)
             ) aw_chan_skid (
                 .seq (seq),
 
@@ -84,7 +84,7 @@ module adam_axil_skid #(
         end
         else begin
             adam_skid #(
-                .T (w_chan_t)
+                .data_t (w_chan_t)
             ) w_chan_skid (
                 .seq (seq),
 
@@ -105,7 +105,7 @@ module adam_axil_skid #(
         end
         else begin
             adam_skid #(
-                .T (b_chan_t)
+                .data_t (b_chan_t)
             ) b_chan_skid (
                 .seq (seq),
 
@@ -126,7 +126,7 @@ module adam_axil_skid #(
         end
         else begin
             adam_skid #(
-                .T (ar_chan_t)
+                .data_t (ar_chan_t)
             ) ar_chan_skid (
                 .seq (seq),
 
@@ -147,7 +147,7 @@ module adam_axil_skid #(
         end
         else begin
             adam_skid #(
-                .T (r_chan_t)
+                .data_t (r_chan_t)
             ) r_chan_skid (
                 .seq (seq),
 

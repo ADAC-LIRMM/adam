@@ -2,8 +2,8 @@
 `include "vunit_defines.svh"
 
 module adam_axil_pause_tb;
-    import adam_axil_master_bhv::*;
-    import adam_axil_slave_bhv::*;
+    import adam_axil_mst_bhv::*;
+    import adam_axil_slv_bhv::*;
 
     localparam ADDR_WIDTH = 32;
     localparam DATA_WIDTH = 32;
@@ -41,7 +41,7 @@ module adam_axil_pause_tb;
 
     `AXI_LITE_ASSIGN(slave_dv, slave);
 
-    adam_axil_slave_bhv #(
+    adam_axil_slv_bhv #(
         .ADDR_WIDTH (ADDR_WIDTH),
         .DATA_WIDTH (DATA_WIDTH),
     
@@ -63,7 +63,7 @@ module adam_axil_pause_tb;
 
     `AXI_LITE_ASSIGN(master, master_dv);
 
-    adam_axil_master_bhv #(
+    adam_axil_mst_bhv #(
         .ADDR_WIDTH (ADDR_WIDTH),
         .DATA_WIDTH (DATA_WIDTH),
     

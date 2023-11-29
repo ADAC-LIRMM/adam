@@ -50,16 +50,16 @@ fsets:
       - stream/adam_stream_mst_bhv.sv
       - stream/adam_stream_slv_bhv.sv
       - stream/adam_stream_skid_tb.sv
-      
-      - axil/adam_axil_master_bhv.sv
-      - axil/adam_axil_slave_bhv.sv
+
+      - axil/adam_axil_mst_bhv.sv
+      - axil/adam_axil_slv_bhv.sv
       
       - axil/adam_axil_apb_bridge_tb.sv
       - axil/adam_axil_skid_tb.sv
       - axil/adam_axil_pause_tb.sv
 #      - axil/adam_axil_ram_tb.sv
 #      - axil/adam_axil_xbar_tb.sv
-      - axil/adam_axil_slave_simple_bhv.sv
+      - axil/adam_axil_slv_simple_bhv.sv
       - pause/adam_pause_demux_tb.sv
       - fabric/adam_fabric_hsdom_tb.sv
       - fabric/adam_fabric_lsdom_tb.sv

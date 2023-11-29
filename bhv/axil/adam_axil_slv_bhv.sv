@@ -1,6 +1,6 @@
-package adam_axil_slave_bhv;
+package adam_axil_slv_bhv;
 
-class adam_axil_slave_bhv #(
+class adam_axil_slv_bhv #(
     parameter ADDR_WIDTH = 32,
     parameter DATA_WIDTH = 32,
     
