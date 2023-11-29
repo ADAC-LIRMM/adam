@@ -1,3 +1,4 @@
+`include "adam/stream/macros.svh"
 `include "vunit_defines.svh"
 
 `define UNTIL(condition, body) begin \
@@ -41,13 +42,8 @@ module adam_periph_spi_phy_tb;
     logic [3:0] data_length;
     data_t      baud_rate;
 
-    ADAM_STREAM #(
-        .data_t (data_t)
-    ) tx ();
-
-    ADAM_STREAM #(
-        .data_t (data_t)
-    ) rx ();
+    `ADAM_STREAM_MST_BHV_FACTORY(data_t, TA, TT, tx, seq.clk);
+    `ADAM_STREAM_SLV_BHV_FACTORY(data_t, TA, TT, 1, rx, seq.clk);
 
     ADAM_IO sclk();
     ADAM_IO mosi();
@@ -104,8 +100,6 @@ module adam_periph_spi_phy_tb;
             data_order     = 0;
             data_length    = 0;
             baud_rate      = 0;
-            tx.valid       = 0;
-            rx.ready       = 0;
             
             sclk.i = 0;
             mosi.i = 0;
@@ -141,6 +135,10 @@ module adam_periph_spi_phy_tb;
             end
         end
     end
+
+    initial begin
+        #10000us $error("timeout");
+    end
     
     task random_config();
         pause.req <= #TA 1;
@@ -154,8 +152,6 @@ module adam_periph_spi_phy_tb;
         data_order     <= #TA $urandom_range(0, 1);
         data_length    <= #TA 8;
         baud_rate      <= #TA 1s / (BAUD_RATE * CLK_PERIOD);
-        tx.valid       <= #TA 0;
-        rx.ready       <= #TA 0;
         cycle_start();
         cycle_end();
 
@@ -171,8 +167,8 @@ module adam_periph_spi_phy_tb;
             
             data_tx = BASE + i;
 
-            write(data_tx);
-            read (data_rx);
+            tx_bhv.send(data_tx);
+            rx_bhv.recv(data_rx);
 
             $display("[emulate_top   ] rx: 0x%02h tx: 0x%02h",
                 data_rx, data_tx);
@@ -301,41 +297,6 @@ module adam_periph_spi_phy_tb;
             assert (data_rx == data_tx);
         end
 
-    endtask
-
-    task write(
-        input data_t data
-    );
-        tx.data  <= #TA data;
-        tx.valid <= #TA 1;
-        cycle_start();
-        while (!(tx.valid && tx.ready)) begin
-            cycle_end();    
-            cycle_start();
-        end
-        cycle_end();
-        
-        tx.data  <= #TA 0;
-        tx.valid <= #TA 0;
-        cycle_start();
-        cycle_end();
-    endtask
-
-    task read(
-        output data_t data
-    );
-        rx.ready <= #TA 1;
-        cycle_start();
-        while (!(rx.valid && rx.ready)) begin
-            cycle_end();
-            cycle_start();
-        end
-        cycle_end();
-        data = rx.data;
-
-        rx.ready <= #TA 0;
-        cycle_start();
-        cycle_end();
     endtask
 
     task cycle_start();
