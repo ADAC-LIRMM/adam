@@ -154,4 +154,8 @@ module adam_fabric_lsxp_tb;
         end
     end
 
+    initial begin
+        #10us $error("timeout");
+    end
+
 endmodule

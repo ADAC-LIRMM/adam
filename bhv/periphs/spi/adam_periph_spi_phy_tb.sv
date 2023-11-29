@@ -134,6 +134,10 @@ module adam_periph_spi_phy_tb;
             end
         end
     end
+
+    initial begin
+        #10us $error("timeout");
+    end
     
     task random_config();
         pause.req <= #TA 1;

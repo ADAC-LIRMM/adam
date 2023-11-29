@@ -95,6 +95,10 @@ module adam_periph_uart_rx_tb;
     end
 
     initial begin
+        #10us $error("timeout");
+    end
+
+    initial begin
         automatic logic parity;
 
         rx = 1;

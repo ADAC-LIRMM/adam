@@ -128,6 +128,10 @@ module adam_axil_pause_tb;
     end
 
     initial begin
+        #10us $error("timeout");
+    end
+
+    initial begin
         @(negedge seq.rst);
         @(posedge seq.clk);
         

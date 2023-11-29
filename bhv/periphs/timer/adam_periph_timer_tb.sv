@@ -211,6 +211,10 @@ module adam_periph_timer_tb;
         end
     end
 
+    initial begin
+        #10us $error("timeout");
+    end
+
     task critical_begin();
 
         cycle_start();

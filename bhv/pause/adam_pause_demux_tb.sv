@@ -106,6 +106,10 @@ module adam_pause_demux_tb;
         end
     end
 
+    initial begin
+        #10us $error("timeout");
+    end
+
     task cycle_start();
         #TT;
     endtask

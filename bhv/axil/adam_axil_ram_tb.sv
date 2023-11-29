@@ -187,4 +187,8 @@ module adam_axil_ram_tb;
         end
     end
 
+    initial begin
+        #10us $error("timeout");
+    end
+    
 endmodule

@@ -169,6 +169,10 @@ module adam_axil_xbar_tb;
         end
     end
 
+    initial begin
+        #10us $error("timeout");
+    end
+
     generate
         for (genvar i = 0; i < NO_XBAR_SLVS; i++) begin
             initial begin

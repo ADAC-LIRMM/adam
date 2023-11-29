@@ -191,6 +191,10 @@ module adam_axil_apb_bridge_tb;
         end
     end
 
+    initial begin
+        #10us $error("timeout");
+    end
+
     task cycle_start();
         #TT;
     endtask

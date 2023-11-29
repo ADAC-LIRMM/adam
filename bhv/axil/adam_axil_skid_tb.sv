@@ -133,16 +133,16 @@ module adam_axil_skid_tb;
             mst_bhv.recv_r(data, resp);
         end
 
-        `TEST_CASE("with_stalling") begin            
+        `TEST_CASE("stall") begin            
             automatic addr_t addr;
             automatic prot_t prot;
             automatic data_t data;
             automatic strb_t strb;
             automatic resp_t resp;
             
-            addr = $urandom();
+            addr = '0;
             prot = 3'b000;
-            data = $urandom();
+            data = '0;
             strb = 4'b1111;
             resp = 2'b00;
 
@@ -170,4 +170,9 @@ module adam_axil_skid_tb;
             repeat (2) mst_bhv.recv_r(data, resp);
         end
     end
+
+    initial begin
+        #100us $error("timeout");
+    end
+
 endmodule

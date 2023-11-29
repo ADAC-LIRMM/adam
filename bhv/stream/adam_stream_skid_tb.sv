@@ -82,7 +82,7 @@ module adam_stream_skid_tb;
 
     `TEST_SUITE begin
         `TEST_CASE("basic") begin
-            automatic data_t data = $urandom();
+            automatic data_t data = '0;
 
             @(negedge seq.rst);
             @(posedge seq.clk);
@@ -92,7 +92,7 @@ module adam_stream_skid_tb;
         end
 
         `TEST_CASE("stall") begin
-            automatic data_t data = $urandom();
+            automatic data_t data = '0;
 
             @(negedge seq.rst);
             @(posedge seq.clk);
@@ -104,8 +104,7 @@ module adam_stream_skid_tb;
     end
 
     initial begin
-        #10us;
-        $error("timeout");
+        #10us $error("timeout");
     end
 
 endmodule

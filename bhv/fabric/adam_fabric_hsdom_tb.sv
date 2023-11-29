@@ -191,4 +191,9 @@ module adam_fabric_hsdom_tb;
             `MST_TEST(from_lsdom);
         end
     end
+
+    initial begin
+        #10us $error("timeout");
+    end
+    
 endmodule
