@@ -1,6 +1,8 @@
+`include "adam/stream/macros.svh"
 `include "vunit_defines.svh"
 
 module adam_periph_uart_tx_tb;
+    import adam_stream_mst_bhv::*;
 
     localparam DATA_WIDTH = 32;
 
@@ -13,7 +15,7 @@ module adam_periph_uart_tx_tb;
     localparam BAUD_RATE = 115200;
     localparam MSG_LEN   = 256;
 
-    typedef logic [DATA_WIDTH-1:0] word_t;
+    typedef logic [DATA_WIDTH-1:0] data_t;
     
     ADAM_SEQ   seq   ();
     ADAM_PAUSE pause ();
@@ -22,12 +24,10 @@ module adam_periph_uart_tx_tb;
     logic       parity_control;
     logic [3:0] data_length;
     logic [1:0] stop_bits;
-    word_t      baud_rate;
+    data_t      baud_rate;
     
-    word_t data;
-    logic data_valid;
-    logic data_ready;
-    
+    `ADAM_STREAM_MST_BHV_FACTORY(data_t, TA, TT, mst, seq.clk);
+
     logic tx;
 
     adam_periph_uart_tx #(
@@ -42,9 +42,7 @@ module adam_periph_uart_tx_tb;
         .stop_bits      (stop_bits),
         .baud_rate      (baud_rate),
         
-        .data       (data),
-        .data_valid (data_valid),
-        .data_ready (data_ready),
+        .slv (mst),
         
         .tx (tx)
     );
@@ -77,24 +75,12 @@ module adam_periph_uart_tx_tb;
             data_length    = 8;
             stop_bits      = 1;
             baud_rate      = 1s / (BAUD_RATE * CLK_PERIOD);
-            data           = 0;
-            data_valid     = 0;
             
             @(negedge seq.rst);
             @(posedge seq.clk);
 
             for(int i = 0; i < MSG_LEN; i++) begin
-                
-                data       <= #TA word_t'(i);
-                data_valid <= #TA 1;
-
-                cycle_start();
-                while (!data_valid || !data_ready) begin
-                    cycle_end();
-                    cycle_start();
-                end
-                cycle_end();
-
+                mst_bhv.send(data_t'(i));
             end
         end
     end

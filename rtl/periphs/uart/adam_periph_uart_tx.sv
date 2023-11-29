@@ -21,9 +21,7 @@ module adam_periph_uart_tx #(
     input  logic       stop_bits,
     input  data_t      baud_rate,
 
-    input  data_t data,
-    input  logic  data_valid,
-    output logic  data_ready,
+    ADAM_STREAM.Slave slv,
     
     output logic tx
 );
@@ -48,21 +46,21 @@ module adam_periph_uart_tx #(
             bit_count  <= 0;
             shift      <= 0;
             parity     <= 0;
-            data_ready <= 0;
+            slv.ready  <= 0;
             pause.ack  <= 1;
         end
         else begin
             if (clk_count == 0 && bit_count == 0) begin
                 // idle
-                if (data_valid && data_ready) begin
+                if (slv.valid && slv.ready) begin
                     // transfer complete
-                    data_ready <= 0;
+                    slv.ready <= 0;
                 end 
-                else if (!pause.req && !pause.ack && data_valid) begin
+                else if (!pause.req && !pause.ack && slv.valid) begin
                     // start
                     clk_count <= 1;
                     bit_count <= 0;
-                    shift     <= data;
+                    shift     <= slv.data;
                     parity    <= 0;
                 end
                 else begin
@@ -87,7 +85,7 @@ module adam_periph_uart_tx #(
                     bit_count  <= 0;
                     shift      <= 0;
                     parity     <= 0;
-                    data_ready <= 1;
+                    slv.ready  <= 1;
                 end
             end
             else begin
@@ -119,4 +117,5 @@ module adam_periph_uart_tx #(
             tx = 1;
         end
     end
+
 endmodule
