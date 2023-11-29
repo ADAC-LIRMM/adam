@@ -101,7 +101,7 @@ module adam_periph_timer #(
 
             clk_count <= 0;
 
-            pause.ack <= 0;
+            pause.ack <= 1;
         end
         else if (pause.req && pause.ack) begin
             // PAUSED
