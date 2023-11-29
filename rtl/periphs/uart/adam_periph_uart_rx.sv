@@ -21,9 +21,7 @@ module adam_periph_uart_rx #(
     input  logic       stop_bits,
     input  data_t      baud_rate,
 
-    output data_t data,
-    output logic  data_valid,
-    input  logic  data_ready,
+    ADAM_STREAM.Master mst,
 
     input  logic rx
 );
@@ -51,18 +49,18 @@ module adam_periph_uart_rx #(
 
     data_t clk_count;
     data_t bit_count;
-    logic  parity;
+    logic    parity;
 
     assign frame_size = 1 + data_length + parity_control + (1 + stop_bits);
 
     always_ff @(posedge seq.clk) begin
         if (seq.rst) begin
-            clk_count  <= 0;
-            bit_count  <= 0;
-            parity     <= 0;
-            data       <= 0;
-            data_valid <= 0;
-            pause.ack  <= 1;
+            clk_count    <= 0;
+            bit_count    <= 0;
+            parity       <= 0;
+            mst.data     <= 0;
+            mst.valid    <= 0;
+            pause.ack    <= 1;
         end
         else if (pause.req && pause.ack) begin
             // PAUSED
@@ -75,7 +73,7 @@ module adam_periph_uart_rx #(
                     clk_count <= baud_rate/2;
                     bit_count <= 0;
                     parity    <= 0;
-                    data      <= 0;
+                    mst.data  <= 0;
                 end
                 else begin
                     // able to pause
@@ -84,15 +82,15 @@ module adam_periph_uart_rx #(
             end
             else if (bit_count >= frame_size) begin
                 // end of transmission
-                if (data_valid & data_ready) begin
+                if (mst.valid & mst.ready) begin
                     // transfer complete
                     clk_count  <= 0;
                     bit_count  <= 0;
-                    data_valid <= 0;
+                    mst.valid <= 0;
                 end
                 else begin
-                    // waiting for data_ready
-                    data_valid <= 1;
+                    // waiting for mst.ready
+                    mst.valid <= 1;
                 end
             end
             else if (clk_count >= baud_rate) begin
@@ -109,8 +107,8 @@ module adam_periph_uart_rx #(
                     end
                 end
                 else if (bit_count < 1 + data_length) begin
-                    // data bit
-                    data[bit_count-1] <= s_srx;
+                    // mst bit
+                    mst.data[bit_count-1] <= s_srx;
                     parity <= parity ^ s_srx;
                 end
                 else if (bit_count < 1 + data_length + parity_control) begin

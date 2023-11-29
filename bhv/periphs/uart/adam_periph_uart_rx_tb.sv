@@ -1,6 +1,18 @@
+`include "adam/stream/macros.svh"
 `include "vunit_defines.svh"
 
+`define UNTIL(condition, body) begin \
+    cycle_start(); \
+    while (!(condition)) begin \
+        cycle_end(); \
+        body \
+        cycle_start(); \
+    end \
+    cycle_end(); \
+end
+
 module adam_periph_uart_rx_tb;
+    import adam_stream_slv_bhv::*;
 
     localparam DATA_WIDTH = 32;
 
@@ -13,7 +25,7 @@ module adam_periph_uart_rx_tb;
     localparam BAUD_RATE = 115200;
     localparam MSG_LEN   = 256;
 
-    typedef logic [DATA_WIDTH-1:0] word_t;
+    typedef logic [DATA_WIDTH-1:0] data_t;
 
     ADAM_SEQ   seq   ();
     ADAM_PAUSE pause ();
@@ -22,11 +34,9 @@ module adam_periph_uart_rx_tb;
     logic       parity_control;
     logic [3:0] data_length;
     logic [1:0] stop_bits;
-    word_t      baud_rate;
+    data_t      baud_rate;
 
-    word_t data;
-    logic  data_valid;
-    logic  data_ready;
+    `ADAM_STREAM_SLV_BHV_FACTORY(data_t, TA, TT, 1, slv, seq.clk);
 
     logic rx;
 
@@ -42,9 +52,7 @@ module adam_periph_uart_rx_tb;
         .stop_bits      (stop_bits),
         .baud_rate      (baud_rate),
 
-        .data       (data),
-        .data_valid (data_valid),
-        .data_ready (data_ready),
+        .mst (slv),
 
         .rx(rx)
     );
@@ -72,24 +80,20 @@ module adam_periph_uart_rx_tb;
 
     `TEST_SUITE begin
         `TEST_CASE("test") begin
+            automatic data_t data;
+
             parity_select  = 0;
             parity_control = 1;
             data_length    = 8;
             stop_bits      = 1;
             baud_rate      = 1s / (BAUD_RATE * CLK_PERIOD);
-            data_ready     = 1;
 
             @(negedge seq.rst);
             @(posedge seq.clk);
 
             for (int i = 0; i < MSG_LEN; i++) begin
-                cycle_start();
-                while (!data_valid || !data_ready) begin
-                    cycle_end();
-                    cycle_start();
-                end
-                assert(data == word_t'(i));
-                cycle_end();
+                slv_bhv.recv(data);
+                assert(data == data_t'(i));
             end
         end
     end
@@ -109,12 +113,7 @@ module adam_periph_uart_rx_tb;
         for (int i = 0; i < MSG_LEN; i++) begin
             
             // wait for pause signals
-            cycle_start();
-            while (pause.req == 1 || pause.ack == 1) begin
-                cycle_end();
-                cycle_start();
-            end
-            cycle_end();
+            `UNTIL(pause.req == 0 && pause.ack == 0,);
             
             rx = 0; // start bit
             parity = 0;
