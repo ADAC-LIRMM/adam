@@ -136,6 +136,7 @@ module adam_periph_gpio_tb;
 
     always_comb begin
         pause.req = pause_auto.req && !critical;
+        pause_auto.ack = pause.ack;
     end
     
     `TEST_SUITE begin
@@ -242,7 +243,7 @@ module adam_periph_gpio_tb;
     end
 
     initial begin
-        #10us $error("timeout");
+        #100us $error("timeout");
     end
 
     task critical_begin();

@@ -112,7 +112,7 @@ module adam_periph_gpio #(
             pready  <= 0;
             pslverr <= 0;
 
-            pause.ack <= 0;
+            pause.ack <= 1;
         end
         else if (pause.req && pause.ack) begin
             // PAUSED

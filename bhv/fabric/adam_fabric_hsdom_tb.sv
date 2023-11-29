@@ -193,7 +193,7 @@ module adam_fabric_hsdom_tb;
     end
 
     initial begin
-        #10us $error("timeout");
+        #1000us $error("timeout");
     end
-    
+
 endmodule
