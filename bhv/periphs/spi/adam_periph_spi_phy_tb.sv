@@ -1,7 +1,19 @@
 `include "vunit_defines.svh"
 
+`define UNTIL(condition, body) begin \
+    cycle_start(); \
+    while (!(condition)) begin \
+        cycle_end(); \
+        body \
+        cycle_start(); \
+    end \
+    cycle_end(); \
+end
+
 module adam_periph_spi_phy_tb;
-    
+    import adam_stream_mst_bhv::*;
+    import adam_stream_slv_bhv::*;
+
     localparam DATA_WIDTH = 32;
 
     localparam CLK_PERIOD = 20ns;
@@ -132,12 +144,7 @@ module adam_periph_spi_phy_tb;
     
     task random_config();
         pause.req <= #TA 1;
-        cycle_start();
-        while (pause.ack != 1) begin
-            cycle_end();
-            cycle_start();
-        end
-        cycle_end();
+        `UNTIL(pause.ack == 1,);
 
         tx_enable      <= #TA 1;
         rx_enable      <= #TA 1; 
@@ -153,12 +160,7 @@ module adam_periph_spi_phy_tb;
         cycle_end();
 
         pause.req <= #TA 0;
-        cycle_start();
-        while (pause.ack != 0) begin
-            cycle_end();
-            cycle_start();
-        end
-        cycle_end();
+        `UNTIL(pause.ack == 0,);
     endtask
 
     task emulate_top();

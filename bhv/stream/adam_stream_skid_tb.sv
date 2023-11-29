@@ -1,4 +1,4 @@
-`include "adam/stream/assign.svh"
+`include "adam/stream/macros.svh"
 `include "vunit_defines.svh"
 
 module adam_stream_skid_tb;
@@ -15,51 +15,8 @@ module adam_stream_skid_tb;
 
     ADAM_SEQ seq();
 
-    ADAM_STREAM #(
-        .data_t (data_t)
-    ) mst ();
-    
-    ADAM_STREAM_DV #(
-        .data_t (data_t)
-    ) mst_dv (seq.clk);
-
-    `ADAM_STREAM_ASSIGN(mst, mst_dv);
-
-    adam_stream_mst_bhv #(
-        .data_t (data_t),
-
-        .TA (TA),
-        .TT (TT)
-    ) mst_bhv;
-
-    initial begin
-        mst_bhv = new(mst_dv);
-        mst_bhv.loop();
-    end
-
-    ADAM_STREAM #(
-        .data_t (data_t)
-    ) slv ();
-    
-    ADAM_STREAM_DV #(
-        .data_t (data_t)
-    ) slv_dv (seq.clk);
-
-    `ADAM_STREAM_ASSIGN(slv_dv, slv);
-
-    adam_stream_slv_bhv #(
-        .data_t (data_t),
-
-        .TA (TA),
-        .TT (TT),
-
-        .MAX_TRANS (1)
-    ) slv_bhv;
-
-    initial begin
-        slv_bhv = new(slv_dv);
-        slv_bhv.loop();
-    end
+    `ADAM_STREAM_MST_BHV_FACTORY(data_t, TA, TT, mst, seq.clk);
+    `ADAM_STREAM_SLV_BHV_FACTORY(data_t, TA, TT, 1, slv, seq.clk);
 
     adam_stream_skid #(
         .data_t (data_t)
