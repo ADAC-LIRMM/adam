@@ -195,7 +195,10 @@ module adam_periph_uart #(
         rx.otype = 0;
 
         // pause.ack
-        if (pause.req) begin
+        if (seq.rst) begin
+            pause.ack = 1;
+        end
+        else if (pause.req) begin
             pause.ack = apb_pause.ack && tx_pause.ack && rx_pause.ack;
         end
         else begin
@@ -226,10 +229,10 @@ module adam_periph_uart #(
             pready  <= 0;
             pslverr <= 0;
 
-            tx_pause.req <= 0;
-            rx_pause.req <= 0;
+            tx_pause.req <= 1;
+            rx_pause.req <= 1;
 
-            apb_pause.ack <= 0;
+            apb_pause.ack <= 1;
         end
         else begin
             if (
@@ -356,7 +359,7 @@ module adam_periph_uart #(
                 tx_pause.req  <= 1;
                 rx_pause.req  <= 1;
                 apb_pause.ack <= 1;
-                
+                       
                 // tie APB interface off
                 prdata  <= 0;
                 pready  <= 1;

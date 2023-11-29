@@ -62,7 +62,7 @@ module adam_periph_uart_rx #(
             parity     <= 0;
             data       <= 0;
             data_valid <= 0;
-            pause.ack  <= 0;
+            pause.ack  <= 1;
         end
         else if (pause.req && pause.ack) begin
             // PAUSED

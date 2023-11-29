@@ -98,6 +98,10 @@ module adam_periph_uart_tx_tb;
             end
         end
     end
+
+    initial begin
+        #100ms $error("timeout");
+    end
     
     initial begin
         automatic logic parity;
