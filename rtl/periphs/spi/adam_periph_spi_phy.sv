@@ -24,13 +24,8 @@ module adam_periph_spi_phy #(
     input  logic  [7:0] data_length,
     input  data_t       baud_rate,       
     
-    input  data_t tx,
-    input  logic  tx_valid,
-    output logic  tx_ready,
-
-    output data_t rx,
-    output logic  rx_valid,
-    input  logic  rx_ready,
+    ADAM_STREAM.Slave  tx,
+    ADAM_STREAM.Master rx,
     
     ADAM_IO.Master sclk,
     ADAM_IO.Master mosi,
@@ -61,7 +56,7 @@ module adam_periph_spi_phy #(
 
     // Handles all combinatory logic
     always_comb begin  
-        rx       = rx_reg;
+        rx.data  = rx_reg;
         reversed = data_length - 1 - index;
 
         // First, set default values for all IOs
@@ -137,8 +132,8 @@ module adam_periph_spi_phy #(
                 else begin
                     pclk_gen <= 0;
                 end
-                
-                if (tx_ready || rx_valid) begin
+
+                if (tx.ready || rx.valid) begin
                     ss_n_gen <= 1;
                 end
                 else if (index < data_length) begin
@@ -157,8 +152,8 @@ module adam_periph_spi_phy #(
     // Main logic
     always_ff @(posedge seq.clk) begin
         if (seq.rst) begin
-            tx_ready <= 0;
-            rx_valid <= 0;
+            tx.ready <= 0;
+            rx.valid <= 0;
 
             pause.ack <= 0;
 
@@ -192,26 +187,26 @@ module adam_periph_spi_phy #(
                 // not performing SPI transfer
                 
                 // tx transfer
-                if (tx_valid && tx_ready) begin
-                    tx_reg   <= tx;
-                    tx_ready <= 0;
+                if (tx.valid && tx.ready) begin
+                    tx_reg   <= tx.data;
+                    tx.ready <= 0;
                     tx_ok    <= 1;
                 end
                 else if (!tx_ok && (!pause.req && !pause.ack)) begin
-                    tx_ready <= 1;
+                    tx.ready <= 1;
                 end
-                else if (rx_ok || (rx_valid && rx_ready)) begin
+                else if (rx_ok || (rx.valid && rx.ready)) begin
                     // able to pause
                     pause.ack <= pause.req;
                 end
 
                 // rx transfer
-                if (rx_valid && rx_ready) begin
-                    rx_valid <= 0;
+                if (rx.valid && rx.ready) begin
+                    rx.valid <= 0;
                     rx_ok    <= 1;
                 end
                 else if (!rx_ok) begin
-                    rx_valid <= 1;
+                    rx.valid <= 1;
                 end
             end
             else if (pclk == !clock_phase && pclk != lpclk && selected) begin

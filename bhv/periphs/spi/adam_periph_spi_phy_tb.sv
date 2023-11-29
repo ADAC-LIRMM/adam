@@ -29,13 +29,13 @@ module adam_periph_spi_phy_tb;
     logic [3:0] data_length;
     data_t      baud_rate;
 
-    data_t tx;
-    logic  tx_valid;
-    logic  tx_ready;
+    ADAM_STREAM #(
+        .data_t (data_t)
+    ) tx ();
 
-    data_t rx;
-    logic  rx_valid;
-    logic  rx_ready;
+    ADAM_STREAM #(
+        .data_t (data_t)
+    ) rx ();
 
     ADAM_IO sclk();
     ADAM_IO mosi();
@@ -43,8 +43,16 @@ module adam_periph_spi_phy_tb;
     ADAM_IO ss_n();
 
     logic slave_trigger;
+    
+    adam_clk_rst_bhv #(
+        .CLK_PERIOD (CLK_PERIOD),
+        .RST_CYCLES (RST_CYCLES),
 
-    assign slave_trigger = sclk.o ^ clock_polarity;
+        .TA (TA),
+        .TT (TT)
+    ) adam_clk_rst_bhv (
+        .seq (seq)
+    );
 
     adam_periph_spi_phy #(
         .DATA_WIDTH (DATA_WIDTH)
@@ -61,13 +69,8 @@ module adam_periph_spi_phy_tb;
         .data_length    (data_length),
         .baud_rate      (baud_rate),
 
-        .tx       (tx),
-        .tx_valid (tx_valid),
-        .tx_ready (tx_ready),
-
-        .rx       (rx),
-        .rx_valid (rx_valid),
-        .rx_ready (rx_ready),
+        .tx (tx),
+        .rx (rx),
 
         .sclk (sclk),
         .mosi (mosi),
@@ -75,15 +78,7 @@ module adam_periph_spi_phy_tb;
         .ss_n (ss_n)
     );
 
-    adam_clk_rst_bhv #(
-        .CLK_PERIOD (CLK_PERIOD),
-        .RST_CYCLES (RST_CYCLES),
-
-        .TA (TA),
-        .TT (TT)
-    ) adam_clk_rst_bhv (
-        .seq (seq)
-    );
+    assign slave_trigger = sclk.o ^ clock_polarity;
 
     `TEST_SUITE begin
         `TEST_CASE("test") begin                   
@@ -97,8 +92,8 @@ module adam_periph_spi_phy_tb;
             data_order     = 0;
             data_length    = 0;
             baud_rate      = 0;
-            tx_valid       = 0;
-            rx_ready       = 0;
+            tx.valid       = 0;
+            rx.ready       = 0;
             
             sclk.i = 0;
             mosi.i = 0;
@@ -134,10 +129,6 @@ module adam_periph_spi_phy_tb;
             end
         end
     end
-
-    initial begin
-        #10us $error("timeout");
-    end
     
     task random_config();
         pause.req <= #TA 1;
@@ -156,8 +147,8 @@ module adam_periph_spi_phy_tb;
         data_order     <= #TA $urandom_range(0, 1);
         data_length    <= #TA 8;
         baud_rate      <= #TA 1s / (BAUD_RATE * CLK_PERIOD);
-        tx_valid       <= #TA 0;
-        rx_ready       <= #TA 0;
+        tx.valid       <= #TA 0;
+        rx.ready       <= #TA 0;
         cycle_start();
         cycle_end();
 
@@ -313,17 +304,17 @@ module adam_periph_spi_phy_tb;
     task write(
         input data_t data
     );
-        tx       <= #TA data;
-        tx_valid <= #TA 1;
+        tx.data  <= #TA data;
+        tx.valid <= #TA 1;
         cycle_start();
-        while (!(tx_valid && tx_ready)) begin
+        while (!(tx.valid && tx.ready)) begin
             cycle_end();    
             cycle_start();
         end
         cycle_end();
         
-        tx       <= #TA 0;
-        tx_valid <= #TA 0;
+        tx.data  <= #TA 0;
+        tx.valid <= #TA 0;
         cycle_start();
         cycle_end();
     endtask
@@ -331,16 +322,16 @@ module adam_periph_spi_phy_tb;
     task read(
         output data_t data
     );
-        rx_ready <= #TA 1;
+        rx.ready <= #TA 1;
         cycle_start();
-        while (!(rx_valid && rx_ready)) begin
+        while (!(rx.valid && rx.ready)) begin
             cycle_end();
             cycle_start();
         end
         cycle_end();
-        data = rx;
+        data = rx.data;
 
-        rx_ready <= #TA 0;
+        rx.ready <= #TA 0;
         cycle_start();
         cycle_end();
     endtask

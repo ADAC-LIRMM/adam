@@ -94,7 +94,8 @@ module adam_periph_spi_tb;
     // loopback
     always_comb begin
         pause.req = pause_auto.req && !critical;
-
+        pause_auto.ack = pause.ack;
+        
         miso.i = mosi.o;
     end
 
@@ -214,6 +215,10 @@ module adam_periph_spi_tb;
             
             repeat (10) @(posedge seq.clk);
         end
+    end
+
+    initial begin
+        #1000us $error("timeout");
     end
 
     task critical_begin();
