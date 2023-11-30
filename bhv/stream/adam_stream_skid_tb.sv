@@ -1,4 +1,4 @@
-`include "adam/stream/macros.svh"
+`include "adam/macros_bhv.svh"
 `include "vunit_defines.svh"
 
 module adam_stream_skid_tb;

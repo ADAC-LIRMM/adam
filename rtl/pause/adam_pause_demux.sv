@@ -1,5 +1,5 @@
 module adam_pause_demux #(
-    parameter NO_MSTS = 8,
+    parameter NO_MSTS  = 8,
     parameter PARALLEL = 0
 ) (
     ADAM_SEQ.Slave   seq,
@@ -27,8 +27,7 @@ module adam_pause_demux #(
                 assign msts_req[i] = slv_req;
             end
         end
-        
-        if (!PARALLEL) begin
+        else begin
             always_ff @(posedge seq.clk) begin
                 if (seq.rst) begin
                     slv_ack <= 1;
