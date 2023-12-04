@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 `include "axi/assign.svh"
 
 module axi_lite_xbar_perf_tb;

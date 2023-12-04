@@ -1,11 +1,12 @@
+`timescale 1ns/1ps
 `include "adam/macros_bhv.svh"
 `include "vunit_defines.svh"
 
 `define UNTIL(condition, body) begin \
     cycle_start(); \
     while (!(condition)) begin \
+        body; \
         cycle_end(); \
-        body \
         cycle_start(); \
     end \
     cycle_end(); \

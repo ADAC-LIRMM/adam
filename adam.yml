@@ -61,6 +61,7 @@ fsets:
       - axil/adam_axil_xbar_tb.sv
       - axil/adam_axil_slv_simple_bhv.sv
       - pause/adam_pause_demux_tb.sv
+      - pause/adam_pause_mux_tb.sv
       - fabric/adam_fabric_hsdom_tb.sv
       - fabric/adam_fabric_lsdom_tb.sv
       - fabric/adam_fabric_lsxp_tb.sv
@@ -92,6 +93,7 @@ fsets:
       - intf/adam_intf_stream.sv
 
       - pause/adam_pause_demux.sv
+      - pause/adam_pause_mux.sv
 
       - stream/adam_stream_skid.sv
 

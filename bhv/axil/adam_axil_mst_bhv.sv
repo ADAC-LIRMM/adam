@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 package adam_axil_mst_bhv;
 
 class adam_axil_mst_bhv #(

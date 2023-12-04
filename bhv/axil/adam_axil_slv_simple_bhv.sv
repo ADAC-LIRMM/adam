@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 `include "axi/assign.svh"
 
 module adam_axil_slv_simple_bhv #(

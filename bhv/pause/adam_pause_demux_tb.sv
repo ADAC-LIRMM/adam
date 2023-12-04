@@ -1,14 +1,6 @@
+`timescale 1ns/1ps
+`include "adam/macros_bhv.svh"
 `include "vunit_defines.svh"
-
-`define UNTIL(condition, body) begin \
-    cycle_start(); \
-    while (!(condition)) begin \
-        cycle_end(); \
-        body \
-        cycle_start(); \
-    end \
-    cycle_end(); \
-end
 
 module adam_pause_demux_tb;
 
@@ -70,11 +62,11 @@ module adam_pause_demux_tb;
             initial begin
                 slvs_ack[i] = 1;
 
-                `UNTIL(!seq.rst,);
+                `UNTIL(!seq.rst);
 
                 forever begin
-                    `UNTIL(slvs_req[i] != slvs_ack[i],);         
-                    repeat ($urandom_range(0, 100)) `UNTIL(1,);
+                    `UNTIL(slvs_req[i] != slvs_ack[i]);         
+                    repeat ($urandom_range(0, 100)) `UNTIL(1);
                     
                     paused += (slvs_req[i]) ? 1 : -1;
                     cycle_start();
@@ -92,17 +84,19 @@ module adam_pause_demux_tb;
         `TEST_CASE("test") begin             
             paused = NO_SLVS;
 
-            `UNTIL(!seq.rst,);
+            `UNTIL(!seq.rst);
 
-            `UNTIL(mst.req == 0 && mst.ack == 0,);
-            assert (paused == 0);
+            `UNTIL_FINNALY(!mst.req && !mst.ack, begin
+                assert(paused == 0);
+            end);
 
-            `UNTIL(mst.req == 1 && mst.ack == 1,);
-            assert (paused == NO_SLVS);
+            `UNTIL_FINNALY(mst.req && mst.ack, begin
+                assert(paused == NO_SLVS);
+            end);
 
-            `UNTIL(mst.req == 0 && mst.ack == 0,);
-            assert (paused == 0);
-            //#300us;
+            `UNTIL_FINNALY(mst.req == 0 && mst.ack == 0, begin
+                assert(paused == 0);
+            end);
         end
     end
 

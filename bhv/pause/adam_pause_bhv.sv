@@ -1,12 +1,5 @@
-`define UNTIL(condition, body) begin \
-    cycle_start(); \
-    while (!(condition)) begin \
-        cycle_end(); \
-        body \
-        cycle_start(); \
-    end \
-    cycle_end(); \
-end
+`timescale 1ns/1ps
+`include "adam/macros_bhv.svh"
 
 module adam_pause_bhv #(
     parameter DELAY    = 1us,
@@ -23,26 +16,26 @@ module adam_pause_bhv #(
         forever begin
             pause.req = 1;
 
-            `UNTIL(!seq.rst, begin
-                assert(pause.ack == 1);
-            end);
+            `UNTIL_DO(!seq.rst, assert(pause.ack));
 
             pause.req <= #TA 0;
-            `UNTIL(!pause.ack,);
+            `UNTIL(!pause.ack);
 
-            #(DELAY);
-            @(posedge seq.clk);
+            repeat (DELAY / (TA + TT)) begin
+                `UNTIL(1); // assert(!pause.ack));
+            end
 
             pause.req <= #TA 1;
-            `UNTIL(pause.ack,);
-
-            #(DURATION);
-            @(posedge seq.clk);
+            `UNTIL(pause.ack);
+  
+            repeat (DURATION / (TA + TT)) begin
+                `UNTIL_DO(1, assert(pause.ack));
+            end
             
             pause.req <= #TA 0;
-            `UNTIL(!pause.ack,);
+            `UNTIL(!pause.ack);
 
-           `UNTIL(seq.rst,);
+            `UNTIL(seq.rst);
         end
     end
 

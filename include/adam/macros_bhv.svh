@@ -55,3 +55,20 @@
     end
 
 `endif
+
+`define UNTIL_DO_FINNALY(cond, do_, finnaly) begin \
+    cycle_start(); \
+    while (!(cond)) begin \
+        do_; \
+        cycle_end(); \
+        cycle_start(); \
+    end \
+    finnaly; \
+    cycle_end(); \
+end
+
+`define UNTIL(cond) `UNTIL_DO_FINNALY(cond,,);
+
+`define UNTIL_DO(cond, do_) `UNTIL_DO_FINNALY(cond, do_,);
+
+`define UNTIL_FINNALY(cond, finnaly) `UNTIL_DO_FINNALY(cond,, finnaly);

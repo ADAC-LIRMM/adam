@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 `include "axi/assign.svh"
 `include "vunit_defines.svh"
 

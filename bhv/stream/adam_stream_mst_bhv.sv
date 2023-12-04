@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 package adam_stream_mst_bhv;
 
 class adam_stream_mst_bhv #(

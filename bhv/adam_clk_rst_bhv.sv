@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 module adam_clk_rst_bhv #(
     parameter CLK_PERIOD = 20ns,
     parameter RST_CYCLES = 5,

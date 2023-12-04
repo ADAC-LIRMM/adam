@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 `include "adam/macros_bhv.svh"
 `include "vunit_defines.svh"
 

@@ -3,7 +3,7 @@ module adam_pause_mux #(
 ) (
     ADAM_SEQ.Slave   seq,
 
-    ADAM_SLAVE.Slave  deferred,
+    ADAM_PAUSE.Slave  deferred,
     ADAM_PAUSE.Slave  slvs [NO_SLVS],
     ADAM_PAUSE.Master mst
 );
@@ -27,11 +27,11 @@ module adam_pause_mux #(
             slvs_ack[i] = mst.ack;
         end
 
-        if(deffered.req) begin
-            deffered.ack = mst.req && mst.ack;
+        if(deferred.req) begin
+            deferred.ack = mst.req && mst.ack;
         end
         else begin
-            deffered.ack = !mst.req && !mst.ack;
+            deferred.ack = mst.req || mst.ack;
         end
     end
 
