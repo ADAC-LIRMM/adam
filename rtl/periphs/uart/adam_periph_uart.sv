@@ -20,27 +20,21 @@ module adam_periph_uart #(
     typedef logic [STRB_WIDTH-1:0] strb_t;
     typedef logic [DATA_WIDTH-1:0] reg_t;
 
-    ADAM_SEQ   tx_seq   ();
-    ADAM_PAUSE tx_pause ();
-    logic      tx_en;
-
-    ADAM_SEQ   rx_seq   ();
-    ADAM_PAUSE rx_pause ();
-    logic      rx_en;
-
     ADAM_PAUSE apb_pause ();
 
     // Data (TX)
-    reg_t tx_buf;
-    reg_t tx_data;
-    logic tx_data_valid;
-    logic tx_data_ready;
-    
+    ADAM_PAUSE tx_pause ();
+    ADAM_STREAM #(
+        .data_t (data_t)  
+    ) tx_stream ();
+    reg_t       tx_buf;
+
     // Data (RX)
-    reg_t rx_buf;
-    reg_t rx_data;
-    logic rx_data_valid;
-    logic rx_data_ready;
+    ADAM_PAUSE rx_pause ();
+    ADAM_STREAM #(
+        .data_t (data_t)
+    ) rx_stream ();
+    reg_t       rx_buf;
 
     // Normal Registers
     reg_t control;
@@ -58,8 +52,8 @@ module adam_periph_uart #(
     logic [3:0] data_length;
 
     // Status Register (SR)
-    logic tx_buf_empty;   // Transmit Buffer Empty
-    logic rx_buf_full; // Receive Buffer Full
+    logic tx_buf_empty; // Transmit Buffer Empty
+    logic rx_buf_full;  // Receive Buffer Full
     
     // Interrupt Enable Regiter (IER)
     logic tx_buf_empty_ie; // Transmit Buffer Empty Interrupt Enable
@@ -82,24 +76,10 @@ module adam_periph_uart #(
     logic tx_o;
     logic rx_i;
 
-    adam_clk_gate tx_adam_clk_gate (
-        .slv (seq),
-        .mst (tx_seq),
-
-        .enable (tx_en)
-    );
-
-    adam_clk_gate rx_adam_clk_gate (
-        .slv (seq),
-        .mst (rx_seq),
-
-        .enable (rx_en)
-    );
-
     adam_periph_uart_tx #(
         .DATA_WIDTH(DATA_WIDTH)
     ) adam_periph_uart_tx (
-        .seq   (tx_seq),
+        .seq   (seq),
         .pause (tx_pause),
 
         .parity_select  (parity_select),
@@ -108,17 +88,15 @@ module adam_periph_uart #(
         .stop_bits      (stop_bits),
         .baud_rate      (baud_rate),
 
-        .data       (tx_data),
-        .data_valid (tx_data_valid),
-        .data_ready (tx_data_ready),
-    
+        .slv (tx_stream),
+
         .tx (tx_o)
     );
 
     adam_periph_uart_rx #(
         .DATA_WIDTH(DATA_WIDTH)
     ) adam_periph_uart_rx (
-        .seq   (rx_seq),
+        .seq   (seq),
         .pause (rx_pause),
 
         .parity_select  (parity_select),
@@ -127,9 +105,7 @@ module adam_periph_uart #(
         .stop_bits      (stop_bits),
         .baud_rate      (baud_rate),
 
-        .data       (rx_data),
-        .data_valid (rx_data_valid),
-        .data_ready (rx_data_ready),
+        .mst (rx_stream),
     
         .rx (rx_i)
     );
@@ -182,8 +158,8 @@ module adam_periph_uart #(
         );
             
         // Submodule transfers
-        tx_data_valid = !tx_buf_empty;
-        rx_data_ready = !rx_buf_full;
+        tx_stream.valid = !tx_buf_empty;
+        rx_stream.ready = !rx_buf_full;
         
         // IO
         tx.o = tx_o;
@@ -193,6 +169,9 @@ module adam_periph_uart #(
         rx_i = rx.i;
         rx.mode  = 0;
         rx.otype = 0;
+
+        // pause.req
+        apb_pause.req = pause.req;
 
         // pause.ack
         if (seq.rst) begin
@@ -205,11 +184,7 @@ module adam_periph_uart #(
             pause.ack = apb_pause.ack || tx_pause.ack || rx_pause.ack;
         end
 
-        // clk
-        tx_en = !tx_pause.req || !tx_pause.ack;
-        rx_en = !rx_pause.req || !rx_pause.ack;
-
-        tx_data = tx_buf;
+        tx_stream.data = tx_buf;
     end
 
     always_ff @(posedge seq.clk) begin
@@ -297,7 +272,6 @@ module adam_periph_uart #(
                             control <= new_control;
                             pready <= 1;
                         end 
-                    
                     end
                     else begin
                         prdata <= control;
@@ -342,7 +316,7 @@ module adam_periph_uart #(
                 end
             endcase
             else if (
-                (!pause.ack) &&             // not paused
+                (!apb_pause.ack) &&         // not paused
                 (psel && penable && pready) // transaction completed
             ) begin
                 // reset APB outputs.
@@ -388,13 +362,13 @@ module adam_periph_uart #(
              */
             
             // TX complete, buffer is empty
-            if (tx_data_valid && tx_data_ready) begin
+            if (tx_stream.valid && tx_stream.ready) begin
                 tx_buf_empty <= 1;
             end
 
             // RX complete, buffer is full
-            if (rx_data_valid && rx_data_ready) begin
-                rx_buf <= rx_data;
+            if (rx_stream.valid && rx_stream.ready) begin
+                rx_buf <= rx_stream.data;
                 rx_buf_full <= 1;
             end
         end

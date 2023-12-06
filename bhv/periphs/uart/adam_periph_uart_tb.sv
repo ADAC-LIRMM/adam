@@ -223,7 +223,7 @@ module adam_periph_uart_tb;
     end
 
     initial begin
-        //#100ms $error("timeout");
+        #100ms $error("timeout");
     end
 
     task critical_begin();
