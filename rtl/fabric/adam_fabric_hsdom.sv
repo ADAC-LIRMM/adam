@@ -1,3 +1,4 @@
+`include "adam/macros.svh"
 `include "axi/assign.svh"
 
 `define AXIL_I AXI_LITE #( \
@@ -82,7 +83,7 @@ module adam_fabric_hsdom #(
             `AXI_LITE_ASSIGN(slvs[i], debug_slv);
         end
         if (!EN_DEBUG) begin
-            `AXI_LITE_SLAVE_TIE_OFF(debug_slv);
+            `ADAM_AXIL_SLV_TIE_OFF(debug_slv);
         end
 
         // From Low Speed Domain (LSDOM)
@@ -112,7 +113,7 @@ module adam_fabric_hsdom #(
                 start_addr: 32'h0100_0000 + 32'h0100_0000*(i-MEMS_S),
                 end_addr:   32'h0100_0000 + 32'h0100_0000*(i-MEMS_S+1)
             };
-            `AXI_LITE_OFFSET(mems[i-MEMS_S], msts[i], addr_map[i].start_addr);
+            `ADAM_AXIL_OFFSET(mems[i-MEMS_S], msts[i], addr_map[i].start_addr);
         end
 
         // High Speed Intermittent Peripherals (HSIP)
@@ -122,7 +123,7 @@ module adam_fabric_hsdom #(
                 start_addr: 32'h0009_0000 + 32'h0000_0400*(i-HSIP_S),
                 end_addr:   32'h0009_0000 + 32'h0000_0400*(i-HSIP_S+1)
             };
-            `AXI_LITE_OFFSET(hsip[i-HSIP_S], msts[i], addr_map[i].start_addr);
+            `ADAM_AXIL_OFFSET(hsip[i-HSIP_S], msts[i], addr_map[i].start_addr);
         end
 
         // Debug
@@ -132,10 +133,10 @@ module adam_fabric_hsdom #(
                 start_addr: 32'h0008_0000,
                 end_addr:   32'h0008_4000
             };
-            `AXI_LITE_OFFSET(debug_mst, msts[i], addr_map[i].start_addr);
+            `ADAM_AXIL_OFFSET(debug_mst, msts[i], addr_map[i].start_addr);
         end
         if (!EN_DEBUG) begin
-            `AXI_LITE_MASTER_TIE_OFF(debug_mst);
+            `ADAM_AXIL_MST_TIE_OFF(debug_mst);
         end
 
         // To Low Speed Domain (LSDOM)

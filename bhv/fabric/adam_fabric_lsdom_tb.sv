@@ -112,11 +112,11 @@ module adam_fabric_lsdom_tb;
         '{ idx: 0, start_addr: 32'h0000_0000, end_addr: 32'h0000_8000} 
     };
 
-    `MST_FACTORY(lpu0);
-    `MST_FACTORY(lpu1);
+    `MST_FACTORY(lpcpu0);
+    `MST_FACTORY(lpcpu1);
     `MST_FACTORY(from_hsdom);
     
-    `SLV_FACTORY(mem     , 0, 32'h0000_0000, 32'h0000_8000);
+    `SLV_FACTORY(lpmem   , 0, 32'h0000_0000, 32'h0000_8000);
     `SLV_FACTORY(syscfg  , 1, 32'h0000_0000, 32'h0000_0400);
     `SLV_FACTORY(lsbp    , 2, 32'h0000_0000, 32'h0001_8000);
     `SLV_FACTORY(lsip    , 3, 32'h0000_0000, 32'h0000_8000);
@@ -128,21 +128,21 @@ module adam_fabric_lsdom_tb;
         
         .MAX_TRANS (MAX_TRANS),
 
-        .EN_LPU  (1),
-        .EN_MEM  (1),
-        .EN_LSBP (1),
-        .EN_LSIP (1)
+        .EN_LPCPU (1),
+        .EN_LPMEM (1),
+        .EN_LSBP  (1),
+        .EN_LSIP  (1)
     ) dut (
         .seq   (seq),
         .pause (pause),
         
-        .lpu ('{lpu0, lpu1}),
+        .lpcpu        ('{lpcpu0, lpcpu1}),
         .from_hsdom (from_hsdom),
 
-        .mem (mem),
-        .syscfg (syscfg),
-        .lsbp (lsbp),
-        .lsip (lsip),
+        .lpmem    (lpmem),
+        .syscfg   (syscfg),
+        .lsbp     (lsbp),
+        .lsip     (lsip),
         .to_hsdom (to_hsdom)
     );
 
@@ -172,8 +172,8 @@ module adam_fabric_lsdom_tb;
             @(negedge seq.rst);
             @(posedge seq.clk);
             
-            `MST_TEST(lpu0);
-            `MST_TEST(lpu1);
+            `MST_TEST(lpcpu0);
+            `MST_TEST(lpcpu1);
             `MST_TEST(from_hsdom);
         end
     end

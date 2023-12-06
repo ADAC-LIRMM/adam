@@ -1,0 +1,178 @@
+`include "adam/macros.svh"
+`include "axi/assign.svh"
+
+`define AXIL_I AXI_LITE #( \
+    .AXI_ADDR_WIDTH (ADDR_WIDTH), \
+    .AXI_DATA_WIDTH (DATA_WIDTH) \
+)
+
+module adam_fabric #(
+    parameter ADDR_WIDTH = 32,
+    parameter DATA_WIDTH = 32,
+
+    parameter MAX_TRANS = 7,
+
+    parameter NO_CPUS = 2,
+    parameter NO_DMAS = 2,
+    parameter NO_MEMS = 2,
+    parameter NO_HSIP = 2,
+    parameter NO_LSBP = 2,
+    parameter NO_LSIP = 2,
+
+    parameter EN_LPCPU = 1,
+    parameter EN_LPMEM = 1,
+    parameter EN_LSBP  = 1,
+    parameter EN_LSIP  = 1,
+    parameter EN_DEBUG = 1,
+
+    // Dependent parameters bellow, do not override.
+
+    parameter STRB_WIDTH  = DATA_WIDTH/8,
+
+    parameter type addr_t = logic [ADDR_WIDTH-1:0],
+    parameter type data_t = logic [DATA_WIDTH-1:0],
+    parameter type strb_t = logic [STRB_WIDTH-1:0]
+) (
+    // LSDOM ==================================================================
+    ADAM_SEQ.Slave   lsdom_seq,
+    ADAM_PAUSE.Slave lsdom_pause,
+    ADAM_PAUSE.Slave lsdom_pause_lsbp,
+    ADAM_PAUSE.Slave lsdom_pause_lsip,
+
+    AXI_LITE.Slave lsdom_lpcpu [2],
+
+    AXI_LITE.Master lsdom_lpmem,
+    AXI_LITE.Master lsdom_syscfg,
+    AXI_LITE.Master lsdom_lsbp [NO_LSBP],
+    AXI_LITE.Master lsdom_lsip [NO_LSIP],
+
+    // HSDOM ==================================================================
+    ADAM_SEQ.Slave   hsdom_seq,
+    ADAM_PAUSE.Slave hsdom_pause,
+
+    AXI_LITE.Slave hsdom_cpus [2*NO_CPUS],
+    AXI_LITE.Slave hsdom_dmas [NO_DMAS],
+    AXI_LITE.Slave hsdom_debug_slv,
+
+    AXI_LITE.Master hsdom_mems [NO_MEMS],
+    AXI_LITE.Master hsdom_hsip [NO_HSIP],
+    AXI_LITE.Master hsdom_debug_mst
+);
+
+    // LSDOM ==================================================================
+
+    `AXIL_I lsdom_from_hsdom ();
+    `AXIL_I lsdom_to_hsdom ();
+
+    `AXIL_I lsdom_to_lsbp ();
+    `AXIL_I lsdom_to_lsip ();
+    
+    adam_fabric_lsdom #(
+        .ADDR_WIDTH (ADDR_WIDTH),
+        .DATA_WIDTH (DATA_WIDTH),
+
+        .MAX_TRANS  (MAX_TRANS),
+
+        .EN_LPCPU (EN_LPCPU),
+        .EN_LPMEM (EN_LPMEM),
+        .EN_LSBP  (EN_LSBP),
+        .EN_LSIP  (EN_LSIP)
+    ) adam_fabric_lsdom (
+        .seq   (lsdom_seq),
+        .pause (lsdom_pause),
+
+        .lpcpu      (lsdom_lpcpu),
+        .from_hsdom (lsdom_from_hsdom),
+
+        .lpmem    (lsdom_lpmem),
+        .syscfg   (lsdom_syscfg),
+        .lsbp     (lsdom_to_lsbp),
+        .lsip     (lsdom_to_lsip),
+        .to_hsdom (lsdom_to_hsdom)
+    );
+
+    generate
+        if (EN_LSBP) begin
+            adam_fabric_lsxp #(
+                .ADDR_WIDTH (ADDR_WIDTH),
+                .DATA_WIDTH (DATA_WIDTH),
+
+                .NO_MSTS (NO_LSBP)
+            ) adam_fabric_lsbp (
+                .seq   (lsdom_seq),
+                .pause (lsdom_pause_lsbp),
+
+                .slv  (lsdom_to_lsbp),
+                .msts (lsdom_lsbp)
+            );
+        end
+        else begin
+            `ADAM_PAUSE_SLV_TIE_OFF(lsdom_pause_lsbp);
+            `ADAM_AXIL_SLV_TIE_OFF(lsdom_to_lsbp);
+            for (genvar i = 0; i < NO_LSBP; i++) begin
+                `ADAM_APB_MST_TIE_OFF(lsdom_lsbp[i]);
+            end
+        end
+
+        if (EN_LSIP) begin
+            adam_fabric_lsxp #(
+                .ADDR_WIDTH (ADDR_WIDTH),
+                .DATA_WIDTH (DATA_WIDTH),
+
+                .NO_MSTS (NO_LSIP)
+            ) adam_fabric_lsip (
+                .seq   (lsdom_seq),
+                .pause (lsdom_pause_lsip),
+
+                .slv  (lsdom_to_lsip),
+                .msts (lsdom_lsip)
+            );
+        end
+        else begin
+            `ADAM_PAUSE_SLV_TIE_OFF(lsdom_pause_lsip);
+            `ADAM_AXIL_SLV_TIE_OFF(lsdom_to_lsip);
+            for (genvar i = 0; i < NO_LSBP; i++) begin
+                `ADAM_APB_MST_TIE_OFF(lsdom_lsip[i]);
+            end
+        end
+    endgenerate
+
+    // HSDOM ==================================================================
+
+    `AXIL_I hsdom_from_lsdom ();
+    `AXIL_I hsdom_to_lsdom ();
+
+    adam_fabric_hsdom #(
+        .ADDR_WIDTH (ADDR_WIDTH),
+        .DATA_WIDTH (DATA_WIDTH),
+        
+        .MAX_TRANS (MAX_TRANS),
+
+        .NO_CPUS (NO_CPUS),
+        .NO_DMAS (NO_DMAS),
+        .NO_MEMS (NO_MEMS),
+        .NO_HSIP (NO_HSIP),
+
+        .EN_DEBUG (EN_DEBUG)
+    ) adam_fabric_hsdom (
+        .seq   (hsdom_seq),
+        .pause (hsdom_pause),
+
+        .cpus       (hsdom_cpus),
+        .dmas       (hsdom_dmas),
+        .debug_slv  (hsdom_debug_slv),
+        .from_lsdom (hsdom_from_lsdom),
+
+        .mems      (hsdom_mems),
+        .hsip      (hsdom_hsip),
+        .debug_mst (hsdom_debug_mst),
+        .to_lsdom  (hsdom_to_lsdom)
+    );
+
+    // CDC ====================================================================
+
+    // placeholder
+    `AXI_LITE_ASSIGN (lsdom_from_hsdom, hsdom_to_lsdom);
+    `AXI_LITE_ASSIGN (hsdom_from_lsdom, lsdom_to_hsdom);
+
+endmodule

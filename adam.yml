@@ -117,6 +117,7 @@ fsets:
       - fabric/adam_fabric_hsdom.sv
       - fabric/adam_fabric_lsdom.sv
       - fabric/adam_fabric_lsxp.sv
+      - fabric/adam_fabric.sv
 
 #      - axil/adam_axil_ram.sv
 #      - adam.sv
