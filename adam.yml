@@ -65,6 +65,7 @@ fsets:
       - fabric/adam_fabric_hsdom_tb.sv
       - fabric/adam_fabric_lsdom_tb.sv
       - fabric/adam_fabric_lsxp_tb.sv
+      - fabric/adam_fabric_tb.sv
       - periph/gpio/adam_periph_gpio_tb.sv
       - periph/spi/adam_periph_spi_phy_tb.sv
       - periph/spi/adam_periph_spi_tb.sv
