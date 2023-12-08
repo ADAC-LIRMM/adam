@@ -17,7 +17,7 @@ targets:
     defines:
       - VERILATOR
       - ADAM_CORE_CPU=adam_core_cv32e40p
-      - ADAM_CORE_LPU=adam_core_cv32e40p
+      - ADAM_CORE_LPCPU=adam_core_cv32e40p
       
 fsets: 
   adam_cv32e40p_nexys_video_bhv:
@@ -106,27 +106,25 @@ fsets:
       - axil/adam_axil_skid.sv
       - periph/gpio/adam_periph_gpio.sv
       - periph/spi/adam_periph_spi.sv
-      - periph/sysctrl/adam_periph_sysctrl.sv
       - periph/timer/adam_periph_timer.sv
       - periph/uart/adam_periph_uart.sv
 
       - axil/adam_axil_apb_bridge.sv
       - axil/adam_axil_xbar.sv  
       - obi/adam_obi_axil_bridge.sv
-      - periph/adam_periphs.sv
 
       - fabric/adam_fabric_hsdom.sv
       - fabric/adam_fabric_lsdom.sv
       - fabric/adam_fabric_lsxp.sv
       - fabric/adam_fabric.sv
 
-#      - axil/adam_axil_ram.sv
-#      - adam.sv
+      #- axil/adam_axil_ram.sv
+      #- adam_syscfg.sv
+      #- adam.sv
       - adam_clk_div.sv
 
-#      - adam_synth.sv
-
-#      - adam_synth_intf.sv
+      #- adam_synth.sv
+      #- adam_synth_intf.sv
 
   adam_cv32e40p_rtl:
     requires:

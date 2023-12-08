@@ -69,6 +69,14 @@
     assign src.ar_ready = dst.ar_ready; \
     `AXI_LITE_ASSIGN_R(src, dst);
 
+// ADAM_IO ====================================================================
+
+`define ADAM_IO_ASSIGN(slv, mst) \
+    assign mst.i = slv.i; \
+    assign slv.o = mst.o; \
+    assign slv.mode = mst.mode; \
+    assign slv.otype = mst.otype; 
+
 // ADAM_PAUSE =================================================================
 
 `define ADAM_PAUSE_MST_TIE_OFF(mst) \

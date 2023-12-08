@@ -1,17 +1,36 @@
+`include "adam/macros.svh"
+`include "apb/assign.svh"
 `include "axi/assign.svh"
+
+`define APB_I APB #( \
+    .ADDR_WIDTH (ADDR_WIDTH), \
+    .DATA_WIDTH (DATA_WIDTH) \
+)
+
+`define AXIL_I AXI_LITE #( \
+    .AXI_ADDR_WIDTH (ADDR_WIDTH), \
+    .AXI_DATA_WIDTH (DATA_WIDTH) \
+)
 
 module adam #(
     parameter ADDR_WIDTH = 32,
     parameter DATA_WIDTH = 32,
     parameter GPIO_WIDTH = 16,
 
-    parameter NO_MEMS   = 3,
-    parameter NO_GPIOS  = 4,
-    parameter NO_SPIS   = 1,
-    parameter NO_TIMERS = 1,
-    parameter NO_UARTS  = 1,
-    parameter NO_CPUS   = 1,
-    parameter NO_LPUS   = 1,
+    parameter NO_CPUS = 2,
+    parameter NO_DMAS = 2,
+    parameter NO_MEMS = 2,
+    
+    parameter EN_LPCPU = 1,
+    parameter EN_LPMEM = 1,
+    parameter EN_DEBUG = 1,
+
+    parameter NO_LSBP_GPIOS  = 2,
+    parameter NO_LSBP_SPIS   = 2,
+    parameter NO_LSBP_TIMERS = 2,
+    parameter NO_LSBP_UARTS  = 2,
+
+    parameter BOOT_ADDR = 32'h0000_0000;
 
     // Dependent parameters bellow, do not override.
 
@@ -21,19 +40,25 @@ module adam #(
     parameter type data_t = logic [DATA_WIDTH-1:0],
     parameter type strb_t = logic [STRB_WIDTH-1:0]
 ) (
-    input logic clk,
-    input logic rst,
+    // lsdom ==================================================================
 
-    input  logic pause_req,
-    output logic pause_ack,
+    ADAM_SEQ.Slave   lsdom_seq,
+    ADAM_PAUSE.Slave lsdom_pause,
 
-    input addr_t rst_boot_addr,
+    ADAM_SEQ.Master   lsdom_mem_seq,
+    ADAM_PAUSE.Master lsdom_mem_pause,
+    AXI_LITE.Master   lsdom_mem_axil,
 
-    output logic    mem_srst      [NO_MEMS],
-    output logic    mem_pause_req [NO_MEMS],
-    input  logic    mem_pause_ack [NO_MEMS],
-    AXI_LITE.Master mem_axil      [NO_MEMS],
+    // hsdom ==================================================================
 
+    ADAM_SEQ.Slave hsdom_seq,
+
+    ADAM_SEQ.Master   hsdom_mem_seq   [NO_MEMS],
+    ADAM_PAUSE.Master hsdom_mem_pause [NO_MEMS],
+    AXI_LITE.Master   hsdom_mem_axil  [NO_MEMS],
+
+    // async ==================================================================
+    
     ADAM_IO.Master     gpio_io   [NO_GPIOS*GPIO_WIDTH],
     output logic [1:0] gpio_func [NO_GPIOS*GPIO_WIDTH],
     
@@ -46,237 +71,240 @@ module adam #(
     ADAM_IO.Master uart_rx [NO_UARTS]
 );
 
-    localparam NO_CORES = NO_CPUS + NO_LPUS;
+    localparam NO_DMAS = 0;
+    localparam NO_HSIP = 0;
+    localparam NO_LSIP = 0;
 
-    localparam NO_XBAR_SLVS = 2*NO_CORES;
-    localparam NO_XBAR_MSTS = NO_MEMS + 1;
-
-    typedef struct packed {
-        int unsigned idx;
-        addr_t start_addr;
-        addr_t end_addr;
-    } rule_t;
-
-    rule_t [NO_XBAR_MSTS-1:0] addr_map;
-
-    AXI_LITE #(
-        .AXI_ADDR_WIDTH (ADDR_WIDTH),
-        .AXI_DATA_WIDTH (DATA_WIDTH)
-    ) xbar_slv_axil [NO_XBAR_SLVS] ();
+    localparam NO_LSBP = NO_LSBP_GPIOS + NO_LSBP_SPIS + NO_LSBP_TIMERS +
+        NO_LSBP_UARTS;
     
-    AXI_LITE #(
-        .AXI_ADDR_WIDTH (ADDR_WIDTH),
-        .AXI_DATA_WIDTH (DATA_WIDTH)
-    ) xbar_mst_axil [NO_XBAR_MSTS] ();
+    // lsdom - lpcpu ==========================================================
 
-    AXI_LITE #(
-        .AXI_ADDR_WIDTH (ADDR_WIDTH),
-        .AXI_DATA_WIDTH (DATA_WIDTH)
-    ) core_axil [2*NO_CORES] ();
+    `AXIL_I lsdom_lpcpu_axil [2] ();
 
-    AXI_LITE #(
-        .AXI_ADDR_WIDTH (ADDR_WIDTH),
-        .AXI_DATA_WIDTH (DATA_WIDTH)
-    ) periphs_axil ();
-
-    logic  core_srst      [NO_CORES];
-    logic  core_pause_req [NO_CORES];
-    logic  core_pause_ack [NO_CORES];
-    addr_t core_boot_addr [NO_CORES];    
-    logic  core_irq       [NO_CORES];
-
-    logic xbar_pause_req;
-    logic xbar_pause_ack;
-
-    logic periphs_pause_req;
-    logic periphs_pause_ack;
-
-    always_ff @(posedge clk) begin
-        if (rst) begin
-            xbar_pause_req    <= 0;
-            periphs_pause_req <= 0;
-            pause_ack         <= 0;
-        end
-        else if (pause_req && pause_ack) begin
-            // PAUSED
-        end
-        else if (pause_req && !pause_ack) begin
-            // pausing
-            if (!periphs_pause_req || !periphs_pause_ack) begin
-                periphs_pause_req <= 1;
-            end
-            else if (!xbar_pause_req || !xbar_pause_ack) begin
-                xbar_pause_req <= 1;
-            end
-            else begin
-                pause_ack <= 1;
-            end
-        end
-        else if (!pause_req && pause_ack) begin
-            // resuming
-            if (xbar_pause_req || xbar_pause_ack) begin
-                xbar_pause_req <= 0;
-            end
-            else if (periphs_pause_req || periphs_pause_ack) begin
-                periphs_pause_req <= 0;
-            end
-            else begin
-                pause_ack <= 0;
-            end
-        end
-    end
-
-     generate
-        localparam MEMS_S = 0;
-        localparam MEMS_E = MEMS_S + NO_MEMS;
-        
-        localparam PERIPHS_S = MEMS_E;
-        localparam PERIPHS_E = PERIPHS_S + 1;
-
-        for(genvar i = MEMS_S; i < MEMS_E; i++) begin
-            `AXI_LITE_ASSIGN(
-                mem_axil[i - MEMS_S],
-                xbar_mst_axil[i]
-            );
-
-            always_comb begin
-                addr_map[i] = '{
-                    idx:        i,
-                    start_addr: (32'h1000_0000) + (32'h0100_0000)*(i),
-                    end_addr:   (32'h1000_0000) + (32'h0100_0000)*(i+1)
-                };
-            end
-        end
-
-        for(genvar i = PERIPHS_S; i < PERIPHS_E; i++) begin
-            `AXI_LITE_ASSIGN(periphs_axil, xbar_mst_axil[i]);
-
-            assign addr_map[i] = '{
-                idx:        i,
-                start_addr: 32'h2000_0000,
-                end_addr:   32'h3000_0000
-            };
-        end
-    endgenerate
+    ADAM_SEQ   lsdom_lpcpu_seq ();
+    ADAM_PAUSE lsdom_lpcpu_pause ();
+    
+    logic lsdom_lpcpu_irq;
 
     generate
-        localparam CORES_S = 0;
-        localparam CORES_E = CORES_S + 2*NO_CORES;
+        if (EN_LPCPU) begin
+            `ADAM_CORE_LPCPU lsdom_lpcpu (
+                .seq   (lsdom_lpcpu_seq),
+                .pause (lsdom_lpcpu_pause),
 
-        for(genvar i = CORES_S; i < CORES_E; i++) begin
-            `AXI_LITE_ASSIGN(xbar_slv_axil[i], core_axil[i - CORES_S]);
+                .boot_addr (BOOT_ADDR),
+                .hart_id   ('0),
+
+                .inst_axil (lsdom_lpcpu[0]),
+                .data_axil (lsdom_lpcpu[1]),
+
+                .irq (lsdom_lpcpu_irq),
+            );
         end
     endgenerate
+
+    // lsdom - syscfg =========================================================
+
+    `AXIL_I lsdom_syscfg_axil ();
+
+    `ADAM_AXIL_SLV_TIE_OFF(lsdom_syscfg);
+
+    // lsdom - lsbp ===========================================================
+
+    ADAM_SEQ   lsdom_lsbp_seq   [NO_LSIP] ();
+    ADAM_PAUSE lsdom_lsbp_pause [NO_LSIP] ();
+
+    `AXIL_I lsdom_lsbp_apb [NO_LSIP] ();
+    
+    logic lsdom_lsbp_irq [NO_LSIP];
 
     generate
-        localparam CPUS_S = 0;
-        localparam CPUS_E = CPUS_S + NO_CPUS;
+        localparam LSBP_GPIOS_S = 0;
+        localparam LSBP_GPIOS_E = LSBP_GPIOS_S + NO_LSBP_GPIOS;
 
-        localparam LPUS_S = CPUS_E;
-        localparam LPUS_E = LPUS_S + NO_LPUS;
+        localparam LSBP_SPIS_S = LSBP_GPIOS_E;
+        localparam LSBP_SPIS_E = LSBP_SPIS_S + NO_LSBP_SPIS;
 
-        for(genvar i = CPUS_S; i < CPUS_E; i++) begin
-            `ADAM_CORE_CPU adam_core_cpu (
-                .clk  (clk),
-                .rst  (rst || core_srst[i]),
+        localparam LSBP_TIMERS_S = LSBP_SPIS_E;
+        localparam LSBP_TIMERS_E = LSBP_TIMERS_S + NO_LSBP_TIMERS;
 
-                .pause_req (core_pause_req[i]),
-                .pause_ack (core_pause_ack[i]),
+        localparam LSBP_UARTS_S = LSBP_TIMERS_E;
+        localparam LSBP_UARTS_E = LSBP_UARTS_S + NO_LSBP_UARTS;
 
-                .boot_addr (core_boot_addr[i]),
-                .hart_id   (data_t'(i)),
+        for (genvar i = LSBP_GPIOS_S; i < LSBP_GPIOS_S; i++) begin
+            localparam OFFSET = GPIO_WIDTH*(i - LSBP_GPIOS_S);
 
-                .inst_axil (core_axil[2*i + 0]),
-                .data_axil (core_axil[2*i + 1]),
+            ADAM_IO     io   [GPIO_WIDTH] ();
+            logic [1:0] func [GPIO_WIDTH];
 
-                .irq (core_irq[i])
+            for (genvar j = 0; j < GPIO_WIDTH; j++) begin
+                `ADAM_IO_ASSIGN(gpio_io[j + OFFSET], io[j]);
+                assign gpio_func[j + OFFSET] = func[j];
+            end
+
+            adam_periph_gpio #(
+                .ADDR_WIDTH (ADDR_WIDTH),
+                .DATA_WIDTH (DATA_WIDTH),
+                .GPIO_WIDTH (GPIO_WIDTH)
+            ) lsbp_gpio (
+                .seq   (lsdom_lsbp_seq[i]),
+                .pause (lsdom_lsbp_pause[i]),
+                
+                .apb (lsdom_lsbp_apb[i]),
+
+                .irq (lsdom_lsbp_irq[i]),
+
+                .io   (io),
+                .func (func)
             );
         end
 
-        for(genvar i = LPUS_S; i < LPUS_E; i++) begin
-            `ADAM_CORE_LPU adam_core_lpu (
-                .clk  (clk),
-                .rst  (rst || core_srst[i]),
+        for (genvar i = LSBP_SPIS_S; i < LSBP_SPIS_E; i++) begin
+            adam_periph_spi #(
+                .ADDR_WIDTH (ADDR_WIDTH),
+                .DATA_WIDTH (DATA_WIDTH)
+            ) lsbp_spi (
+                .seq   (lsdom_lsbp_seq[i]),
+                .pause (lsdom_lsbp_pause[i]),
+                
+                .apb (lsdom_lsbp_apb[i]),
 
-                .pause_req (core_pause_req[i]),
-                .pause_ack (core_pause_ack[i]),
+                .irq (lsdom_lsbp_irq[i]),
 
-                .boot_addr (core_boot_addr[i]),
-                .hart_id   (data_t'(i)),
+                .sclk (spi_sclk[i - LSBP_SPIS_S]),
+                .mosi (spi_mosi[i - LSBP_SPIS_S]),
+                .miso (spi_miso[i - LSBP_SPIS_S]),
+                .ss_n (spi_ss_n[i - LSBP_SPIS_S])
+            );
+        end
 
-                .inst_axil (core_axil[2*i + 0]),
-                .data_axil (core_axil[2*i + 1]),
+        for (genvar i = LSBP_TIMERS_S; i < LSBP_TIMERS_E; i++) begin
+            adam_periph_timer #(
+                .ADDR_WIDTH (ADDR_WIDTH),
+                .DATA_WIDTH (DATA_WIDTH)
+            ) lsbp_timer (
+                .seq   (lsdom_lsbp_seq[i]),
+                .pause (lsdom_lsbp_pause[i]),
+                
+                .apb   (lsdom_lsbp_apb[i]),
 
-                .irq (core_irq[i])
+                .irq (lsdom_lsbp_irq[i])
+            );
+        end
+
+        for (genvar i = LSBP_UARTS_S; i < LSBP_UARTS_E; i++) begin
+            adam_periph_uart #(
+                .ADDR_WIDTH(ADDR_WIDTH),
+                .DATA_WIDTH(DATA_WIDTH)
+            ) lsbp_uart (
+                .seq   (lsdom_lsbp_seq[i]),
+                .pause (lsdom_lsbp_pause[i]),
+                .apb   (lsdom_lsbp_apb[i]),
+
+                .irq (lsdom_lsbp_irq[i]),
+
+                .tx (uart_tx[i - LSBP_UARTS_S]),
+                .rx (uart_rx[i - LSBP_UARTS_S])
             );
         end
     endgenerate
 
-    adam_axil_xbar #(
+    // lsdom - lsip ===========================================================
+
+    `AXIL_I lsdom_lsip_apb [NO_LSIP] ();
+
+    generate
+        for (genvar i = 0; i < NO_LSIP; i++) begin
+            `ADAM_AXIL_SLV_TIE_OFF(lsdom_lsip_apb[i]);
+        end
+    endgenerate
+
+    // hsdom - cpus ===========================================================
+
+    `AXIL_I hsdom_cpus [2*NO_CPUS] ();
+
+    ADAM_SEQ   hsdom_cpus_seq   [NO_CPUS] ();
+    ADAM_PAUSE hsdom_cpus_pause [NO_CPUS] ();
+
+    generate
+        for (genvar i = 0; i < NO_CPUS; i++) begin
+            `ADAM_CORE_CPU hsdom_cpu (
+                .seq   (hsdom_cpus_seq),
+                .pause (hsdom_cpus_pause),
+
+                .boot_addr ('0),
+                .hart_id   ('0),
+
+                .inst_axil (hsdom_cpus[2*i + 0]),
+                .data_axil (hsdom_cpus[2*i + 1]),
+
+                .irq ('0),
+            );
+        end
+    endgenerate
+
+    // hsdom - cpus ===========================================================
+
+    `AXIL_I hsdom_dmas [NO_DMAS] ();
+
+    generate
+        for (int i = 0; i < NO_DMAS; i++) begin
+            `ADAM_PAUSE_SLV_TIE_OFF(hsdom_dmas[i]);
+        end
+    endgenerate
+
+    // hsdom - debug ==========================================================
+
+    `AXIL_I hsdom_debug_slv ();
+    `AXIL_I hsdom_debug_mst ();
+
+    `ADAM_PAUSE_MST_TIE_OFF(hsdom_debug_slv);
+    `ADAM_PAUSE_SLV_TIE_OFF(hsdom_debug_mst);
+
+    // adam_fabric ============================================================
+
+    adam_fabric #(
         .ADDR_WIDTH (ADDR_WIDTH),
         .DATA_WIDTH (DATA_WIDTH),
 
-        .NO_SLAVES  (NO_XBAR_SLVS),
-        .NO_MASTERS (NO_XBAR_MSTS),
+        .MAX_TRANS (MAX_TRANS),
         
-        .MAX_TRANS (7),
+        .NO_CPUS (NO_CPUS),
+        .NO_DMAS (NO_DMAS),
+        .NO_MEMS (NO_MEMS),
+        .NO_HSIP (NO_HSIP),
+        .NO_LSBP (NO_LSBP),
+        .NO_LSIP (NO_LSIP),
 
-        .rule_t (rule_t)
-    ) adam_axil_xbar (
-        .clk  (clk),
-        .rst  (rst),
-        
-        .pause_req (xbar_pause_req),
-        .pause_ack (xbar_pause_ack),
-
-        .axil_slv (xbar_slv_axil),
-        .axil_mst (xbar_mst_axil),
-
-        .addr_map (addr_map)
-    );
-
-    adam_periphs #(
-        .ADDR_WIDTH (ADDR_WIDTH),
-        .DATA_WIDTH (DATA_WIDTH),
-        .GPIO_WIDTH (GPIO_WIDTH),
-
-        .NO_CORES  (NO_CORES),
-        .NO_MEMS   (NO_MEMS),
-        .NO_GPIOS  (NO_GPIOS),
-        .NO_SPIS   (NO_SPIS),
-        .NO_TIMERS (NO_TIMERS),
-        .NO_UARTS  (NO_UARTS)
-    ) adam_periphs (
-        .clk  (clk),
-        .rst  (rst),
-        
-        .pause_req (periphs_pause_req),
-        .pause_ack (periphs_pause_ack),
-
-        .axil (periphs_axil),
-
-        .rst_boot_addr (rst_boot_addr),
-
-        .mem_srst      (mem_srst),
-        .mem_pause_req (mem_pause_req),
-        .mem_pause_ack (mem_pause_ack),
-
-        .core_srst      (core_srst),
-        .core_pause_req (core_pause_req),
-        .core_pause_ack (core_pause_ack),
-           .core_boot_addr (core_boot_addr),    
-        .core_irq       (core_irq),
+        .EN_LPCPU (EN_LPCPU),
+        .EN_LPMEM (EN_LPMEM),
+        .EN_LSBP  (EN_LSBP),
+        .EN_LSIP  (EN_LSIP),
+        .EN_DEBUG (EN_DEBUG)
+    ) adam_fabric (
+        .lsdom_seq        (lsdom_seq),
+        .lsdom_pause      (lsdom_pause),
+        .lsdom_pause_lsbp (lsdom_pause_lsbp),
+        .lsdom_pause_lsip (lsdom_pause_lsip),
     
-        .gpio_io   (gpio_io),
-        .gpio_func (gpio_func),
+        .lsdom_lpcpu  (lsdom_lpcpu),
 
-        .spi_sclk (spi_sclk),
-        .spi_mosi (spi_mosi),
-        .spi_miso (spi_miso),
-        .spi_ss_n (spi_ss_n),
+        .lsdom_lpmem  (lsdom_lpmem),
+        .lsdom_syscfg (lsdom_syscfg),
+        .lsdom_lsbp   (lsdom_lsbp),
+        .lsdom_lsip   (lsdom_lsip),
 
-        .uart_tx (uart_tx),
-        .uart_rx (uart_rx)
+        .hsdom_seq   (hsdom_seq),
+        .hsdom_pause (hsdom_pause),
+
+        .hsdom_cpus      (hsdom_cpus),
+        .hsdom_dmas      (hsdom_dmas),
+        .hsdom_debug_slv (hsdom_debug_slv),
+
+        .hsdom_mems      (hsdom_mems),
+        .hsdom_hsip      (hsdom_hsip),
+        .hsdom_debug_mst (hsdom_debug_mst)
     );
 
 endmodule
