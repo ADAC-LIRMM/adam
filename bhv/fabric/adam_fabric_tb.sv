@@ -236,8 +236,6 @@ module adam_fabric_tb;
 
         .EN_LPCPU (1),
         .EN_LPMEM (1),
-        .EN_LSBP  (1),
-        .EN_LSIP  (1),
         .EN_DEBUG (1)
     ) dut (
         .lsdom_seq        (lsdom_seq),
@@ -274,6 +272,8 @@ module adam_fabric_tb;
                         
             `TEST_PATH(lsdom_lpcpu0, 32'h0008_0000, 10);
             `TEST_PATH(lsdom_lpcpu1, 32'h0200_0000,  7);
+            
+            #2us;
 
             `TEST_PATH(hsdom_cpus0, 32'h0000_0000, 0);
             `TEST_PATH(hsdom_cpus1, 32'h0000_8000, 1);

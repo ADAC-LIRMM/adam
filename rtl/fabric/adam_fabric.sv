@@ -21,8 +21,6 @@ module adam_fabric #(
 
     parameter EN_LPCPU = 1,
     parameter EN_LPMEM = 1,
-    parameter EN_LSBP  = 1,
-    parameter EN_LSIP  = 1,
     parameter EN_DEBUG = 1,
 
     // Dependent parameters bellow, do not override.
@@ -33,7 +31,8 @@ module adam_fabric #(
     parameter type data_t = logic [DATA_WIDTH-1:0],
     parameter type strb_t = logic [STRB_WIDTH-1:0]
 ) (
-    // LSDOM ==================================================================
+    // lsdom ==================================================================
+    
     ADAM_SEQ.Slave   lsdom_seq,
     ADAM_PAUSE.Slave lsdom_pause,
     ADAM_PAUSE.Slave lsdom_pause_lsbp,
@@ -46,7 +45,8 @@ module adam_fabric #(
     AXI_LITE.Master lsdom_lsbp [NO_LSBP],
     AXI_LITE.Master lsdom_lsip [NO_LSIP],
 
-    // HSDOM ==================================================================
+    // hsdom ==================================================================
+    
     ADAM_SEQ.Slave   hsdom_seq,
     ADAM_PAUSE.Slave hsdom_pause,
 
@@ -59,7 +59,7 @@ module adam_fabric #(
     AXI_LITE.Master hsdom_debug_mst
 );
 
-    // LSDOM ==================================================================
+    // lsdom ==================================================================
 
     `AXIL_I lsdom_from_hsdom ();
     `AXIL_I lsdom_to_hsdom ();
@@ -75,8 +75,8 @@ module adam_fabric #(
 
         .EN_LPCPU (EN_LPCPU),
         .EN_LPMEM (EN_LPMEM),
-        .EN_LSBP  (EN_LSBP),
-        .EN_LSIP  (EN_LSIP)
+        .EN_LSBP  (NO_LSBP > 0),
+        .EN_LSIP  (NO_LSIP > 0)
     ) adam_fabric_lsdom (
         .seq   (lsdom_seq),
         .pause (lsdom_pause),
@@ -92,7 +92,7 @@ module adam_fabric #(
     );
 
     generate
-        if (EN_LSBP) begin
+        if (NO_LSBP > 0) begin
             adam_fabric_lsxp #(
                 .ADDR_WIDTH (ADDR_WIDTH),
                 .DATA_WIDTH (DATA_WIDTH),
@@ -109,12 +109,9 @@ module adam_fabric #(
         else begin
             `ADAM_PAUSE_SLV_TIE_OFF(lsdom_pause_lsbp);
             `ADAM_AXIL_SLV_TIE_OFF(lsdom_to_lsbp);
-            for (genvar i = 0; i < NO_LSBP; i++) begin
-                `ADAM_APB_MST_TIE_OFF(lsdom_lsbp[i]);
-            end
         end
 
-        if (EN_LSIP) begin
+        if (NO_LSIP > 0) begin
             adam_fabric_lsxp #(
                 .ADDR_WIDTH (ADDR_WIDTH),
                 .DATA_WIDTH (DATA_WIDTH),
@@ -131,13 +128,10 @@ module adam_fabric #(
         else begin
             `ADAM_PAUSE_SLV_TIE_OFF(lsdom_pause_lsip);
             `ADAM_AXIL_SLV_TIE_OFF(lsdom_to_lsip);
-            for (genvar i = 0; i < NO_LSBP; i++) begin
-                `ADAM_APB_MST_TIE_OFF(lsdom_lsip[i]);
-            end
         end
     endgenerate
 
-    // HSDOM ==================================================================
+    // hsdom ==================================================================
 
     `AXIL_I hsdom_from_lsdom ();
     `AXIL_I hsdom_to_lsdom ();
@@ -169,7 +163,7 @@ module adam_fabric #(
         .to_lsdom  (hsdom_to_lsdom)
     );
 
-    // CDC ====================================================================
+    // cdc ====================================================================
 
     // placeholder
     `AXI_LITE_ASSIGN (lsdom_from_hsdom, hsdom_to_lsdom);
