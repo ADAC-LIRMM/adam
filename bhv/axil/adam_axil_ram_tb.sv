@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+`include "adam/macros_bhv.svh"
 `include "axi/assign.svh"
 `include "vunit_defines.svh"
 
@@ -43,7 +44,7 @@ module adam_axil_ram_tb;
         .AXI_DATA_WIDTH(DATA_WIDTH)
     ) axil_dv (seq.clk);
 
-    `AXI_LITE_ASSIGN(axil, axil_dv)
+    `AXI_LITE_ASSIGN(axil, axil_dv);
 
     adam_axil_mst_bhv #(
         .ADDR_WIDTH (ADDR_WIDTH),
@@ -95,15 +96,15 @@ module adam_axil_ram_tb;
     end
     
     `TEST_SUITE begin
-        `TEST_CASE("test") begin
+        `TEST_CASE("basic") begin
+            automatic addr_t addr;
+            automatic data_t data;
+            automatic resp_t resp;
 
-            @(negedge seq.rst); 
-            repeat (10) @(posedge seq.clk);
+            `UNTIL(!seq.rst);
 
             // Write
-            for (addr_t addr = 0; addr < SIZE; addr += STRB_WIDTH) begin
-                automatic resp_t resp;
-
+            for (addr = 0; addr < SIZE; addr += $clog2(STRB_WIDTH)) begin
                 master.send_aw(addr, 3'b000);
                 master.send_w(addr, 4'b1111);
                 master.recv_b(resp);
@@ -112,17 +113,17 @@ module adam_axil_ram_tb;
             end
             
             // Read
-            for (addr_t addr = 0; addr < SIZE; addr += STRB_WIDTH) begin
-                automatic data_t data;
-                automatic resp_t resp;
-                
+            for (addr = 0; addr < SIZE; addr += $clog2(STRB_WIDTH)) begin                
                 master.send_ar(addr, 3'b000);
                 master.recv_r(data, resp);
 
                 assert (resp == axi_pkg::RESP_OKAY);
                 assert (data == addr);
             end
-            
+        end
+
+        `TEST_CASE("test") begin
+            `UNTIL(!seq.rst); 
             // Random access
             for(int i = 0; i < NO_TESTS; i += 4) begin
                 automatic addr_t addr;
@@ -142,15 +143,15 @@ module adam_axil_ram_tb;
 
                 fork
                     repeat (MAX_TRANS) begin
-                        master.send_aw(addr);
+                        master.send_aw(addr, '0);
                     end
 
                     repeat (MAX_TRANS) begin
-                        master.send_w(data);
+                        master.send_w(data, '0);
                     end
                     
                     repeat (MAX_TRANS) begin
-                        master.send_ar(addr);
+                        master.send_ar(addr, '0);
                     end
                     
                     repeat (MAX_TRANS) begin
@@ -189,7 +190,15 @@ module adam_axil_ram_tb;
     end
 
     initial begin
-        #10us $error("timeout");
+        #1000us $error("timeout");
     end
+
+    task cycle_start();
+        #TT;
+    endtask
+
+    task cycle_end();
+        @(posedge seq.clk);
+    endtask
     
 endmodule

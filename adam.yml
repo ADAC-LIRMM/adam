@@ -57,7 +57,7 @@ fsets:
       - axil/adam_axil_apb_bridge_tb.sv
       - axil/adam_axil_skid_tb.sv
       - axil/adam_axil_pause_tb.sv
-#      - axil/adam_axil_ram_tb.sv
+      - axil/adam_axil_ram_tb.sv
       - axil/adam_axil_xbar_tb.sv
       - axil/adam_axil_slv_simple_bhv.sv
       - pause/adam_pause_demux_tb.sv
@@ -74,7 +74,6 @@ fsets:
       - periph/uart/adam_periph_uart_rx_tb.sv
       - periph/uart/adam_periph_uart_tx_tb.sv
       - periph/uart/adam_periph_uart_tb.sv
-#      - periph/adam_periphs_tb.sv
       - adam_clk_div_tb.sv
 #      - adam_tb.sv
 
@@ -118,7 +117,7 @@ fsets:
       - fabric/adam_fabric_lsxp.sv
       - fabric/adam_fabric.sv
 
-      #- axil/adam_axil_ram.sv
+      - axil/adam_axil_ram.sv
       #- adam_syscfg.sv
       #- adam.sv
       - adam_clk_div.sv
