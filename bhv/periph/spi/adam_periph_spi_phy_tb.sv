@@ -2,16 +2,6 @@
 `include "adam/macros_bhv.svh"
 `include "vunit_defines.svh"
 
-`define UNTIL(condition, body) begin \
-    cycle_start(); \
-    while (!(condition)) begin \
-        body; \
-        cycle_end(); \
-        cycle_start(); \
-    end \
-    cycle_end(); \
-end
-
 module adam_periph_spi_phy_tb;
     import adam_stream_mst_bhv::*;
     import adam_stream_slv_bhv::*;
@@ -143,7 +133,7 @@ module adam_periph_spi_phy_tb;
     
     task random_config();
         pause.req <= #TA 1;
-        `UNTIL(pause.ack == 1,);
+        `UNTIL(pause.ack == 1);
 
         tx_enable      <= #TA 1;
         rx_enable      <= #TA 1; 
@@ -157,7 +147,7 @@ module adam_periph_spi_phy_tb;
         cycle_end();
 
         pause.req <= #TA 0;
-        `UNTIL(pause.ack == 0,);
+        `UNTIL(pause.ack == 0);
     endtask
 
     task emulate_top();

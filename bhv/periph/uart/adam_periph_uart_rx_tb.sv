@@ -2,16 +2,6 @@
 `include "adam/macros_bhv.svh"
 `include "vunit_defines.svh"
 
-`define UNTIL(condition, body) begin \
-    cycle_start(); \
-    while (!(condition)) begin \
-        body; \
-        cycle_end(); \
-        cycle_start(); \
-    end \
-    cycle_end(); \
-end
-
 module adam_periph_uart_rx_tb;
     import adam_stream_slv_bhv::*;
 
@@ -114,7 +104,7 @@ module adam_periph_uart_rx_tb;
         for (int i = 0; i < MSG_LEN; i++) begin
             
             // wait for pause signals
-            `UNTIL(pause.req == 0 && pause.ack == 0,);
+            `UNTIL(pause.req == 0 && pause.ack == 0);
             
             rx = 0; // start bit
             parity = 0;
