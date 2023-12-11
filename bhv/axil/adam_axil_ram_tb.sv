@@ -113,7 +113,7 @@ module adam_axil_ram_tb;
             end
             
             // Read
-            for (addr = 0; addr < SIZE; addr += STRB_WIDTH) begin                
+            for (addr = 0; addr < SIZE; addr += STRB_WIDTH) begin
                 master.send_ar(addr, 3'b000);
                 master.recv_r(data, resp);
 
@@ -122,70 +122,40 @@ module adam_axil_ram_tb;
             end
         end
 
-        `TEST_CASE("test") begin
-            `UNTIL(!seq.rst); 
-            // Random access
-            for(int i = 0; i < NO_TESTS; i += 4) begin
-                automatic addr_t addr;
-                automatic data_t data;
-                automatic resp_t b_resp;
-                automatic data_t r_data;
-                automatic resp_t r_resp;
+        `TEST_CASE("throughput") begin
+            `UNTIL(!seq.rst);
 
-                addr = $urandom_range(MIN_ADDR, MAX_ADDR);
+            // set memory content
+            for (addr_t addr = 0; addr < SIZE; addr += STRB_WIDTH) begin
+                automatic resp_t resp;
+                master.send_aw(addr, 3'b000);
+                master.send_w(addr, 4'b1111); 
+                master.recv_b(resp);
+                assert (resp == axi_pkg::RESP_OKAY);
+            end
 
-                // force alligned access on 50% of the operations
-                if(i % 2) begin
-                    addr[$clog2(STRB_WIDTH)-1:0] = 0;
+            // actual test
+            fork
+                for (addr_t addr = 0; addr < SIZE; addr += STRB_WIDTH) begin
+                    master.send_aw(addr, 3'b000);
+                    master.send_w(addr, 4'b1111); 
+                    master.send_ar(addr, 3'b000);
                 end
 
-                data = addr;
+                for (addr_t addr = 0; addr < SIZE; addr += STRB_WIDTH) begin
+                    automatic data_t data;
+                    automatic resp_t resp;
+                    master.recv_r(data, resp);
+                    assert (resp == axi_pkg::RESP_OKAY);
+                    assert (data == addr);
+                end
 
-                fork
-                    repeat (MAX_TRANS) begin
-                        master.send_aw(addr, '0);
-                    end
-
-                    repeat (MAX_TRANS) begin
-                        master.send_w(data, '0);
-                    end
-                    
-                    repeat (MAX_TRANS) begin
-                        master.send_ar(addr, '0);
-                    end
-                    
-                    repeat (MAX_TRANS) begin
-                        master.recv_b(b_resp);
-
-                        // if valid address
-                        if (
-                            (addr[$clog2(STRB_WIDTH)-1:0] == 0) &&
-                            (addr < SIZE)
-                        ) begin
-                            assert (b_resp == axi_pkg::RESP_OKAY);
-                        end
-                        else begin
-                            assert (b_resp == axi_pkg::RESP_DECERR);
-                        end
-                    end
-                    
-                    repeat (MAX_TRANS) begin
-                        master.recv_r(r_data, r_resp);
-
-                        // if valid address
-                        if (
-                            (addr[$clog2(STRB_WIDTH)-1:0] == 0) &&
-                            (addr < SIZE)
-                        ) begin
-                            assert (r_resp == axi_pkg::RESP_OKAY);
-                            assert (r_data == data);
-                        end
-                        else begin
-                            assert (r_resp == axi_pkg::RESP_DECERR);
-                        end
-                    end
-                join
-            end
+                for (addr_t addr = 0; addr < SIZE; addr += STRB_WIDTH) begin
+                    automatic resp_t resp;
+                    master.recv_b(resp);
+                    assert (resp == axi_pkg::RESP_OKAY);
+                end
+            join            
         end
     end
 

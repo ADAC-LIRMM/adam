@@ -15,23 +15,29 @@ module adam_stream_skid #(
     end
 
     always_ff @(posedge seq.clk) begin
+        automatic bit tmp;
+
         if (seq.rst) begin
             stall     <= '0;
             buffer    <= '0;
             slv.ready <= '0;
         end 
         else begin
+            tmp = stall;
+
             if (slv.valid && slv.ready && mst.valid && !mst.ready) begin
-                stall  <= '1;
+                tmp = 1;
                 buffer <= slv.data;
             end
 
             if (stall && mst.valid && mst.ready) begin
-                stall  <= '0;
+                tmp = 0;
                 buffer <= '0;
             end
 
-            slv.ready <= !stall || mst.ready;
+            slv.ready <= !tmp || mst.ready;
+
+            stall <= tmp;
         end
     end
 

@@ -149,21 +149,16 @@ module adam_axil_ram #(
         if (seq.rst) begin
             // EMPTY
         end
-        else begin
-            if (write) begin
-                if (!valid_addr) begin
-                    skid.b_resp <= axi_pkg::RESP_DECERR;
-                end
-                skid.b_valid <= 1;
-            end
-            else if (read) begin
-                if (!valid_addr) begin
-                    skid.r_resp <= axi_pkg::RESP_DECERR;
-                end
-                // r_data has continuous assignment
-                skid.r_valid <= 1; 
-            end
+        else if (write) begin
+            if (!valid_addr) skid.b_resp <= axi_pkg::RESP_DECERR;
+            skid.b_valid <= 1;
         end
+        else if (read) begin
+            if (!valid_addr) skid.r_resp <= axi_pkg::RESP_DECERR;
+            // r_data has continuous assignment
+            skid.r_valid <= 1; 
+        end
+        
     end
 
 endmodule
