@@ -34,10 +34,16 @@ module adam_axil_ram #(
     // (* RAM_STYLE="BLOCK" *)
     DATA_T mem [ALIGNED_SIZE-1:0];
 
-    ALIGNED_T aligned; 
-    DATA_T    wdata;
-    STRB_T    wstrb;
-    DATA_T    rdata;
+    ADDR_T addr;
+    DATA_T wdata;
+    STRB_T wstrb;
+    DATA_T rdata;
+    
+    ALIGNED_T aligned;
+    logic     valid_addr;
+
+    assign aligned = addr[ADDR_WIDTH-1:UNALIGNED_WIDTH];
+    assign valid_addr = (addr[UNALIGNED_WIDTH-1:0] == 0 || addr < SIZE);
 
     always_ff @(posedge seq.clk) begin
         for (int i = 0; i < STRB_WIDTH; i++) begin
@@ -57,7 +63,7 @@ module adam_axil_ram #(
     // axil pause and skid ====================================================
     
     `AXIL_I axil_pause ();
-    `AXIL_I axil_skid  ();
+    `AXIL_I skid ();
 
     adam_axil_pause #(
         .ADDR_WIDTH (ADDR_WIDTH),
@@ -82,76 +88,81 @@ module adam_axil_ram #(
         .seq (seq),
 
         .slv (axil_pause),
-        .mst (axil_skid)
+        .mst (skid)
     );
 
     // axil logic =============================================================
 
-    logic  do_write;
-    logic  do_read;
-    RESP_T resp;
+    logic write;
+    logic read;
 
-    assign wdata = axil_skid.w_data;
-    assign axil_skid.r_data = rdata;
+    assign skid.r_data = rdata;
 
     always_comb begin
-        automatic ADDR_T addr;
 
-        // default
-        aligned  = '0;
-        do_write = '0;
-        do_read  = '0;
-        wstrb    = '0;
-        resp     = '0;
-        
-        if (
-            (axil_skid.aw_valid && axil_skid.w_valid) &&
-            (!axil_skid.b_valid || axil_skid.b_ready)
-        ) begin
-            // able to complete write
-            addr = axil.aw_addr;
-            do_write = 1;
-        end
-        else if (
-            (axil_skid.ar_valid) &&
-            (!axil_skid.r_valid || axil_skid.r_ready)
-        ) begin
-            // able to complete read
-            addr = axil.ar_addr;
-            do_read  = 1;
-        end
+        // First, set default values
 
-        if (addr[UNALIGNED_WIDTH-1:0] == 0 || addr < SIZE) begin
-            if (do_write) wstrb = axil_skid.w_strb;
-            aligned = axil.aw_addr[ADDR_WIDTH-1:UNALIGNED_WIDTH];
+        skid.aw_ready = '0;
+        skid.w_ready  = '0;
+        skid.ar_ready = '0;
+
+        addr  = '0;
+        wstrb = '0;
+        wdata = '0;
+
+        // Then, make changes as required.  
+
+        write = skid.aw_valid && skid.w_valid &&
+            (!skid.b_valid || skid.b_ready);
+
+        read = skid.ar_valid &&
+            (!skid.r_valid || skid.r_ready);
+
+        if (write) begin
+            if (valid_addr) begin
+                addr  = skid.aw_addr;
+                wstrb = skid.w_strb;
+                wdata = skid.w_data;
+            end
+            skid.aw_ready = 1;
+            skid.w_ready  = 1;
         end
-        else begin
-            resp = axi_pkg::RESP_DECERR;
+        else if (read) begin
+            if (valid_addr) begin
+                addr = skid.ar_addr;
+            end
+            skid.ar_ready = 1;
         end
     end
 
-    always_ff @(posedge seq.clk) begin  
-        if (seq.rst) begin
-            axil_skid.aw_ready <= 0;
-            axil_skid.w_ready  <= 0;
-            axil_skid.b_resp   <= 0;
-            axil_skid.b_valid  <= 0;
+    always_ff @(posedge seq.clk) begin
 
-            axil_skid.ar_ready <= 0;
-            axil_skid.r_resp   <= 0;
-            axil_skid.r_valid  <= 0;
+        // First, set default values
+
+        skid.b_resp  <= '0;
+        skid.b_valid <= '0;
+        skid.r_resp  <= '0;
+        skid.r_valid <= '0;
+
+        // Then, make changes as required. 
+
+        if (seq.rst) begin
+            // EMPTY
         end
         else begin
-            axil_skid.aw_ready <= do_write;
-            axil_skid.w_ready  <= do_write;
-            axil_skid.b_resp   <= resp;
-            axil_skid.b_valid  <= do_write;
-
-            axil_skid.ar_ready <= do_read;
-            axil_skid.r_resp   <= resp;
-            axil_skid.r_valid  <= do_read;
-            
-            
+            if (write) begin
+                if (!valid_addr) begin
+                    skid.b_resp <= axi_pkg::RESP_DECERR;
+                end
+                skid.b_valid <= 1;
+            end
+            else if (read) begin
+                if (!valid_addr) begin
+                    skid.r_resp <= axi_pkg::RESP_DECERR;
+                end
+                // r_data has continuous assignment
+                skid.r_valid <= 1; 
+            end
         end
     end
 

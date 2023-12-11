@@ -104,7 +104,7 @@ module adam_axil_ram_tb;
             `UNTIL(!seq.rst);
 
             // Write
-            for (addr = 0; addr < SIZE; addr += $clog2(STRB_WIDTH)) begin
+            for (addr = 0; addr < SIZE; addr += STRB_WIDTH) begin
                 master.send_aw(addr, 3'b000);
                 master.send_w(addr, 4'b1111);
                 master.recv_b(resp);
@@ -113,7 +113,7 @@ module adam_axil_ram_tb;
             end
             
             // Read
-            for (addr = 0; addr < SIZE; addr += $clog2(STRB_WIDTH)) begin                
+            for (addr = 0; addr < SIZE; addr += STRB_WIDTH) begin                
                 master.send_ar(addr, 3'b000);
                 master.recv_r(data, resp);
 
