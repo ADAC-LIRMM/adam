@@ -23,21 +23,19 @@ module adam_stream_skid #(
             slv.ready <= '0;
         end 
         else begin
-            tmp = stall;
+            slv.ready <= !stall || mst.ready;
 
             if (slv.valid && slv.ready && mst.valid && !mst.ready) begin
-                tmp = 1;
-                buffer <= slv.data;
+                stall     <= '1; 
+                buffer    <= slv.data;
+                slv.ready <= '0;
             end
 
             if (stall && mst.valid && mst.ready) begin
-                tmp = 0;
-                buffer <= '0;
+                stall     <= '0;
+                buffer    <= '0;
+                slv.ready <= '1;
             end
-
-            slv.ready <= !tmp || mst.ready;
-
-            stall <= tmp;
         end
     end
 
