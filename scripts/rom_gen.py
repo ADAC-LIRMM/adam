@@ -41,7 +41,7 @@ module {{ module_name }} (
     input  logic pause_req,
     output logic pause_ack,
 
-    AXI_LITE.Slave axil
+    AXI_LITE.Slave slv
 );
 
 	localparam ADDR_WIDTH = {{ addr_width }};
@@ -76,10 +76,10 @@ module {{ module_name }} (
   	end
 
 	always_comb begin
-		axil.aw_ready = 1;
-		axil.w_ready  = 1;
-		axil.b_resp   = axi_pkg::RESP_DECERR;
-		axil.b_valid  = 1;
+		slv.aw_ready = 1;
+		slv.w_ready  = 1;
+		slv.b_resp   = axi_pkg::RESP_DECERR;
+		slv.b_valid  = 1;
 	end
 
     always_ff @(posedge clk) begin
@@ -87,36 +87,36 @@ module {{ module_name }} (
         automatic aligned_t   aligned;
         
         if (rst) begin
-            axil.ar_ready = 1;
-			axil.r_data   = 0;
-            axil.r_resp   = 0;
-            axil.r_valid  = 0;
+            slv.ar_ready = 1;
+			slv.r_data   = 0;
+            slv.r_resp   = 0;
+            slv.r_valid  = 0;
         end
         else begin
-            if(axil.r_valid && axil.r_ready) begin
-                axil.r_valid = 0;
+            if(slv.r_valid && slv.r_ready) begin
+                slv.r_valid = 0;
             end
 
-            if(axil.ar_valid && axil.ar_ready) begin
-                raddr = axil.ar_addr;
-                axil.ar_ready = 0;
+            if(slv.ar_valid && slv.ar_ready) begin
+                raddr = slv.ar_addr;
+                slv.ar_ready = 0;
             end
 
-            if(!axil.ar_ready && !axil.r_valid) begin
+            if(!slv.ar_ready && !slv.r_valid) begin
                 unaligned = raddr[UNALIGNED_WIDTH-1:0];
                 aligned   = raddr[DATA_WIDTH-1:UNALIGNED_WIDTH];
 
                 if (unaligned == 0 && aligned < ALIGNED_SIZE) begin 
-                    axil.r_data = mem[aligned];
-                    axil.r_resp = axi_pkg::RESP_OKAY;
+                    slv.r_data = mem[aligned];
+                    slv.r_resp = axi_pkg::RESP_OKAY;
                 end
                 else begin
-                    axil.r_data = 0;
-                    axil.r_resp = axi_pkg::RESP_DECERR;
+                    slv.r_data = 0;
+                    slv.r_resp = axi_pkg::RESP_DECERR;
                 end
 
-                axil.r_valid  = 1;
-                axil.ar_ready = 1;
+                slv.r_valid  = 1;
+                slv.ar_ready = 1;
             end
         end
     end

@@ -83,7 +83,13 @@
     assign mst.req = '1;
 
 `define ADAM_PAUSE_SLV_TIE_OFF(slv) \
-    assign mst.ack = '1;
+    assign slv.ack = '1;
+
+`define ADAM_PAUSE_MST_TIE_ON(mst) \
+    assign mst.req = '0;
+
+`define ADAM_PAUSE_SLV_TIE_ON(slv) \
+    assign slv.ack = '0;
 
 // ADAM_STREAM ================================================================
 

@@ -4,7 +4,7 @@ module adam_core_cv32e40p #(
 
     // Dependent parameters bellow, do not override.
     
-    parameter STRB_WIDTH = (DATA_WIDTH/8),
+    parameter STRB_WIDTH = DATA_WIDTH/8,
 
     parameter type addr_t = logic [ADDR_WIDTH-1:0],
     parameter type data_t = logic [DATA_WIDTH-1:0],
@@ -52,6 +52,16 @@ module adam_core_cv32e40p #(
 
     assign data_rready_o = 1;
 
+    // unused
+    logic core_sleep_o;
+    
+    logic       irq_ack_o;
+    logic [4:0] irq_id_o;
+
+    logic debug_havereset_o;
+    logic debug_running_o;
+    logic debug_halted_o;
+
     cv32e40p_top #(
         .FPU              (1),
         .FPU_ADDMUL_LAT   (2),
@@ -68,7 +78,7 @@ module adam_core_cv32e40p #(
 
         // Special control signals
         .fetch_enable_i  ('1),
-        // .core_sleep_o    (),
+        .core_sleep_o    (core_sleep_o),
         .pulp_clock_en_i ('0),
 
         // Configuration
@@ -97,14 +107,14 @@ module adam_core_cv32e40p #(
 
         // Interrupt interface
         .irq_i     ({20'b0, irq, 11'b0}),
-        // .irq_ack_o (),
-        // .irq_id_o  (),
+        .irq_ack_o (irq_ack_o),
+        .irq_id_o  (irq_id_o),
 
         // Debug interface
-        .debug_req_i       (0)
-        // .debug_havereset_o (),
-        // .debug_running_o   (),
-        // .debug_halted_o    ()
+        .debug_req_i       ('0),
+        .debug_havereset_o (debug_havereset_o),
+        .debug_running_o   (debug_running_o),
+        .debug_halted_o    (debug_halted_o)
     );
 
     adam_obi_axil_bridge #(

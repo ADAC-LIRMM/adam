@@ -75,7 +75,7 @@ fsets:
       - periph/uart/adam_periph_uart_tx_tb.sv
       - periph/uart/adam_periph_uart_tb.sv
       - adam_clk_div_tb.sv
-#      - adam_tb.sv
+      - adam_tb.sv
 
   adam_rtl:
     requires:
@@ -97,19 +97,20 @@ fsets:
 
       - stream/adam_stream_skid.sv
 
-      - periph/spi/adam_periph_spi_phy.sv
-      - periph/uart/adam_periph_uart_rx.sv
-      - periph/uart/adam_periph_uart_tx.sv
-
+      - axil/adam_axil_apb_bridge.sv
       - axil/adam_axil_pause.sv
       - axil/adam_axil_skid.sv
+      - axil/adam_axil_ram.sv
+      - axil/adam_axil_xbar.sv
+
       - periph/gpio/adam_periph_gpio.sv
       - periph/spi/adam_periph_spi.sv
+      - periph/spi/adam_periph_spi_phy.sv
       - periph/timer/adam_periph_timer.sv
+      - periph/uart/adam_periph_uart_rx.sv
+      - periph/uart/adam_periph_uart_tx.sv
       - periph/uart/adam_periph_uart.sv
 
-      - axil/adam_axil_apb_bridge.sv
-      - axil/adam_axil_xbar.sv  
       - obi/adam_obi_axil_bridge.sv
 
       - fabric/adam_fabric_hsdom.sv
@@ -117,9 +118,9 @@ fsets:
       - fabric/adam_fabric_lsxp.sv
       - fabric/adam_fabric.sv
 
-      - axil/adam_axil_ram.sv
       #- adam_syscfg.sv
-      #- adam.sv
+      - adam.sv
+      
       - adam_clk_div.sv
 
       #- adam_synth.sv

@@ -18,7 +18,6 @@ module adam #(
     parameter GPIO_WIDTH = 16,
 
     parameter NO_CPUS = 2,
-    parameter NO_DMAS = 2,
     parameter NO_MEMS = 2,
     
     parameter EN_LPCPU = 1,
@@ -30,9 +29,14 @@ module adam #(
     parameter NO_LSBP_TIMERS = 2,
     parameter NO_LSBP_UARTS  = 2,
 
-    parameter BOOT_ADDR = 32'h0000_0000;
+    parameter BOOT_ADDR = 32'h0000_0000,
 
     // Dependent parameters bellow, do not override.
+
+    parameter NO_GPIOS  = NO_LSBP_GPIOS,
+    parameter NO_SPIS   = NO_LSBP_SPIS,
+    parameter NO_TIMERS = NO_LSBP_TIMERS,
+    parameter NO_UARTS  = NO_LSBP_UARTS,
 
     parameter STRB_WIDTH  = DATA_WIDTH/8,
 
@@ -45,9 +49,9 @@ module adam #(
     ADAM_SEQ.Slave   lsdom_seq,
     ADAM_PAUSE.Slave lsdom_pause,
 
-    ADAM_SEQ.Master   lsdom_mem_seq,
-    ADAM_PAUSE.Master lsdom_mem_pause,
-    AXI_LITE.Master   lsdom_mem_axil,
+    ADAM_SEQ.Master   lsdom_lpmem_seq,
+    ADAM_PAUSE.Master lsdom_lpmem_pause,
+    AXI_LITE.Master   lsdom_lpmem_axil,
 
     // hsdom ==================================================================
 
@@ -71,9 +75,9 @@ module adam #(
     ADAM_IO.Master uart_rx [NO_UARTS]
 );
 
-    localparam NO_DMAS = 0;
-    localparam NO_HSIP = 0;
-    localparam NO_LSIP = 0;
+    localparam NO_DMAS = 1;
+    localparam NO_HSIP = 1;
+    localparam NO_LSIP = 1;
 
     localparam NO_LSBP = NO_LSBP_GPIOS + NO_LSBP_SPIS + NO_LSBP_TIMERS +
         NO_LSBP_UARTS;
@@ -96,10 +100,10 @@ module adam #(
                 .boot_addr (BOOT_ADDR),
                 .hart_id   ('0),
 
-                .inst_axil (lsdom_lpcpu[0]),
-                .data_axil (lsdom_lpcpu[1]),
+                .inst_axil (lsdom_lpcpu_axil[0]),
+                .data_axil (lsdom_lpcpu_axil[1]),
 
-                .irq (lsdom_lpcpu_irq),
+                .irq (lsdom_lpcpu_irq)
             );
         end
     endgenerate
@@ -108,16 +112,16 @@ module adam #(
 
     `AXIL_I lsdom_syscfg_axil ();
 
-    `ADAM_AXIL_SLV_TIE_OFF(lsdom_syscfg);
+    `ADAM_AXIL_SLV_TIE_OFF(lsdom_syscfg_axil);
 
     // lsdom - lsbp ===========================================================
 
-    ADAM_SEQ   lsdom_lsbp_seq   [NO_LSIP] ();
-    ADAM_PAUSE lsdom_lsbp_pause [NO_LSIP] ();
+    ADAM_SEQ   lsdom_lsbp_seq   [NO_LSBP] ();
+    ADAM_PAUSE lsdom_lsbp_pause [NO_LSBP] ();
 
-    `AXIL_I lsdom_lsbp_apb [NO_LSIP] ();
+    `APB_I lsdom_lsbp_apb [NO_LSBP] ();
     
-    logic lsdom_lsbp_irq [NO_LSIP];
+    logic lsdom_lsbp_irq [NO_LSBP];
 
     generate
         localparam LSBP_GPIOS_S = 0;
@@ -212,17 +216,17 @@ module adam #(
 
     // lsdom - lsip ===========================================================
 
-    `AXIL_I lsdom_lsip_apb [NO_LSIP] ();
+    `APB_I lsdom_lsip_apb [NO_LSIP] ();
 
     generate
         for (genvar i = 0; i < NO_LSIP; i++) begin
-            `ADAM_AXIL_SLV_TIE_OFF(lsdom_lsip_apb[i]);
+            `ADAM_APB_SLV_TIE_OFF(lsdom_lsip_apb[i]);
         end
     endgenerate
 
     // hsdom - cpus ===========================================================
 
-    `AXIL_I hsdom_cpus [2*NO_CPUS] ();
+    `AXIL_I hsdom_cpus_axil [2*NO_CPUS] ();
 
     ADAM_SEQ   hsdom_cpus_seq   [NO_CPUS] ();
     ADAM_PAUSE hsdom_cpus_pause [NO_CPUS] ();
@@ -230,37 +234,57 @@ module adam #(
     generate
         for (genvar i = 0; i < NO_CPUS; i++) begin
             `ADAM_CORE_CPU hsdom_cpu (
-                .seq   (hsdom_cpus_seq),
-                .pause (hsdom_cpus_pause),
+                .seq   (hsdom_cpus_seq[i]),
+                .pause (hsdom_cpus_pause[i]),
 
-                .boot_addr ('0),
-                .hart_id   ('0),
+                .boot_addr (BOOT_ADDR),
+                .hart_id   (i + 1),
 
-                .inst_axil (hsdom_cpus[2*i + 0]),
-                .data_axil (hsdom_cpus[2*i + 1]),
+                .inst_axil (hsdom_cpus_axil[2*i + 0]),
+                .data_axil (hsdom_cpus_axil[2*i + 1]),
 
-                .irq ('0),
+                .irq ('0)
             );
         end
     endgenerate
 
     // hsdom - cpus ===========================================================
 
-    `AXIL_I hsdom_dmas [NO_DMAS] ();
+    `AXIL_I hsdom_dmas_axil [NO_DMAS] ();
 
     generate
-        for (int i = 0; i < NO_DMAS; i++) begin
-            `ADAM_PAUSE_SLV_TIE_OFF(hsdom_dmas[i]);
+        for (genvar i = 0; i < NO_DMAS; i++) begin
+            `ADAM_AXIL_MST_TIE_OFF(hsdom_dmas_axil[i]);
         end
     endgenerate
 
+    // hsdom - hsip ===========================================================
+
+    `AXIL_I hsdom_hsip_axil [NO_HSIP] ();
+
+    for (genvar i = 0; i < NO_HSIP; i++) begin
+        `ADAM_AXIL_SLV_TIE_OFF(hsdom_hsip_axil[i]);
+    end
+
     // hsdom - debug ==========================================================
 
-    `AXIL_I hsdom_debug_slv ();
-    `AXIL_I hsdom_debug_mst ();
+    `AXIL_I hsdom_debug_slv_axil ();
+    `AXIL_I hsdom_debug_mst_axil ();
 
-    `ADAM_PAUSE_MST_TIE_OFF(hsdom_debug_slv);
-    `ADAM_PAUSE_SLV_TIE_OFF(hsdom_debug_mst);
+    `ADAM_AXIL_MST_TIE_OFF(hsdom_debug_slv_axil);
+    `ADAM_AXIL_SLV_TIE_OFF(hsdom_debug_mst_axil);
+
+    // pause logic ============================================================
+
+    ADAM_PAUSE lsdom_pause_lsbp_bus ();
+    ADAM_PAUSE lsdom_pause_lsip_bus ();
+
+    `ADAM_PAUSE_MST_TIE_ON(lsdom_pause_lsbp_bus);
+    `ADAM_PAUSE_MST_TIE_ON(lsdom_pause_lsip_bus);
+
+    ADAM_PAUSE hsdom_pause ();
+
+    `ADAM_PAUSE_MST_TIE_ON(hsdom_pause);
 
     // adam_fabric ============================================================
 
@@ -268,7 +292,7 @@ module adam #(
         .ADDR_WIDTH (ADDR_WIDTH),
         .DATA_WIDTH (DATA_WIDTH),
 
-        .MAX_TRANS (MAX_TRANS),
+        .MAX_TRANS (7),
         
         .NO_CPUS (NO_CPUS),
         .NO_DMAS (NO_DMAS),
@@ -279,32 +303,30 @@ module adam #(
 
         .EN_LPCPU (EN_LPCPU),
         .EN_LPMEM (EN_LPMEM),
-        .EN_LSBP  (EN_LSBP),
-        .EN_LSIP  (EN_LSIP),
         .EN_DEBUG (EN_DEBUG)
     ) adam_fabric (
         .lsdom_seq        (lsdom_seq),
         .lsdom_pause      (lsdom_pause),
-        .lsdom_pause_lsbp (lsdom_pause_lsbp),
-        .lsdom_pause_lsip (lsdom_pause_lsip),
+        .lsdom_pause_lsbp (lsdom_pause_lsbp_bus),
+        .lsdom_pause_lsip (lsdom_pause_lsip_bus),
     
-        .lsdom_lpcpu  (lsdom_lpcpu),
+        .lsdom_lpcpu (lsdom_lpcpu_axil),
 
-        .lsdom_lpmem  (lsdom_lpmem),
-        .lsdom_syscfg (lsdom_syscfg),
-        .lsdom_lsbp   (lsdom_lsbp),
-        .lsdom_lsip   (lsdom_lsip),
+        .lsdom_lpmem  (lsdom_lpmem_axil),
+        .lsdom_syscfg (lsdom_syscfg_axil),
+        .lsdom_lsbp   (lsdom_lsbp_apb),
+        .lsdom_lsip   (lsdom_lsip_apb),
 
         .hsdom_seq   (hsdom_seq),
         .hsdom_pause (hsdom_pause),
 
-        .hsdom_cpus      (hsdom_cpus),
-        .hsdom_dmas      (hsdom_dmas),
-        .hsdom_debug_slv (hsdom_debug_slv),
+        .hsdom_cpus      (hsdom_cpus_axil),
+        .hsdom_dmas      (hsdom_dmas_axil),
+        .hsdom_debug_slv (hsdom_debug_slv_axil),
 
-        .hsdom_mems      (hsdom_mems),
-        .hsdom_hsip      (hsdom_hsip),
-        .hsdom_debug_mst (hsdom_debug_mst)
+        .hsdom_mems      (hsdom_mem_axil),
+        .hsdom_hsip      (hsdom_hsip_axil),
+        .hsdom_debug_mst (hsdom_debug_mst_axil)
     );
 
 endmodule

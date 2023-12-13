@@ -5,11 +5,19 @@ module cv32e40p_clock_gate (
     output logic clk_o
 );
 
-  adam_clk_gate adam_clk_gate (
-    .clk       (clk_i),
-    .rst       ('0),
-    .enable    (en_i),
-    .gated_clk (clk_o)
-  );
+    ADAM_SEQ slv ();
+    ADAM_SEQ mst ();
+
+    assign slv.clk = clk_i;
+    assign slv.rst = '0;
+
+    assign clk_o = mst.clk;
+
+    adam_clk_gate adam_clk_gate (
+        .slv (slv),
+        .mst (mst),
+
+        .enable (en_i)
+    );
 
 endmodule
