@@ -1,12 +1,12 @@
-=======
-SYSCTRL
-=======
+======
+SYSCFG
+======
 
 Overview
 ========
-The System Controller (SYSCTRL) is a purpose-built peripheral specifically
-designed to effectively manage the power, clock, and boot configurations of the
-system.
+The System Configuration (SYSCFG) is a purpose-built peripheral specifically
+designed to effectively manage the power, clock, and boot configurations of
+ADAM.
 
 Maestro
 =======
@@ -27,7 +27,7 @@ components. They allow for the following actions:
   vital for memory and peripherals, but it enables a core to self-reset.
   Without it, the core couldn't autonomously wake itself.
 
-When SYSCTRL experiences a reset, every maestro transitions to a special state.
+When SYSCFG experiences a reset, every maestro transitions to a special state.
 Within this state, the component's soft reset line remains high, regardless of
 whether it's "pause_req" and "pause_ack" signals are asserted or not.
 
@@ -37,7 +37,7 @@ set to "pause" mode.
 It's worth noting that the energy-saving approach—be it through clock gating,
 power gating, or power gating with non-volatile registers—relies on the
 component's design specifics. In scenarios where a action is unsuitable, such
-as trying to deactivate the SYSCTRL, it will be ignored on a best-effort basis.
+as trying to deactivate the SYSCFG, it will be ignored on a best-effort basis.
 
 For each component, whether a memory bank, peripheral, or core, the Maestro
 Registers can trigger the appropriate power management action. To initiate an

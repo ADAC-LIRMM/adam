@@ -5,7 +5,7 @@ Peripherals
    :maxdepth: 2
    :caption: Contents:
 
-   sysctrl
+   syscfg
    gpio
    spi
    timer

@@ -16,17 +16,31 @@ simple and powerful.
 Taking inspiration from the AXI stream ``READY`` and ``VALID`` signals, this
 protocol merges ease of control with minimal overhead.
 
+.. note::
+
+   It was later perceived that ADAM's Activity Pause Protocol closely resembles
+   AXI's low-power interface.
+   While a complete overhaul to match AXI's version is not planned, the
+   protocol may undergo a revision to improve interoperability should any
+   critical issues arise.
+
 Signals
 =======
 
 Primary Signals:
 
-- ``pause_req`` (Pause Request): Used by the master to indicate a wish to pause
+- ``req`` (request): Used by the master to indicate a wish to pause
   the slave's operations.
 
-- ``pause_ack`` (Pause Acknowledge): Used to acknowledge the pause request.
+- ``ack`` (acknowledge): Used to acknowledge the pause request.
 
 Additional Standardized Signals:
+
+While not rigidly defined by the protocol, the clock and reset signals are of
+course vital for any sequential module but are even more crucial to this
+protocol.
+Their states are instrumental in defining the low power mode a module will
+enter.
 
 - ``clk`` (clock): Typically triggered on the positive edge.
 
@@ -36,35 +50,36 @@ Additional Standardized Signals:
 Protocol Flow
 =============
 
-1. **Pause Request by Master**: The master asserts ``pause_req`` and waits for
-   the assertion of ``pause_ack``.
-   Notably, ``pause_ack`` could potentially be asserted already.
+1. **Request**: The master asserts ``req`` and waits for the assertion of
+   ``ack`` by the slave.
+   Notably, ``ack`` could potentially be asserted already.
 
-2. **Slave Paused State**: When ``pause_req`` and ``pause_ack`` are both
-   asserted the slave's paused state.
-   In this state, the slave remains stable without any changes.
+2. **Acknowledgement**: While ``req`` and ``ack`` are both
+   asserted the slave is said to be in a paused state.
+   In this state, the slave remains stable without any internal state changes.
 
-3. **Resumption of Operations**: To restart operations, the master deasserts
-   ``pause_req`` and waits for the slave to reciprocate by deasserting
-   ``pause_ack``.
+3. **Resume**: To resume operations, the master deasserts ``req`` and waits for
+   the slave to reciprocate by deasserting ``ack``.
 
 The core objective behind introducing this protocol is to allow safe
 clock-gating and power-gating during a paused state or stopped state for a
 given module. 
 
-A typical design should keep the ``pause_ack`` signal enabled during
-a reset.
+A typical design should keep the ``req`` and ``ack`` signals enabled during a
+reset.
+In others words, the initial state should be the paused state. 
 This ensures that even when a module is reset, it still adheres to this
 protocol.
 On the other hand, if a module wishes to indicate non-compliance or non-support
-for the protocol, it can permanently tie ``pause_ack`` low.
+for the protocol, it can permanently tie ``ack`` low.
 
 Drawing a parallel with the AXI stream signals, just as the ``VALID`` signal
 cannot be retracted post-assertion while the transaction remains incomplete,
-``pause_req``, following a transition, must await the corresponding transition
-by ``pause_ack`` before undergoing another transition.
-Conversely, ``pause_ack`` doesn't carry this restriction, but only in a
-specific scenario.
-For instance, if ``pause_ack`` is low and intends to transition high, it's
-permissible. However, reversing this transition while paused isn't allowed, as
-it would inadvertently lead to a prohibited state change.
+``req``, following a transition, must await the corresponding transition by
+``ack`` before undergoing another transition.
+Conversely, ``ack`` doesn't carry this restriction, but only in a specific
+scenario.
+For instance, if ``ack`` is low and intends to transition high, it's
+permissible. 
+However, reversing this transition while paused isn't allowed, as it would
+inadvertently lead to a prohibited state change.

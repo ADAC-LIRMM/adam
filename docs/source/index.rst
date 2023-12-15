@@ -9,7 +9,7 @@ Welcome to ADAM's documentation!
    guidelines/index
    hal/index
    fabric/index
-   peripherals/index
+   periph/index
    activity_pause_protocol
 
 Indices and tables
