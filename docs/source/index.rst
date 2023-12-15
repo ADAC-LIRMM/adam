@@ -8,9 +8,10 @@ Welcome to ADAM's documentation!
    getting_started
    guidelines/index
    hal/index
+   fabric/index
    peripherals/index
    activity_pause_protocol
-   
+
 Indices and tables
 ==================
 
