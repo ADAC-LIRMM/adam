@@ -227,7 +227,4 @@ Specific Considerations
    particular ADAM configuration, then the registers related to that component
    will be unimplemented (reserved).
    Interacting with these unimplemented registers will lead to undefined
-   behavior. 
-   This approach underscores the importance of verifying the presence of
-   specific components within the ADAM instance before interacting with their
-   corresponding registers.
+   behavior.
