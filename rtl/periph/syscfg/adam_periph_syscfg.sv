@@ -4,7 +4,7 @@
  * - Core 0 is the default active core upon startup.
  */
 
-module adam_syscfg #(
+module adam_periph_syscfg #(
     parameter ADDR_WIDTH = 32,
     parameter DATA_WIDTH = 32,
 

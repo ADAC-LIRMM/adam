@@ -8,11 +8,20 @@ The System Configuration (SYSCFG) is a purpose-built peripheral specifically
 designed to effectively manage the power, clock, and boot configurations of
 ADAM.
 
+Although categorized as a peripheral, SYSCFG's direct connection to the Low
+Power Domain Crossbar and its control signals to almost all other components
+sets it apart.
+It is essentially in a class of its own, acting as both a peripheral and a
+core part of ADAM.
+
+.. _maestro:
+
 Maestro
 =======
 
-The Maestros offer precise and secure power state management for system
-components. They allow for the following actions:
+The Maestros offer precise and safe power state management for system
+components.
+They allow for the following actions:
 
 - **Resume**: This action starts/resumes a component from its paused or
   stopped state.
@@ -25,25 +34,24 @@ components. They allow for the following actions:
 
 - **Reset**: Essentially a Stop followed by a Resume. This action may not be
   vital for memory and peripherals, but it enables a core to self-reset.
-  Without it, the core couldn't autonomously wake itself.
 
 When SYSCFG experiences a reset, every maestro transitions to a special state.
 Within this state, the component's soft reset line remains high, regardless of
-whether it's "pause_req" and "pause_ack" signals are asserted or not.
+the state signaled by the :ref:`activity_pause_protocol` interface.
 
-Typically, a component set to "stop" mode will use less energy than if it were
-set to "pause" mode.
+Typically, a component set to *stop* mode will use less energy than if it were
+set to *pause* mode.
 
-It's worth noting that the energy-saving approach—be it through clock gating,
-power gating, or power gating with non-volatile registers—relies on the
-component's design specifics. In scenarios where a action is unsuitable, such
-as trying to deactivate the SYSCFG, it will be ignored on a best-effort basis.
+It's worth noting that the energy-saving approach (be it through clock gating,
+power gating, or power gating with non-volatile registers) relies on the
+component's design specifics.
 
 For each component, whether a memory bank, peripheral, or core, the Maestro
-Registers can trigger the appropriate power management action. To initiate an
-action, one simply writes the corresponding value to the respective register.
-Post completion of the action, the hardware will autonomously reset the
-register to its default state.
+Registers can trigger the appropriate power management action.
+To initiate an action, one simply writes the corresponding value to the
+respective register.
+Post completion of the action, the hardware will autonomously set the register
+to its default state.
 
 Maestro register values and their associated actions:
 
@@ -61,192 +69,165 @@ Maestro register values and their associated actions:
 | 4     | Reset               |
 +-------+---------------------+
 
-Registers
-=========
+Registers Table
+===============
 
-+------------+------+--------------------------------+
-| Index      | Name | Description                    |
-+============+======+================================+
-| 0x100 + 3x | MSRx | Memory Status Register x       |
-+------------+------+--------------------------------+
-| 0x101 + 3x | MCRx | Memory Control Register x      |
-+------------+------+--------------------------------+
-| 0x102 + 3x | MMRx | Memory Maestro Register x      |
-+------------+------+--------------------------------+
-| ...        | ...  | ...                            |
-+------------+------+--------------------------------+
-| 0x200 + 3x | PSRx | Peripheral Status Register x   |
-+------------+------+--------------------------------+
-| 0x201 + 3x | PCRx | Peripheral Control Register x  |
-+------------+------+--------------------------------+
-| 0x202 + 3x | PMRx | Peripheral Maestro Register x  |
-+------------+------+--------------------------------+
-| ...        | ...  | ...                            |
-+------------+------+--------------------------------+
-| 0x400 + 5x | CSRx | Core Status Register x         |
-+------------+------+--------------------------------+
-| 0x401 + 5x | CCRx | Core Control Register x        |
-+------------+------+--------------------------------+
-| 0x402 + 5x | CMRx | Core Maestro Register x        |
-+------------+------+--------------------------------+
-| 0x403 + 5x | BARx | Boot Address Register x        |
-+------------+------+--------------------------------+
-| 0x404 + 5x | IERx | Interrupt Enable Register x    |
-+------------+------+--------------------------------+
-| ...        | ...  | ...                            |
-+------------+------+--------------------------------+
++------------+--------------+---------------------------------+
+| Index      | Name         | Description                     |
++============+==============+=================================+
+| 0x000      | LSDOM_SR     | LSDOM Status Register           |
++------------+--------------+---------------------------------+
+| 0x001      | LSDOM_MR     | LSDOM Maestro Register          |
++------------+--------------+---------------------------------+
+| 0x002      | HSDOM_SR     | HSDOM Status Register           |
++------------+--------------+---------------------------------+
+| 0x003      | HSDOM_MR     | HSDOM Maestro Register          |
++------------+--------------+---------------------------------+
+| 0x004      | FAB_LSDOM_SR | Fabric LSDOM Status Register    |
++------------+--------------+---------------------------------+
+| 0x005      | FAB_LSDOM_MR | Fabric LSDOM Maestro Register   |
++------------+--------------+---------------------------------+
+| 0x006      | FAB_HSDOM_SR | Fabric HSDOM Status Register    |
++------------+--------------+---------------------------------+
+| 0x007      | FAB_HSDOM_MR | Fabric HSDOM Maestro Register   |
++------------+--------------+---------------------------------+
+| 0x008      | FAB_LSBP_SR  | Fabric LSBP Status Register     |
++------------+--------------+---------------------------------+
+| 0x009      | FAB_LSBP_MR  | Fabric LSBP Maestro Register    |
++------------+--------------+---------------------------------+
+| 0x00A      | FAB_LSIP_SR  | Fabric LSIP Status Register     |
++------------+--------------+---------------------------------+
+| 0x00B      | FAB_LSIP_MR  | Fabric LSIP Maestro Register    |
++------------+--------------+---------------------------------+
+| 0x00C      | FAB_HSBP_SR  | Fabric HSBP Status Register     |
++------------+--------------+---------------------------------+
+| 0x00D      | FAB_HSBP_MR  | Fabric HSBP Maestro Register    |
++------------+--------------+---------------------------------+
+| 0x00E      | FAB_HSIP_SR  | Fabric HSIP Status Register     |
++------------+--------------+---------------------------------+
+| 0x00F      | FAB_HSIP_MR  | Fabric HSIP Maestro Register    |
++------------+--------------+---------------------------------+
+| 0x010      | LPCPU_SR     | LPCPU Status Register           |
++------------+--------------+---------------------------------+
+| 0x011      | LPCPU_MR     | LPCPU Maestro Register          |
++------------+--------------+---------------------------------+
+| 0x012      | LPCPU_BAR    | LPCPU Boot Address Register     |
++------------+--------------+---------------------------------+
+| 0x013      | LPCPU_IER    | LPCPU Interrupt Enable Register |
++------------+--------------+---------------------------------+
+| 0x014      | LPMEM_SR     | LPMEM Status Register           |
++------------+--------------+---------------------------------+
+| 0x015      | LPMEM_MR     | LPMEM Maestro Register          |
++------------+--------------+---------------------------------+
+| ...        | ...          | ...                             |
++------------+--------------+---------------------------------+
+| 0x100 + 4x | CPUx_SR      | CPU x Status Register           |
++------------+--------------+---------------------------------+
+| 0x101 + 4x | CPUx_MR      | CPU x Maestro Register          |
++------------+--------------+---------------------------------+
+| 0x102 + 4x | CPUx_BAR     | CPU x Boot Address Register     |
++------------+--------------+---------------------------------+
+| 0x104 + 4x | CPUx_IER     | CPU x Interrupt Enable Register |
++------------+--------------+---------------------------------+
+| ...        | ...          | ...                             |
++------------+--------------+---------------------------------+
+| 0x200 + 3x | DMAx_SR      | DMA x Status Register           |
++------------+--------------+---------------------------------+
+| 0x201 + 3x | DMAx_MR      | DMA x Maestro Register          |
++------------+--------------+---------------------------------+
+| 0x202 + 3x | DMAx_IR      | DMA x Interrupt Register        |
++------------+--------------+---------------------------------+
+| ...        | ...          | ...                             |
++------------+--------------+---------------------------------+
+| 0x300 + 2x | MEMx_SR      | Memory x Status Register        |
++------------+--------------+---------------------------------+
+| 0x302 + 2x | MEMx_MR      | Memory x Maestro Register       |
++------------+--------------+---------------------------------+
+| ...        | ...          |                                 |
++------------+--------------+---------------------------------+
+| 0x400 + 2x | LSBPx_SR     | LSBP x Status Register          |
++------------+--------------+---------------------------------+
+| 0x401 + 2x | LSBPx_MR     | LSBP x Maestro Register         |
++------------+--------------+---------------------------------+
+| ...        | ...          |                                 |
++------------+--------------+---------------------------------+
+| 0x500 + 2x | LSIPx_SR     | LSIP x Status Register          |
++------------+--------------+---------------------------------+
+| 0x501 + 2x | LSIPx_MR     | LSIP x Maestro Register         |
++------------+--------------+---------------------------------+
+| ...        | ...          |                                 |
++------------+--------------+---------------------------------+
+| 0x600 + 2x | HSIPx_SR     | HSIP x Status Register          |
++------------+--------------+---------------------------------+
+| 0x601 + 2x | HSIPx_MR     | HSIP x Maestro Register         |
++------------+--------------+---------------------------------+
+| ...        | ...          |                                 |
++------------+--------------+---------------------------------+
 
-Memory Status Register x (MSRx)
--------------------------------
+Registers Description
+=====================
 
-| **Index**: 0x100 + 3x
+Status Registers (\*_SR)
+------------------------
+
+| **Index**: Refer to the Registers Table.
+| **Reset value**: Depends on initial System state.
+
+Status Registers provide real-time status information about the corresponding
+domain, fabric component, peripheral, .etc.
+
+:\*_SR[1]:
+  | Stopped (S)
+  | Indicates whether the peripheral x is in a stopped state. 
+  | 1: Stopped 
+  | 0: Not Stopped 
+
+:\*_SR[0]:
+  | Paused (P)
+  | Indicates whether the peripheral x is in a paused state. 
+  | 1: Paused 
+  | 0: Not Paused 
+
+Maestro Registers (\*_MR)
+-------------------------
+
+| **Index**: Refer to the Registers Table.
 | **Reset value**: 0x0000 0000
 
-The Memory Status Register x provides information about the status of
-memory bank x. Multiple instances of this register may exist, indexed by x.
+:\*_MR[2:0]:
+  | Maestro Action
 
-:MSRx[1]:
-   | Stopped (S)
-   | Indicates whether the memory bank x is in a stopped state. 
-   | 1: Stopped 
-   | 0: Not Stopped 
+For details, refer to the :ref:`maestro` section.
 
-:MSRx[0]:
-   | Paused (P)
-   | Indicates whether the memory bank x is in a paused state. 
-   | 1: Paused 
-   | 0: Not Paused 
+Specific Considerations
+=======================
 
-Memory Control Register x (MCRx)
---------------------------------
+1. **Domain-related Registers (LSDOM and HSDOM)**: 
+   These registers are focused on the overall state of the low-speed and
+   high-speed domains, respectively.
+   The SYSCFG registers refering to these domains control the entire clock
+   domain, automatically adjusting the activity state of all modules in the
+   respective power domain.
 
-| **Index**: 0x101 + 3x
-| **Reset value**: 0x0000 0000
+2. **Fabric-related Registers (FAB\_\*)**:
+   Provide status and control over the various components of the :ref:`fabric`.
 
-The Memory Control Register x allows control and configuration of specific
-functionalities and features for memory bank x.
+3. **Register Indexing**:
+   The "x" in certain register names (e.g., CPUx_SR) indicates indexing for
+   multiple instances of the same register type.
+   This allows for individual control and monitoring of each instance.
+   In the automatically generated memory map C header file, these indexed
+   register names can be replaced by the actual name of the instance.
+   For example, LSBPx_SR could be specifically named ``LSBP_UART0_SR`` to
+   represent the status register of the first UART module connected to the
+   Low-Speed Base Peripheral (LSBP) interconnect.
 
-:MCRx[31:0]:
-   | Reserved.
-
-Memory Maestro Register x (MMRx)
---------------------------------
-
-| **Index**: 0x102 + 3x
-| **Reset value**: 0x0000 0000
-
-The Memory Maestro Register x provides the ability to trigger power
-management actions for memory bank x.
-For details, refer to the "Maestro Registers" section.
-
-Peripheral Status Register x (PSRx)
------------------------------------
-
-| **Index**: 0x200 + 3x
-| **Reset value**: 0x0000 0000
-
-The Peripheral Status Register x provides information about the status of
-peripheral x. Multiple instances of this register may exist, indexed by x.
-
-:PSRx[1]:
-   | Stopped (S)
-   | Indicates whether the peripheral x is in a stopped state. 
-   | 1: Stopped 
-   | 0: Not Stopped 
-
-:PSRx[0]:
-   | Paused (P)
-   | Indicates whether the peripheral x is in a paused state. 
-   | 1: Paused 
-   | 0: Not Paused 
-
-Peripheral Control Register x (PCRx)
-------------------------------------
-
-| **Index**: 0x201 + 3x
-| **Reset value**: 0x0000 0000
-
-The Peripheral Control Register x allows control and configuration of
-specific functionalities and features for peripheral x.
-
-:PCRx[31:0]:
-   | Reserved.
-
-Peripheral Maestro Register x (PMRx)
-------------------------------------
-
-| **Index**: 0x202 + 3x
-| **Reset value**: 0x0000 0000
-
-The Peripheral Maestro Register x provides the ability to trigger power
-management actions for peripheral x.
-For details, refer to the "Maestro Registers" section.
-
-Core Status Register x (CSRx)
------------------------------
-
-| **Index**: 0x400 + 5x
-| **Reset value**: 0x0000 0000
-
-The Core Status Register x provides information about the status of
-core x. Multiple instances of this register may exist, indexed by x.
-
-:CSRx[1]:
-   | Stopped (S)
-   | Indicates whether the peripheral x is in a stopped state. 
-   | 1: Stopped 
-   | 0: Not Stopped 
-
-:CSRx[0]:
-   | Paused (P)
-   | Indicates whether the peripheral x is in a paused state. 
-   | 1: Paused 
-   | 0: Not Paused 
-
-Core Control Register x (CCRx)
-------------------------------
-
-| **Index**: 0x401 + 5x
-| **Reset value**: 0x0000 0000
-
-The Core Control Register x allows control and configuration of
-specific functionalities and features for core x.
-
-:CCRx[31:0]:
-   | Reserved.
-
-Core Maestro Register x (CMRx)
-------------------------------
-
-| **Index**: 0x402 + 5x
-| **Reset value**: 0x0000 0000
-
-The Core Maestro Register x provides the ability to trigger power
-management actions for core x.
-For details, refer to the "Maestro Registers" section.
-
-Boot Address Register x (BARx)
-------------------------------
-
-| **Index**: 0x403 + 5x
-| **Reset value**: Value of ``rst_boot_addr``.
-
-The Boot Address Register determines the boot address for core x.
-On reset, the value is defined by the ``rst_boot_addr`` hardware signal. 
-Typically, this points to the start of ROM.
-Initially, only one core is active post-reset, which can customize BARx values
-for other cores as needed.
-
-Interrupt Enable Register x (IERx)
-----------------------------------
-
-| **Index**: 0x404 + 5x
-| **Reset value**: 0x0000 0000
-
-The Interrupt Enable Register allows enabling or disabling interrupts for
-specific peripherals associated with a core x. Each bit within this
-register corresponds to a particular peripheral, allowing fine-grained control 
-over interrupt handling. By setting a bit to 1, the corresponding peripheral's
-interrupt is enabled, allowing the core to respond to the associated event or
-request. Conversely, setting a bit to 0 disables the interrupt for that
-peripheral. Multiple instances of this register may exist, indexed by x.
+4. **Reserved Registers**:
+   If a specific component described in the register map is not included in a
+   particular ADAM configuration, then the registers related to that component
+   will be unimplemented (reserved).
+   Interacting with these unimplemented registers will lead to undefined
+   behavior. 
+   This approach underscores the importance of verifying the presence of
+   specific components within the ADAM instance before interacting with their
+   corresponding registers.

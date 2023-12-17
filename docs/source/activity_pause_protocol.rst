@@ -1,3 +1,6 @@
+
+.. _activity_pause_protocol:
+
 =======================
 Activity Pause Protocol
 =======================
