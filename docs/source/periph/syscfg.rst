@@ -203,8 +203,8 @@ Specific Considerations
 =======================
 
 1. **Domain-related Registers (LSDOM and HSDOM)**: 
-   These registers are focused on the overall state of the low-speed and
-   high-speed domains, respectively.
+   Provide status and control over the low-speed and high-speed domains,
+   respectively.
    The SYSCFG registers refering to these domains control the entire clock
    domain, automatically adjusting the activity state of all modules in the
    respective power domain.
