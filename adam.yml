@@ -69,7 +69,7 @@ fsets:
       - periph/gpio/adam_periph_gpio_tb.sv
       - periph/spi/adam_periph_spi_phy_tb.sv
       - periph/spi/adam_periph_spi_tb.sv
-      - periph/sysctrl/adam_periph_sysctrl_tb.sv
+      #- periph/sysctrl/adam_periph_sysctrl_tb.sv
       - periph/timer/adam_periph_timer_tb.sv
       - periph/uart/adam_periph_uart_rx_tb.sv
       - periph/uart/adam_periph_uart_tx_tb.sv
@@ -87,6 +87,8 @@ fsets:
       - ../include/
 
     sources:
+      - adam_cfg_pkg.sv
+      
       - intf/adam_intf_io.sv
       - intf/adam_intf_pause.sv
       - intf/adam_intf_seq.sv

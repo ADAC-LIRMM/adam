@@ -2,47 +2,8 @@
 `include "apb/assign.svh"
 `include "axi/assign.svh"
 
-`define APB_I APB #( \
-    .ADDR_WIDTH (ADDR_WIDTH), \
-    .DATA_WIDTH (DATA_WIDTH) \
-)
-
-`define AXIL_I AXI_LITE #( \
-    .AXI_ADDR_WIDTH (ADDR_WIDTH), \
-    .AXI_DATA_WIDTH (DATA_WIDTH) \
-)
-
 module adam #(
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32,
-    parameter GPIO_WIDTH = 16,
-
-    parameter NO_CPUS = 2,
-    parameter NO_MEMS = 2,
-    
-    parameter EN_LPCPU = 1,
-    parameter EN_LPMEM = 1,
-    parameter EN_DEBUG = 1,
-
-    parameter NO_LSBP_GPIOS  = 2,
-    parameter NO_LSBP_SPIS   = 2,
-    parameter NO_LSBP_TIMERS = 2,
-    parameter NO_LSBP_UARTS  = 2,
-
-    parameter BOOT_ADDR = 32'h0000_0000,
-
-    // Dependent parameters bellow, do not override.
-
-    parameter NO_GPIOS  = NO_LSBP_GPIOS,
-    parameter NO_SPIS   = NO_LSBP_SPIS,
-    parameter NO_TIMERS = NO_LSBP_TIMERS,
-    parameter NO_UARTS  = NO_LSBP_UARTS,
-
-    parameter STRB_WIDTH  = DATA_WIDTH/8,
-
-    parameter type addr_t = logic [ADDR_WIDTH-1:0],
-    parameter type data_t = logic [DATA_WIDTH-1:0],
-    parameter type strb_t = logic [STRB_WIDTH-1:0]
+    `ADAM_CFG_PARAMS
 ) (
     // lsdom ==================================================================
 
@@ -63,28 +24,21 @@ module adam #(
 
     // async ==================================================================
     
-    ADAM_IO.Master     gpio_io   [NO_GPIOS*GPIO_WIDTH],
-    output logic [1:0] gpio_func [NO_GPIOS*GPIO_WIDTH],
+    ADAM_IO.Master     gpio_io   [NO_LSBP_GPIOS*GPIO_WIDTH],
+    output logic [1:0] gpio_func [NO_LSBP_GPIOS*GPIO_WIDTH],
     
-    ADAM_IO.Master spi_sclk [NO_SPIS],
-    ADAM_IO.Master spi_mosi [NO_SPIS],
-    ADAM_IO.Master spi_miso [NO_SPIS],
-    ADAM_IO.Master spi_ss_n [NO_SPIS],
+    ADAM_IO.Master spi_sclk [NO_LSBP_SPIS],
+    ADAM_IO.Master spi_mosi [NO_LSBP_SPIS],
+    ADAM_IO.Master spi_miso [NO_LSBP_SPIS],
+    ADAM_IO.Master spi_ss_n [NO_LSBP_SPIS],
 
-    ADAM_IO.Master uart_tx [NO_UARTS],
-    ADAM_IO.Master uart_rx [NO_UARTS]
+    ADAM_IO.Master uart_tx [NO_LSBP_UARTS],
+    ADAM_IO.Master uart_rx [NO_LSBP_UARTS]
 );
-
-    localparam NO_DMAS = 1;
-    localparam NO_HSIP = 1;
-    localparam NO_LSIP = 1;
-
-    localparam NO_LSBP = NO_LSBP_GPIOS + NO_LSBP_SPIS + NO_LSBP_TIMERS +
-        NO_LSBP_UARTS;
     
     // lsdom - lpcpu ==========================================================
 
-    `AXIL_I lsdom_lpcpu_axil [2] ();
+    `ADAM_AXIL_I lsdom_lpcpu_axil [2] ();
 
     ADAM_SEQ   lsdom_lpcpu_seq ();
     ADAM_PAUSE lsdom_lpcpu_pause ();
@@ -110,18 +64,18 @@ module adam #(
 
     // lsdom - syscfg =========================================================
 
-    `AXIL_I lsdom_syscfg_axil ();
+    `ADAM_AXIL_I lsdom_syscfg_axil ();
 
     `ADAM_AXIL_SLV_TIE_OFF(lsdom_syscfg_axil);
 
     // lsdom - lsbp ===========================================================
 
-    ADAM_SEQ   lsdom_lsbp_seq   [NO_LSBP] ();
-    ADAM_PAUSE lsdom_lsbp_pause [NO_LSBP] ();
+    ADAM_SEQ   lsdom_lsbp_seq   [NO_LSBPS] ();
+    ADAM_PAUSE lsdom_lsbp_pause [NO_LSBPS] ();
 
-    `APB_I lsdom_lsbp_apb [NO_LSBP] ();
+    `ADAM_APB_I lsdom_lsbp_apb [NO_LSBPS] ();
     
-    logic lsdom_lsbp_irq [NO_LSBP];
+    logic lsdom_lsbp_irq [NO_LSBPS];
 
     generate
         localparam LSBP_GPIOS_S = 0;
@@ -216,17 +170,17 @@ module adam #(
 
     // lsdom - lsip ===========================================================
 
-    `APB_I lsdom_lsip_apb [NO_LSIP] ();
+    `ADAM_APB_I lsdom_lsip_apb [NO_LSIPS] ();
 
     generate
-        for (genvar i = 0; i < NO_LSIP; i++) begin
+        for (genvar i = 0; i < NO_LSIPS; i++) begin
             `ADAM_APB_SLV_TIE_OFF(lsdom_lsip_apb[i]);
         end
     endgenerate
 
     // hsdom - cpus ===========================================================
 
-    `AXIL_I hsdom_cpus_axil [2*NO_CPUS] ();
+    `ADAM_AXIL_I hsdom_cpus_axil [2*NO_CPUS] ();
 
     ADAM_SEQ   hsdom_cpus_seq   [NO_CPUS] ();
     ADAM_PAUSE hsdom_cpus_pause [NO_CPUS] ();
@@ -250,7 +204,7 @@ module adam #(
 
     // hsdom - cpus ===========================================================
 
-    `AXIL_I hsdom_dmas_axil [NO_DMAS] ();
+    `ADAM_AXIL_I hsdom_dmas_axil [NO_DMAS] ();
 
     generate
         for (genvar i = 0; i < NO_DMAS; i++) begin
@@ -260,16 +214,16 @@ module adam #(
 
     // hsdom - hsip ===========================================================
 
-    `AXIL_I hsdom_hsip_axil [NO_HSIP] ();
+    `ADAM_AXIL_I hsdom_hsip_axil [NO_HSIPS] ();
 
-    for (genvar i = 0; i < NO_HSIP; i++) begin
+    for (genvar i = 0; i < NO_HSIPS; i++) begin
         `ADAM_AXIL_SLV_TIE_OFF(hsdom_hsip_axil[i]);
     end
 
     // hsdom - debug ==========================================================
 
-    `AXIL_I hsdom_debug_slv_axil ();
-    `AXIL_I hsdom_debug_mst_axil ();
+    `ADAM_AXIL_I hsdom_debug_slv_axil ();
+    `ADAM_AXIL_I hsdom_debug_mst_axil ();
 
     `ADAM_AXIL_MST_TIE_OFF(hsdom_debug_slv_axil);
     `ADAM_AXIL_SLV_TIE_OFF(hsdom_debug_mst_axil);
@@ -297,9 +251,9 @@ module adam #(
         .NO_CPUS (NO_CPUS),
         .NO_DMAS (NO_DMAS),
         .NO_MEMS (NO_MEMS),
-        .NO_HSIP (NO_HSIP),
-        .NO_LSBP (NO_LSBP),
-        .NO_LSIP (NO_LSIP),
+        .NO_HSIP (NO_HSIPS),
+        .NO_LSBP (NO_LSBPS),
+        .NO_LSIP (NO_LSIPS),
 
         .EN_LPCPU (EN_LPCPU),
         .EN_LPMEM (EN_LPMEM),

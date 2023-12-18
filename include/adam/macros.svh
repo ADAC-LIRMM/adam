@@ -3,7 +3,59 @@
 
 `include "axi/assign.svh"
 
+// ADAM_CFG ===================================================================
+
+`define ADAM_CFG_PARAMS \
+    parameter type CFG_T = adam_cfg_pkg::CFG_T, \
+    parameter CFG_T CFG  = adam_cfg_pkg::CFG, \
+    \
+    parameter ADDR_WIDTH = CFG.ADDR_WIDTH, \
+    parameter DATA_WIDTH = CFG.DATA_WIDTH, \
+    parameter GPIO_WIDTH = CFG.GPIO_WIDTH, \
+    \
+    parameter RST_BOOT_ADDR = CFG.RST_BOOT_ADDR, \
+    \
+    parameter NO_CPUS = CFG.NO_CPUS, \
+    parameter NO_DMAS = CFG.NO_DMAS, \
+    parameter NO_MEMS = CFG.NO_MEMS, \
+    \
+    parameter EN_LPCPU = CFG.EN_LPCPU, \
+    parameter EN_LPMEM = CFG.EN_LPMEM, \
+    parameter EN_DEBUG = CFG.EN_DEBUG, \
+    \
+    parameter NO_LSBP_GPIOS  = CFG.NO_LSBP_GPIOS, \
+    parameter NO_LSBP_SPIS   = CFG.NO_LSBP_SPIS, \
+    parameter NO_LSBP_TIMERS = CFG.NO_LSBP_TIMERS, \
+    parameter NO_LSBP_UARTS  = CFG.NO_LSBP_UARTS, \
+    \
+    parameter NO_LSIP_GPIOS  = CFG.NO_LSIP_GPIOS, \
+    parameter NO_LSIP_SPIS   = CFG.NO_LSIP_SPIS, \
+    parameter NO_LSIP_TIMERS = CFG.NO_LSIP_TIMERS, \
+    parameter NO_LSIP_UARTS  = CFG.NO_LSIP_UARTS, \
+    \
+    parameter NO_LSBPS = NO_LSBP_GPIOS + NO_LSBP_SPIS + NO_LSBP_TIMERS + \
+        NO_LSBP_UARTS, \
+    \
+    parameter NO_LSIPS = NO_LSIP_GPIOS + NO_LSIP_SPIS + NO_LSIP_TIMERS + \
+        NO_LSIP_UARTS, \
+    \
+    parameter NO_HSBPS = 1, \
+    parameter NO_HSIPS = 1, \
+    \
+    parameter STRB_WIDTH  = DATA_WIDTH/8, \
+    \
+    parameter type ADDR_T = logic [ADDR_WIDTH-1:0], \
+    parameter type PROT_T = logic [2:0], \
+    parameter type DATA_T = logic [DATA_WIDTH-1:0], \
+    parameter type STRB_T = logic [STRB_WIDTH-1:0], \
+    parameter type RESP_T = logic [1:0]
+
 // ADAM_APB ===================================================================
+
+`define ADAM_APB_I APB #( \
+    .ADDR_WIDTH (ADDR_WIDTH), \
+    .DATA_WIDTH (DATA_WIDTH) \
+)
 
 `define ADAM_APB_MST_TIE_OFF(mst) \
     assign mst.paddr = '0; \
@@ -32,6 +84,11 @@
     assign src.pslverr = dst.pslverr;
 
 // ADAM_AXIL ==================================================================
+
+`define ADAM_AXIL_I AXI_LITE #( \
+    .AXI_ADDR_WIDTH (CFG.ADDR_WIDTH), \
+    .AXI_DATA_WIDTH (CFG.DATA_WIDTH) \
+)
 
 `define ADAM_AXIL_MST_TIE_OFF(mst) \
     assign mst.aw_addr = '0; \

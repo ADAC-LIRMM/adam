@@ -14,10 +14,10 @@ module adam_tb;
     localparam EN_LPMEM = 1;
     localparam EN_DEBUG = 1;
 
-    localparam NO_LSBP_GPIOS  = 2;
-    localparam NO_LSBP_SPIS   = 2;
-    localparam NO_LSBP_TIMERS = 2;
-    localparam NO_LSBP_UARTS  = 2;
+    localparam NO_LSBP_GPIOS  = 1;
+    localparam NO_LSBP_SPIS   = 1;
+    localparam NO_LSBP_TIMERS = 1;
+    localparam NO_LSBP_UARTS  = 1;
 
     localparam BOOT_ADDR = 32'h0000_0000;
     
@@ -85,23 +85,7 @@ module adam_tb;
     );
 
     adam #(
-        .ADDR_WIDTH (ADDR_WIDTH),
-        .DATA_WIDTH (DATA_WIDTH),
-        .GPIO_WIDTH (GPIO_WIDTH),
 
-        .NO_CPUS (NO_CPUS),
-        .NO_MEMS (NO_MEMS),
-    
-        .EN_LPCPU (EN_LPCPU),
-        .EN_LPMEM (EN_LPMEM),
-        .EN_DEBUG (EN_DEBUG),
-
-        .NO_LSBP_GPIOS  (NO_LSBP_GPIOS),
-        .NO_LSBP_SPIS   (NO_LSBP_SPIS),
-        .NO_LSBP_TIMERS (NO_LSBP_TIMERS),
-        .NO_LSBP_UARTS  (NO_LSBP_UARTS),
-
-        .BOOT_ADDR (BOOT_ADDR)
     ) dut (
         .lsdom_seq       (lsdom_seq),
         .lsdom_pause     (lsdom_pause),

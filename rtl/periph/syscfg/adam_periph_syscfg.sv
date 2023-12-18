@@ -1,16 +1,10 @@
-/*
- * - Memory 0 is designated as the boot memory.
- * - Peripheral 0 is expected to be SYSCTRL.
- * - Core 0 is the default active core upon startup.
- */
-
 module adam_periph_syscfg #(
     parameter ADDR_WIDTH = 32,
     parameter DATA_WIDTH = 32,
 
     parameter NO_MEMS    = 2,
     parameter NO_PERIPHS = 7,
-    parameter NO_CORES   = 2,
+    parameter NO_CPUS    = 2,
 
     parameter BOOT_ADDR = 32'h0000_0000,
 
@@ -29,7 +23,52 @@ module adam_periph_syscfg #(
 
     output logic irq,
 
-    ADAM_SEQ.Master   mem_seq   [NO_MEMS],
+    output logic      lsdom_rst,
+    ADAM_PAUSE.Master lsdom_pause,
+    
+    output logic      hsdom_rst,
+    ADAM_PAUSE.Master hsdom_pause,
+    
+    output logic      fab_lsdom_rst,
+    ADAM_PAUSE.Master fab_lsdom_pause,
+    
+    output logic      fab_hsdom_rst,
+    ADAM_PAUSE.Master fab_hsdom_pause,
+    
+    output logic      fab_lsbp_rst,
+    ADAM_PAUSE.Master fab_lsbp_pause,
+    
+    output logic      fab_lsip_rst,
+    ADAM_PAUSE.Master fab_lsip_pause,
+    
+    output logic      fab_hsbp_rst,
+    ADAM_PAUSE.Master fab_hsbp_pause,
+    
+    output logic      fab_hsip_rst,
+    ADAM_PAUSE.Master fab_hsip_pause,
+    
+    output logic      fab_hsip_rst,
+    ADAM_PAUSE.Master fab_hsip_pause,
+
+    output logic      lpcpu_rst,
+    ADAM_PAUSE.Master lpcpu_pause,
+    output addr_t     lpcpu_boot_addr,
+    output logic      lpcpu_irq,
+
+    output logic      lpmem_rst,
+    ADAM_PAUSE.Master lpmem_pause,
+
+    output logic      cpu_rst       [NO_CPUS],
+    ADAM_PAUSE.Master cpu_pause     [NO_CPUS],
+    output addr_t     cpu_boot_addr [NO_CPUS],
+    output logic      cpu_irq       [NO_CPUS],
+
+    output logic      dma_rst       [NO_CPUS],
+    ADAM_PAUSE.Master dma_pause     [NO_CPUS],
+    output addr_t     dma_boot_addr [NO_CPUS],
+    output logic      dma_irq       [NO_CPUS],
+
+    output logic   mem_seq,
     ADAM_PAUSE.Master mem_pause [NO_MEMS],
 
     ADAM_SEQ.Master   periph_seq   [NO_PERIPHS],
