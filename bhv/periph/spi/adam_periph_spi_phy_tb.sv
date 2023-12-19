@@ -33,8 +33,8 @@ module adam_periph_spi_phy_tb;
     logic [3:0] data_length;
     data_t      baud_rate;
 
-    `ADAM_STREAM_MST_BHV_FACTORY(data_t, TA, TT, tx, seq.clk);
-    `ADAM_STREAM_SLV_BHV_FACTORY(data_t, TA, TT, 1, rx, seq.clk);
+    `ADAM_STREAM_BHV_MST_FACTORY(data_t, TA, TT, tx, seq.clk);
+    `ADAM_STREAM_BHV_SLV_FACTORY(data_t, TA, TT, 1, rx, seq.clk);
 
     ADAM_IO sclk();
     ADAM_IO mosi();
@@ -43,13 +43,13 @@ module adam_periph_spi_phy_tb;
 
     logic slave_trigger;
     
-    adam_clk_rst_bhv #(
+    adam_seq_bhv #(
         .CLK_PERIOD (CLK_PERIOD),
         .RST_CYCLES (RST_CYCLES),
 
         .TA (TA),
         .TT (TT)
-    ) adam_clk_rst_bhv (
+    ) adam_seq_bhv (
         .seq (seq)
     );
 
@@ -133,7 +133,7 @@ module adam_periph_spi_phy_tb;
     
     task random_config();
         pause.req <= #TA 1;
-        `UNTIL(pause.ack == 1);
+        `ADAM_UNTIL(pause.ack == 1);
 
         tx_enable      <= #TA 1;
         rx_enable      <= #TA 1; 
@@ -147,7 +147,7 @@ module adam_periph_spi_phy_tb;
         cycle_end();
 
         pause.req <= #TA 0;
-        `UNTIL(pause.ack == 0);
+        `ADAM_UNTIL(pause.ack == 0);
     endtask
 
     task emulate_top();

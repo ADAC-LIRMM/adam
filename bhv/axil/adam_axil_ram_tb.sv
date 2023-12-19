@@ -56,13 +56,13 @@ module adam_axil_ram_tb;
         .MAX_TRANS (MAX_TRANS)
     ) master;
 
-    adam_clk_rst_bhv #(
+    adam_seq_bhv #(
         .CLK_PERIOD (CLK_PERIOD),
         .RST_CYCLES (RST_CYCLES),
 
         .TA (TA),
         .TT (TT)
-    ) adam_clk_rst_bhv (
+    ) adam_seq_bhv (
         .seq (seq)
     );
 
@@ -101,7 +101,7 @@ module adam_axil_ram_tb;
             automatic data_t data;
             automatic resp_t resp;
 
-            `UNTIL(!seq.rst);
+            `ADAM_UNTIL(!seq.rst);
 
             // Write
             for (addr = 0; addr < SIZE; addr += STRB_WIDTH) begin
@@ -123,7 +123,7 @@ module adam_axil_ram_tb;
         end
 
         `TEST_CASE("throughput") begin
-            `UNTIL(!seq.rst);
+            `ADAM_UNTIL(!seq.rst);
 
             // set memory content
             for (addr_t addr = 0; addr < SIZE; addr += STRB_WIDTH) begin

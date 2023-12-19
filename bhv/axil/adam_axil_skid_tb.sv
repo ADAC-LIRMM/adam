@@ -71,13 +71,13 @@ module adam_axil_skid_tb;
         .MAX_TRANS(MAX_TRANS)
     ) slv_bhv;
 
-    adam_clk_rst_bhv #(
+    adam_seq_bhv #(
         .CLK_PERIOD(CLK_PERIOD),
         .RST_CYCLES(RST_CYCLES),
         
         .TA(TA),
         .TT(TT)
-    ) adam_clk_rst_bhv (
+    ) adam_seq_bhv (
         .seq(seq)
     );
 

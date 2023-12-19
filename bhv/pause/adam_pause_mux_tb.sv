@@ -20,13 +20,13 @@ module adam_pause_mux_tb;
 
     logic common_req;
     
-    adam_clk_rst_bhv #(
+    adam_seq_bhv #(
         .CLK_PERIOD (CLK_PERIOD),
         .RST_CYCLES (RST_CYCLES),
 
         .TA (TA),
         .TT (TT)
-    ) adam_clk_rst_bhv (
+    ) adam_seq_bhv (
         .seq (seq)
     );
 
@@ -80,14 +80,14 @@ module adam_pause_mux_tb;
             slv.ack = 1;
 
             // wait for reset
-            `UNTIL_DO(!seq.rst, assert(slv.req));
+            `ADAM_UNTIL_DO(!seq.rst, assert(slv.req));
 
             // resume
-            `UNTIL(!slv.req);
+            `ADAM_UNTIL(!slv.req);
             slv.ack <= #TA 0;
 
             // + deffered.req
-            `UNTIL_DO_FINNALY(deferred.req, begin
+            `ADAM_UNTIL_DO_FINNALY(deferred.req, begin
                 assert(!common_req);
                 assert(!deferred.ack);
             end, begin
@@ -96,15 +96,15 @@ module adam_pause_mux_tb;
             end);
 
             // + common_req
-            `UNTIL_FINNALY(deferred.req && common_req, assert(slv.req));
+            `ADAM_UNTIL_FINNALY(deferred.req && common_req, assert(slv.req));
             slv.ack <= #TA 1;
 
             // - deffered.req
-            `UNTIL_FINNALY(!deferred.req && !common_req, assert(!slv.req));
+            `ADAM_UNTIL_FINNALY(!deferred.req && !common_req, assert(!slv.req));
             slv.ack <= #TA 0;
 
             // idle
-            repeat (10) `UNTIL(1);
+            repeat (10) `ADAM_UNTIL(1);
         end
     end
 

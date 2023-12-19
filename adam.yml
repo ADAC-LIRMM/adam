@@ -43,7 +43,7 @@ fsets:
 
     root: bhv/
     sources:
-      - adam_clk_rst_bhv.sv
+      - adam_seq_bhv.sv
 
       - pause/adam_pause_bhv.sv
 
@@ -69,6 +69,7 @@ fsets:
       - periph/gpio/adam_periph_gpio_tb.sv
       - periph/spi/adam_periph_spi_phy_tb.sv
       - periph/spi/adam_periph_spi_tb.sv
+      - periph/syscfg/adam_periph_syscfg_tgt_tb.sv
       #- periph/sysctrl/adam_periph_sysctrl_tb.sv
       - periph/timer/adam_periph_timer_tb.sv
       - periph/uart/adam_periph_uart_rx_tb.sv
@@ -88,7 +89,7 @@ fsets:
 
     sources:
       - adam_cfg_pkg.sv
-      
+
       - intf/adam_intf_io.sv
       - intf/adam_intf_pause.sv
       - intf/adam_intf_seq.sv
@@ -108,6 +109,7 @@ fsets:
       - periph/gpio/adam_periph_gpio.sv
       - periph/spi/adam_periph_spi.sv
       - periph/spi/adam_periph_spi_phy.sv
+      - periph/syscfg/adam_periph_syscfg_tgt.sv
       - periph/timer/adam_periph_timer.sv
       - periph/uart/adam_periph_uart_rx.sv
       - periph/uart/adam_periph_uart_tx.sv

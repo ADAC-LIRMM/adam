@@ -50,9 +50,18 @@
     parameter type STRB_T = logic [STRB_WIDTH-1:0], \
     parameter type RESP_T = logic [1:0]
 
+`define ADAM_CFG_PARAMS_MAP \
+    .CFG_T (CFG_T), \
+    .CFG (CFG)
+
 // ADAM_APB ===================================================================
 
 `define ADAM_APB_I APB #( \
+    .ADDR_WIDTH (ADDR_WIDTH), \
+    .DATA_WIDTH (DATA_WIDTH) \
+)
+
+`define ADAM_APB_DV_I APB_DV #( \
     .ADDR_WIDTH (ADDR_WIDTH), \
     .DATA_WIDTH (DATA_WIDTH) \
 )

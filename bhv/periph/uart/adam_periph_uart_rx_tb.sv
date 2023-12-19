@@ -27,7 +27,7 @@ module adam_periph_uart_rx_tb;
     logic [1:0] stop_bits;
     data_t      baud_rate;
 
-    `ADAM_STREAM_SLV_BHV_FACTORY(data_t, TA, TT, 1, slv, seq.clk);
+    `ADAM_STREAM_BHV_SLV_FACTORY(data_t, TA, TT, 1, slv, seq.clk);
 
     logic rx;
 
@@ -48,13 +48,13 @@ module adam_periph_uart_rx_tb;
         .rx(rx)
     );
 
-    adam_clk_rst_bhv #(
+    adam_seq_bhv #(
         .CLK_PERIOD (CLK_PERIOD),
         .RST_CYCLES (RST_CYCLES),
 
         .TA (TA),
         .TT (TT)
-    ) adam_clk_rst_bhv (
+    ) adam_seq_bhv (
         .seq (seq)
     );
 
@@ -104,7 +104,7 @@ module adam_periph_uart_rx_tb;
         for (int i = 0; i < MSG_LEN; i++) begin
             
             // wait for pause signals
-            `UNTIL(pause.req == 0 && pause.ack == 0);
+            `ADAM_UNTIL(pause.req == 0 && pause.ack == 0);
             
             rx = 0; // start bit
             parity = 0;

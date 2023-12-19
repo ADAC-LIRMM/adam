@@ -23,13 +23,13 @@ module adam_pause_demux_tb;
 
     integer paused;
 
-    adam_clk_rst_bhv #(
+    adam_seq_bhv #(
         .CLK_PERIOD (CLK_PERIOD),
         .RST_CYCLES (RST_CYCLES),
 
         .TA (TA),
         .TT (TT)
-    ) adam_clk_rst_bhv (
+    ) adam_seq_bhv (
         .seq (seq)
     );
 
@@ -62,11 +62,11 @@ module adam_pause_demux_tb;
             initial begin
                 slvs_ack[i] = 1;
 
-                `UNTIL(!seq.rst);
+                `ADAM_UNTIL(!seq.rst);
 
                 forever begin
-                    `UNTIL(slvs_req[i] != slvs_ack[i]);         
-                    repeat ($urandom_range(0, 100)) `UNTIL(1);
+                    `ADAM_UNTIL(slvs_req[i] != slvs_ack[i]);         
+                    repeat ($urandom_range(0, 100)) `ADAM_UNTIL(1);
                     
                     paused += (slvs_req[i]) ? 1 : -1;
                     cycle_start();
@@ -84,17 +84,17 @@ module adam_pause_demux_tb;
         `TEST_CASE("test") begin             
             paused = NO_SLVS;
 
-            `UNTIL(!seq.rst);
+            `ADAM_UNTIL(!seq.rst);
 
-            `UNTIL_FINNALY(!mst.req && !mst.ack, begin
+            `ADAM_UNTIL_FINNALY(!mst.req && !mst.ack, begin
                 assert(paused == 0);
             end);
 
-            `UNTIL_FINNALY(mst.req && mst.ack, begin
+            `ADAM_UNTIL_FINNALY(mst.req && mst.ack, begin
                 assert(paused == NO_SLVS);
             end);
 
-            `UNTIL_FINNALY(mst.req == 0 && mst.ack == 0, begin
+            `ADAM_UNTIL_FINNALY(mst.req == 0 && mst.ack == 0, begin
                 assert(paused == 0);
             end);
         end

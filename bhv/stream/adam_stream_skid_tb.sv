@@ -16,8 +16,8 @@ module adam_stream_skid_tb;
 
     ADAM_SEQ seq();
 
-    `ADAM_STREAM_MST_BHV_FACTORY(data_t, TA, TT, mst, seq.clk);
-    `ADAM_STREAM_SLV_BHV_FACTORY(data_t, TA, TT, 1, slv, seq.clk);
+    `ADAM_STREAM_BHV_MST_FACTORY(data_t, TA, TT, mst, seq.clk);
+    `ADAM_STREAM_BHV_SLV_FACTORY(data_t, TA, TT, 1, slv, seq.clk);
 
     adam_stream_skid #(
         .data_t (data_t)
@@ -28,7 +28,7 @@ module adam_stream_skid_tb;
         .mst (slv)
     );
 
-    adam_clk_rst_bhv #(
+    adam_seq_bhv #(
         .CLK_PERIOD(CLK_PERIOD),
         .RST_CYCLES(RST_CYCLES),
         

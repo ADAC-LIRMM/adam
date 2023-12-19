@@ -27,7 +27,7 @@ module adam_periph_uart_tx_tb;
     logic [1:0] stop_bits;
     data_t      baud_rate;
     
-    `ADAM_STREAM_MST_BHV_FACTORY(data_t, TA, TT, mst, seq.clk);
+    `ADAM_STREAM_BHV_MST_FACTORY(data_t, TA, TT, mst, seq.clk);
 
     logic tx;
 
@@ -48,13 +48,13 @@ module adam_periph_uart_tx_tb;
         .tx (tx)
     );
     
-    adam_clk_rst_bhv #(
+    adam_seq_bhv #(
         .CLK_PERIOD (CLK_PERIOD),
         .RST_CYCLES (RST_CYCLES),
 
         .TA (TA),
         .TT (TT)
-    ) adam_clk_rst_bhv (
+    ) adam_seq_bhv (
         .seq (seq)
     );
 

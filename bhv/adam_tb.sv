@@ -64,7 +64,7 @@ module adam_tb;
 
     assign uart_rx[0].i = uart_tx[0].o; // loopback
 
-    adam_clk_rst_bhv #(
+    adam_seq_bhv #(
         .CLK_PERIOD (CLK_PERIOD),
         .RST_CYCLES (RST_CYCLES),
 
@@ -74,7 +74,7 @@ module adam_tb;
         .seq (lsdom_seq)
     );
 
-    adam_clk_rst_bhv #(
+    adam_seq_bhv #(
         .CLK_PERIOD (CLK_PERIOD),
         .RST_CYCLES (RST_CYCLES),
 

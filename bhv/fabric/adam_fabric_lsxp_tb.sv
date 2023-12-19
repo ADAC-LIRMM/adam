@@ -64,7 +64,7 @@ module adam_fabric_lsxp_tb;
         end
     endgenerate
 
-    adam_clk_rst_bhv #(
+    adam_seq_bhv #(
         .CLK_PERIOD (CLK_PERIOD),
         .RST_CYCLES (RST_CYCLES),
 

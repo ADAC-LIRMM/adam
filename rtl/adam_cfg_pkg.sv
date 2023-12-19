@@ -52,4 +52,24 @@ package adam_cfg_pkg;
         NO_LSIP_UARTS  : 1        
     };
 
+`ifndef SYNTHESIS    
+
+    typedef struct {
+        time CLK_PERIOD;
+        int  RST_CYCLES;
+
+        time TA;
+        time TT;
+    } BHV_CFG_T;
+
+    localparam BHV_CFG_T BHV_CFG = '{
+        CLK_PERIOD : 20ns,
+        RST_CYCLES : 5,
+
+        TA : 2ns,
+        TT : 18ns // CLK_PERIOD - TA       
+    };
+
+`endif
+
 endpackage

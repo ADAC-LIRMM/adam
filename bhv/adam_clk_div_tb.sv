@@ -14,13 +14,13 @@ module adam_clk_div_tb;
     ADAM_SEQ mst ();
     ADAM_SEQ slv ();
     
-    adam_clk_rst_bhv #(
+    adam_seq_bhv #(
         .CLK_PERIOD (CLK_PERIOD),
         .RST_CYCLES (RST_CYCLES),
 
         .TA (TA),
         .TT (TT)
-    ) adam_clk_rst_bhv (
+    ) adam_seq_bhv (
         .seq (mst)
     );
 

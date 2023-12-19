@@ -2,11 +2,10 @@
 `include "adam/macros_bhv.svh"
 
 module adam_pause_bhv #(
-    parameter DELAY    = 1us,
-    parameter DURATION = 1us,
+    `ADAM_BHV_CFG_PARAMS,
 
-    parameter TA = 2ns,
-    parameter TT = 18ns
+    parameter DELAY    = 1us,
+    parameter DURATION = 1us
 ) (
     ADAM_SEQ.Slave    seq,
     ADAM_PAUSE.Master pause
@@ -16,26 +15,26 @@ module adam_pause_bhv #(
         forever begin
             pause.req = 1;
 
-            `UNTIL_DO(!seq.rst, assert(pause.ack));
+            `ADAM_UNTIL_DO(!seq.rst, assert(pause.ack));
 
             pause.req <= #TA 0;
-            `UNTIL(!pause.ack);
+            `ADAM_UNTIL(!pause.ack);
 
             repeat (DELAY / (TA + TT)) begin
-                `UNTIL(1); // assert(!pause.ack));
+                `ADAM_UNTIL(1); // assert(!pause.ack));
             end
 
             pause.req <= #TA 1;
-            `UNTIL(pause.ack);
+            `ADAM_UNTIL(pause.ack);
   
             repeat (DURATION / (TA + TT)) begin
-                `UNTIL_DO(1, assert(pause.ack));
+                `ADAM_UNTIL_DO(1, assert(pause.ack));
             end
             
             pause.req <= #TA 0;
-            `UNTIL(!pause.ack);
+            `ADAM_UNTIL(!pause.ack);
 
-            `UNTIL(seq.rst);
+            `ADAM_UNTIL(seq.rst);
         end
     end
 

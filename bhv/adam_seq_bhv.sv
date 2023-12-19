@@ -1,11 +1,8 @@
 `timescale 1ns/1ps
+`include "adam/macros_bhv.svh"
 
-module adam_clk_rst_bhv #(
-    parameter CLK_PERIOD = 20ns,
-    parameter RST_CYCLES = 5,
-
-    parameter TA = 2ns,
-    parameter TT = CLK_PERIOD - TA
+module adam_seq_bhv #(
+    `ADAM_BHV_CFG_PARAMS
 ) (
     ADAM_SEQ.Master seq
 );

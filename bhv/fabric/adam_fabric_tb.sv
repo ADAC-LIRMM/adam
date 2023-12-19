@@ -112,13 +112,13 @@ module adam_fabric_tb;
     ADAM_PAUSE lsdom_pause_lsbp ();
     ADAM_PAUSE lsdom_pause_lsip ();
 
-    adam_clk_rst_bhv #(
+    adam_seq_bhv #(
         .CLK_PERIOD (CLK_PERIOD),
         .RST_CYCLES (RST_CYCLES),
 
         .TA (TA),
         .TT (TT)
-    ) lsdom_adam_clk_rst_bhv (
+    ) lsdom_adam_seq_bhv (
         .seq (lsdom_seq)
     );
 
@@ -160,13 +160,13 @@ module adam_fabric_tb;
     ADAM_SEQ   hsdom_seq ();
     ADAM_PAUSE hsdom_pause ();
 
-    adam_clk_rst_bhv #(
+    adam_seq_bhv #(
         .CLK_PERIOD (CLK_PERIOD),
         .RST_CYCLES (RST_CYCLES),
 
         .TA (TA),
         .TT (TT)
-    ) hsdom_adam_clk_rst_bhv (
+    ) hsdom_adam_seq_bhv (
         .seq (hsdom_seq)
     );
 
