@@ -45,7 +45,7 @@ module adam_fabric_lsxp #(
 
         .NO_APBS (NO_MSTS),
     
-        .rule_t (rule_t)
+        .RULE_T (rule_t)
     ) adam_axil_apb_bridge (
         .seq   (seq),
         .pause (pause),

@@ -1,6 +1,7 @@
+`include "adam/macros.svh"
+
 module adam_axil_pause #(
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32,
+    `ADAM_CFG_PARAMS,
 
     parameter MAX_TRANS = 7
 ) (

@@ -14,16 +14,16 @@ of the designer to ensure the correctness of the addr_map configuration
 provided.
 */
 
+`include "adam/macros.svh"
 `include "axi/typedef.svh"
 `include "axi/assign.svh"
 
 module adam_axil_apb_bridge #(
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32,
+    `ADAM_CFG_PARAMS,
 
     parameter NO_APBS = 1,
-  
-    parameter type rule_t = logic
+
+    parameter type RULE_T  = logic
 ) (
     ADAM_SEQ.Slave   seq,
     ADAM_PAUSE.Slave pause,
@@ -32,43 +32,33 @@ module adam_axil_apb_bridge #(
     
     APB.Master apb [NO_APBS],
 
-    input rule_t [NO_APBS-1:0] addr_map
+    input RULE_T [NO_APBS-1:0] addr_map
 );
-    
-    localparam STRB_WIDTH = DATA_WIDTH/8;
-
-    typedef logic [ADDR_WIDTH-1:0] addr_t;
-    typedef logic [DATA_WIDTH-1:0] data_t;
-    typedef logic [STRB_WIDTH-1:0] strb_t;
-
     typedef struct packed {
-        addr_t          paddr;  
-        axi_pkg::prot_t pprot;  
-        logic           psel;
-        logic           penable;
-        logic           pwrite;
-        data_t          pwdata;
-        strb_t          pstrb;
+        ADDR_T paddr;  
+        PROT_T pprot;  
+        logic  psel;
+        logic  penable;
+        logic  pwrite;
+        DATA_T pwdata;
+        STRB_T pstrb;
     } apb_req_t;
 
     typedef struct packed {
         logic  pready;
-        data_t prdata;
+        DATA_T prdata;
         logic  pslverr;
     } apb_resp_t;
 
-    `AXI_LITE_TYPEDEF_AW_CHAN_T(aw_chan_t, addr_t);
-    `AXI_LITE_TYPEDEF_W_CHAN_T(w_chan_t, data_t, strb_t);
+    `AXI_LITE_TYPEDEF_AW_CHAN_T(aw_chan_t, ADDR_T);
+    `AXI_LITE_TYPEDEF_W_CHAN_T(w_chan_t, DATA_T, STRB_T);
     `AXI_LITE_TYPEDEF_B_CHAN_T(b_chan_t);
-    `AXI_LITE_TYPEDEF_AR_CHAN_T(ar_chan_t, addr_t);
-    `AXI_LITE_TYPEDEF_R_CHAN_T(r_chan_t, data_t);
+    `AXI_LITE_TYPEDEF_AR_CHAN_T(ar_chan_t, ADDR_T);
+    `AXI_LITE_TYPEDEF_R_CHAN_T(r_chan_t, DATA_T);
     `AXI_LITE_TYPEDEF_REQ_T(axil_req_t, aw_chan_t, w_chan_t, ar_chan_t);
     `AXI_LITE_TYPEDEF_RESP_T(axil_resp_t, b_chan_t, r_chan_t);
 
-    AXI_LITE #(
-        .AXI_ADDR_WIDTH (ADDR_WIDTH),
-        .AXI_DATA_WIDTH (DATA_WIDTH)
-    ) axil_pause ();
+    `ADAM_AXIL_I axil_pause ();
 
     axil_req_t  axil_pause_req;
     axil_resp_t axil_pause_resp;
@@ -80,8 +70,7 @@ module adam_axil_apb_bridge #(
     `AXI_LITE_ASSIGN_FROM_RESP(axil_pause, axil_pause_resp);
 
     adam_axil_pause #(
-        .ADDR_WIDTH (ADDR_WIDTH),
-        .DATA_WIDTH (DATA_WIDTH),
+        `ADAM_CFG_PARAMS_MAP,
 
         .MAX_TRANS  (NO_APBS)
     ) adam_axil_pause (
@@ -103,7 +92,7 @@ module adam_axil_apb_bridge #(
         .axi_lite_resp_t  (axil_resp_t),
         .apb_req_t        (apb_req_t),
         .apb_resp_t       (apb_resp_t),
-        .rule_t           (rule_t)
+        .rule_t           (RULE_T)
     ) axi_lite_to_apb (
         .clk_i  (seq.clk),
         .rst_ni (!seq.rst),

@@ -1,4 +1,6 @@
 `timescale 1ns/1ps
+
+`include "adam/macros_bhv.svh"
 `include "axi/assign.svh"
 `include "vunit_defines.svh"
 
@@ -6,26 +8,11 @@ module adam_axil_pause_tb;
     import adam_axil_mst_bhv::*;
     import adam_axil_slv_bhv::*;
 
-    localparam ADDR_WIDTH = 32;
-    localparam DATA_WIDTH = 32;
-    
+    `ADAM_BHV_CFG_LOCALPARAMS;
+
     localparam MAX_TRANS = 7;
 
-    localparam CLK_PERIOD = 20ns;
-    localparam RST_CYCLES = 5;
-
-    localparam TA = 2ns;
-    localparam TT = CLK_PERIOD - TA;
-
-    localparam STRB_WIDTH = DATA_WIDTH/8;
-
     localparam NO_TESTS = 100;
-
-    typedef logic [ADDR_WIDTH-1:0] addr_t;
-    typedef logic [2:0]            prot_t;       
-    typedef logic [DATA_WIDTH-1:0] data_t;
-    typedef logic [STRB_WIDTH-1:0] strb_t;
-    typedef logic [1:0]            resp_t;
 
     ADAM_SEQ   seq   ();
     ADAM_PAUSE pause ();
@@ -139,35 +126,35 @@ module adam_axil_pause_tb;
         forever begin
             fork
                 repeat (MAX_TRANS) begin
-                    automatic addr_t addr;
+                    automatic ADDR_T addr;
                     addr = $urandom();
                     random_delay(5);
                     master_bhv.send_aw(addr, 3'b000);
                 end
 
                 repeat (MAX_TRANS) begin
-                    automatic data_t data;
+                    automatic DATA_T data;
                     data = $urandom();
                     random_delay(5);
                     master_bhv.send_w(data, 4'b1111);
                 end
                 
                 repeat (MAX_TRANS) begin
-                    automatic addr_t addr;
+                    automatic ADDR_T addr;
                     addr = $urandom();
                     random_delay(5);
                     master_bhv.send_ar(addr, 3'b000);
                 end
                 
                 repeat (MAX_TRANS) begin
-                    automatic resp_t resp;
+                    automatic RESP_T resp;
                     master_bhv.recv_b(resp);
                     random_delay(5);
                 end
                 
                 repeat (MAX_TRANS) begin
-                    automatic data_t data;
-                    automatic resp_t resp;
+                    automatic DATA_T data;
+                    automatic RESP_T resp;
                     master_bhv.recv_r(data, resp);
                     random_delay(5);
                 end
@@ -182,11 +169,11 @@ module adam_axil_pause_tb;
         forever begin
             fork
                 repeat (MAX_TRANS) begin
-                    automatic addr_t addr;
-                    automatic prot_t prot;
-                    automatic data_t data;
-                    automatic strb_t strb;
-                    automatic resp_t resp = 0;
+                    automatic ADDR_T addr;
+                    automatic PROT_T prot;
+                    automatic DATA_T data;
+                    automatic STRB_T strb;
+                    automatic RESP_T resp = 0;
 
                     slave_bhv.recv_aw(addr, prot);
                     slave_bhv.recv_w(data, strb);
@@ -196,10 +183,10 @@ module adam_axil_pause_tb;
                 end
 
                 repeat (MAX_TRANS) begin
-                    automatic addr_t addr;
-                    automatic prot_t prot;
-                    automatic data_t data;
-                    automatic resp_t resp;
+                    automatic ADDR_T addr;
+                    automatic PROT_T prot;
+                    automatic DATA_T data;
+                    automatic RESP_T resp;
 
                     data = $urandom();
                     resp = 0;

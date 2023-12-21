@@ -1,4 +1,6 @@
 `timescale 1ns/1ps
+
+`include "adam/macros_bhv.svh"
 `include "axi/assign.svh"
 `include "apb/assign.svh"
 `include "vunit_defines.svh"
@@ -6,31 +8,16 @@
 module adam_axil_apb_bridge_tb;
     import adam_axil_mst_bhv::*;
 
-    localparam ADDR_WIDTH = 32;
-    localparam DATA_WIDTH = 32;
+    `ADAM_BHV_CFG_LOCALPARAMS;
     
     localparam NO_APBS = 8;
 
     localparam MAX_TRANS = 7;
 
-    localparam CLK_PERIOD = 20ns;
-    localparam RST_CYCLES = 5;
-
-    localparam TA = 2ns;
-    localparam TT = CLK_PERIOD - TA;
-
-    localparam STRB_WIDTH = DATA_WIDTH/8;
-
-    typedef logic [ADDR_WIDTH-1:0] addr_t;
-    typedef logic [2:0]            prot_t;       
-    typedef logic [DATA_WIDTH-1:0] data_t;
-    typedef logic [STRB_WIDTH-1:0] strb_t;
-    typedef logic [1:0]            resp_t;
-
     typedef struct packed {
         int unsigned idx;
-        addr_t start_addr;
-        addr_t end_addr;
+        ADDR_T start_addr;
+        ADDR_T end_addr;
     } rule_t;
     
     ADAM_SEQ   seq   ();
@@ -38,21 +25,18 @@ module adam_axil_apb_bridge_tb;
 
     rule_t [NO_APBS-1:0] addr_map;
 
-    addr_t          paddr   [NO_APBS];
-    apb_pkg::prot_t pprot   [NO_APBS];
-    logic           psel    [NO_APBS];
-    logic           penable [NO_APBS];
-    logic           pwrite  [NO_APBS];
-    data_t          pwdata  [NO_APBS];
-    strb_t          pstrb   [NO_APBS];
-    logic           pready  [NO_APBS];
-    data_t          prdata  [NO_APBS];
-    logic           pslverr [NO_APBS];
+    ADDR_T paddr   [NO_APBS];
+    PROT_T pprot   [NO_APBS];
+    logic  psel    [NO_APBS];
+    logic  penable [NO_APBS];
+    logic  pwrite  [NO_APBS];
+    DATA_T pwdata  [NO_APBS];
+    STRB_T pstrb   [NO_APBS];
+    logic  pready  [NO_APBS];
+    DATA_T prdata  [NO_APBS];
+    logic  pslverr [NO_APBS];
 
-    AXI_LITE #(
-        .AXI_ADDR_WIDTH (ADDR_WIDTH),
-        .AXI_DATA_WIDTH (DATA_WIDTH)
-    ) axil ();
+    `ADAM_AXIL_I axil ();
     
     AXI_LITE_DV #(
         .AXI_ADDR_WIDTH(ADDR_WIDTH),
@@ -71,10 +55,7 @@ module adam_axil_apb_bridge_tb;
         .MAX_TRANS (MAX_TRANS)
     ) axil_bhv = new(axil_dv);
 
-    APB #(
-        .ADDR_WIDTH(ADDR_WIDTH),
-        .DATA_WIDTH(DATA_WIDTH)
-    ) apb [NO_APBS] ();
+    `ADAM_APB_I apb [NO_APBS] ();
 
     always_comb begin
         for (int i = 0; i < NO_APBS; i++) begin
@@ -87,33 +68,27 @@ module adam_axil_apb_bridge_tb;
     end
 
     adam_seq_bhv #(
-        .CLK_PERIOD (CLK_PERIOD),
-        .RST_CYCLES (RST_CYCLES),
-
-        .TA (TA),
-        .TT (TT)
+        `ADAM_BHV_CFG_PARAMS_MAP
     ) adam_seq_bhv (
         .seq (seq)
     );
 
     adam_pause_bhv #(
-        .DELAY    (100ns),
-        .DURATION (100ns),
+        `ADAM_BHV_CFG_PARAMS_MAP,
 
-        .TA (TA),
-        .TT (TT)
+        .DELAY    (100ns),
+        .DURATION (100ns)
     ) adam_pause_bhv (
         .seq   (seq),
         .pause (pause)
     );
 
     adam_axil_apb_bridge #(
-        .ADDR_WIDTH (ADDR_WIDTH),
-        .DATA_WIDTH (DATA_WIDTH),
+        `ADAM_CFG_PARAMS_MAP,
 
         .NO_APBS (NO_APBS),
     
-        .rule_t (rule_t)
+        .RULE_T (rule_t)
     ) dut (
         .seq   (seq),
         .pause (pause),
@@ -145,9 +120,9 @@ module adam_axil_apb_bridge_tb;
 
     `TEST_SUITE begin
         `TEST_CASE("test") begin
-            addr_t addr;
-            data_t data;
-            resp_t resp;
+            ADDR_T addr;
+            DATA_T data;
+            RESP_T resp;
 
             for (int i = 0; i < NO_APBS; i++) begin
                 pready [i] = 0;
@@ -170,7 +145,7 @@ module adam_axil_apb_bridge_tb;
 
                 for (int j = 0; j < 2; j++) begin
                     pready [i] <= #TA 1;
-                    prdata [i] <= #TA data_t'(i);
+                    prdata [i] <= #TA DATA_T'(i);
                     pslverr[i] <= #TA 0;
                     cycle_start();
                     while(!psel[i] || !penable[i] || !pready[i]) begin
