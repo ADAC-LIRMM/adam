@@ -39,6 +39,8 @@ module adam_periph_syscfg_tgt #(
         if (!EN_IRQ)       assign ier = '0;
     endgenerate
 
+    assign tgt_boot_addr = bar;
+
     // Flags ==================================================================
     
     action_t action;

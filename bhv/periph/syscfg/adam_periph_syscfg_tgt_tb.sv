@@ -104,8 +104,105 @@ module adam_periph_syscfg_tgt_tb;
             start_action(STOP);
             complete_action(STOP);
             verify_status('b11);
+        end
 
-            repeat (10) @(posedge seq.clk);
+        `TEST_CASE("write_after_write") begin
+            automatic logic  resp;
+
+            // Step 0: Hard-reset =============================================
+
+            tgt_pause.ack <= #TA '1;
+            apb_bhv.reset_master();
+            `ADAM_UNTIL(!seq.rst);
+            
+            // Step 1: Start an action but do not complete it =================
+
+            start_action(RESUME);
+
+            // Step 2: Write to MR ============================================
+
+            apb_bhv.write(MR, RESUME, 4'b1111, resp);
+            assert (resp == apb_pkg::RESP_SLVERR);
+
+            // Step 3: Write to BAR ===========================================
+
+            if (EN_BOOT_ADDR) begin
+                apb_bhv.write(BAR, '0, 4'b1111, resp);
+                assert (resp == apb_pkg::RESP_SLVERR);
+            end
+        end
+
+        `TEST_CASE("boot_addr") begin
+            automatic DATA_T data;
+            automatic logic  resp;
+
+            // Step 0: Hard-reset =============================================
+
+            tgt_pause.ack <= #TA '1;
+            apb_bhv.reset_master();
+            `ADAM_UNTIL(!seq.rst);
+
+            if (EN_BOOT_ADDR) begin
+                assert (tgt_boot_addr == '0);
+            end
+
+            // Step 1: Write to BAR ===========================================
+
+            apb_bhv.write(BAR, 'hABCD, 4'b1111, resp);
+            if (EN_BOOT_ADDR) begin
+                assert(resp == apb_pkg::RESP_OKAY);
+                assert(tgt_boot_addr == 'hABCD);
+            end
+            else begin
+                assert(resp == apb_pkg::RESP_SLVERR);
+            end
+        
+            // Step 2: Read BAR ===============================================
+
+            apb_bhv.read(BAR, data, resp);
+            if (EN_BOOT_ADDR) begin
+                assert(resp == apb_pkg::RESP_OKAY);
+                assert(data == 'hABCD);
+            end
+            else begin
+                assert(resp == apb_pkg::RESP_SLVERR);
+            end
+        end
+
+        `TEST_CASE("irq") begin
+            automatic DATA_T data;
+            automatic logic  resp;
+
+            // Step 0: Hard-reset =============================================
+            
+            irq_vec       <= #TA 'b1000;
+            tgt_pause.ack <= #TA '1;
+            apb_bhv.reset_master();
+            `ADAM_UNTIL(!seq.rst);
+
+            assert (tgt_irq == '0);
+
+            // Step 1: Write to IER ===========================================
+
+            apb_bhv.write(IER, {(DATA_WIDTH){1'b1}}, 4'b1111, resp);
+            if (EN_IRQ) begin
+                assert (resp == apb_pkg::RESP_OKAY);
+                assert (tgt_irq == '1);
+            end
+            else begin
+                assert (resp == apb_pkg::RESP_SLVERR);
+            end
+            
+            // Step 2: Read from IER ==========================================
+
+            apb_bhv.read(IER, data, resp);
+            if (EN_IRQ) begin
+                assert(resp == apb_pkg::RESP_OKAY);
+                assert(data == {(DATA_WIDTH){1'b1}});
+            end
+            else begin
+                assert(resp == apb_pkg::RESP_SLVERR);
+            end
         end
     end
 
