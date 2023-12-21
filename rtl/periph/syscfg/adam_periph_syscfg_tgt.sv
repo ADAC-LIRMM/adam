@@ -64,7 +64,7 @@ module adam_periph_syscfg_tgt #(
             end
         end
         else begin
-            assign tgt_irq = '1;
+            assign tgt_irq = '0;
         end
     endgenerate
 
@@ -197,7 +197,7 @@ module adam_periph_syscfg_tgt #(
                 else begin
                     // Error: Invalid Address
                     pslverr <= '1;
-                    pready  <= '0;
+                    pready  <= '1;
                 end              
             end
 
@@ -217,7 +217,7 @@ module adam_periph_syscfg_tgt #(
                 else begin
                     // Error: Invalid Address
                     pslverr <= '1;
-                    pready  <= '0;
+                    pready  <= '1;
                 end  
             end
         endcase
@@ -242,7 +242,7 @@ module adam_periph_syscfg_tgt #(
             tgt_rst       <= '1;
             tgt_pause.req <= '1;
 
-            state <= IDLE;
+            state <= (EN_BOOTSTRAP) ? RESUME : IDLE;
 
             paused  <= '1;
             stopped <= '1;
@@ -252,7 +252,7 @@ module adam_periph_syscfg_tgt #(
         end
         else if (
             (maestro_pause.req != maestro_pause.ack) &&
-            (state == IDLE && action == IDLE)
+            ((state == IDLE || maestro_pause.ack) && action == IDLE)
         ) begin
             // pause or resume
             maestro_pause.ack <= maestro_pause.req;

@@ -49,6 +49,8 @@ module adam_periph_syscfg_tgt_tb;
     ADDR_T     tgt_boot_addr;
     logic      tgt_irq;
 
+    assign irq_vec = (DATA_T'('1) << 4);
+
     adam_periph_syscfg_tgt #(
         `ADAM_CFG_PARAMS_MAP,
 
@@ -79,6 +81,8 @@ module adam_periph_syscfg_tgt_tb;
 
             verify_status('b11);
 
+            if (EN_BOOTSTRAP) complete_action(RESUME);
+
             // Step 1: RESUME =================================================
 
             start_action(RESUME);
@@ -107,7 +111,7 @@ module adam_periph_syscfg_tgt_tb;
         end
 
         `TEST_CASE("write_after_write") begin
-            automatic logic  resp;
+            automatic logic resp;
 
             // Step 0: Hard-reset =============================================
 
@@ -115,9 +119,11 @@ module adam_periph_syscfg_tgt_tb;
             apb_bhv.reset_master();
             `ADAM_UNTIL(!seq.rst);
             
+            if (EN_BOOTSTRAP) complete_action(RESUME);
+
             // Step 1: Start an action but do not complete it =================
 
-            start_action(RESUME);
+            start_action(STOP);
 
             // Step 2: Write to MR ============================================
 
@@ -145,6 +151,8 @@ module adam_periph_syscfg_tgt_tb;
             if (EN_BOOT_ADDR) begin
                 assert (tgt_boot_addr == '0);
             end
+
+            if (EN_BOOTSTRAP) complete_action(RESUME);
 
             // Step 1: Write to BAR ===========================================
 
@@ -175,12 +183,13 @@ module adam_periph_syscfg_tgt_tb;
 
             // Step 0: Hard-reset =============================================
             
-            irq_vec       <= #TA 'b1000;
             tgt_pause.ack <= #TA '1;
             apb_bhv.reset_master();
             `ADAM_UNTIL(!seq.rst);
 
             assert (tgt_irq == '0);
+
+            if (EN_BOOTSTRAP) complete_action(RESUME);
 
             // Step 1: Write to IER ===========================================
 
