@@ -16,7 +16,7 @@ module adam_periph_syscfg_tgt #(
 
     output logic      tgt_rst,        
     ADAM_PAUSE.Master tgt_pause,
-    output logic      tgt_boot_addr,
+    output ADDR_T     tgt_boot_addr,
     output logic      tgt_irq
 );  
     typedef enum logic [3:0] {
@@ -121,15 +121,15 @@ module adam_periph_syscfg_tgt #(
             pready  <= '0;
             pslverr <= '0;
         end
-        else if (pause.req && pause.ack) begin
+        else if (apb_pause.req && apb_pause.ack) begin
             // Paused
         end
         else if (
-            (pause.req != pause.ack) &&
+            (apb_pause.req != apb_pause.ack) &&
             (!pready)
         ) begin
             // Pause or resume
-            pause.ack <= pause.req;
+            apb_pause.ack <= apb_pause.req;
         end
         else if (psel && !pready) case (index)    
             // Handle APB transaction
@@ -156,7 +156,7 @@ module adam_periph_syscfg_tgt #(
                 if (pwrite) begin
                     if (state == IDLE && action == IDLE) begin
                         // Write
-                        action <= pwdata[3:0] & mask[3:0];
+                        action <= action_t'(pwdata[3:0] & mask[3:0]);
                         pready <= '1;
                     end
                     else begin
@@ -242,8 +242,8 @@ module adam_periph_syscfg_tgt #(
 
             state <= IDLE;
 
-            paused  <= '0;
-            stopped <= '0;
+            paused  <= '1;
+            stopped <= '1;
         end
         else if (maestro_pause.req && maestro_pause.ack) begin
             // paused
@@ -256,7 +256,7 @@ module adam_periph_syscfg_tgt #(
             maestro_pause.ack <= maestro_pause.req;
         end
         else case (state)
-            IDLE: begin
+            default: begin // IDLE
                 state <= action;
             end
 
@@ -283,6 +283,7 @@ module adam_periph_syscfg_tgt #(
             STOP: begin 
                 if (tgt_pause.req && tgt_pause.ack) begin
                     tgt_rst <= '1;
+                    paused  <= '1;
                     stopped <= '1;
                     state   <= IDLE;
                 end
@@ -293,6 +294,7 @@ module adam_periph_syscfg_tgt #(
             RESET: begin 
                 if (tgt_pause.req && tgt_pause.ack) begin
                     tgt_rst <= '1;
+                    paused  <= '1;
                     stopped <= '1;
                     state   <= RESUME;
                 end
@@ -301,4 +303,17 @@ module adam_periph_syscfg_tgt #(
             end
         endcase
     end
+
+    // pause demux ============================================================
+
+    adam_pause_demux #(
+        .NO_MSTS  (2),
+        .PARALLEL (0)
+    ) adam_pause_demux (
+        .seq (seq),
+
+        .slv  (pause),
+        .msts ('{apb_pause, maestro_pause})
+    );
+
 endmodule

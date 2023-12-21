@@ -1,3 +1,7 @@
+`ifndef SYNTHESIS 
+    `timescale 1ns/1ps
+`endif
+
 package adam_cfg_pkg;
 
     typedef struct {

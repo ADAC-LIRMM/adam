@@ -3,52 +3,61 @@
 
 `include "axi/assign.svh"
 
+`define ADAM_COMMA ,
+`define ADAM_SEMICOLON ;
+
 // ADAM_CFG ===================================================================
 
+`define ADAM_CFG_PARAMS_GENERIC(__opt, __sep) \
+    __opt type CFG_T = adam_cfg_pkg::CFG_T __sep \
+    __opt CFG_T CFG  = adam_cfg_pkg::CFG __sep \
+    \
+    __opt ADDR_WIDTH = CFG.ADDR_WIDTH __sep \
+    __opt DATA_WIDTH = CFG.DATA_WIDTH __sep \
+    __opt GPIO_WIDTH = CFG.GPIO_WIDTH __sep \
+    \
+    __opt RST_BOOT_ADDR = CFG.RST_BOOT_ADDR __sep \
+    \
+    __opt NO_CPUS = CFG.NO_CPUS __sep \
+    __opt NO_DMAS = CFG.NO_DMAS __sep \
+    __opt NO_MEMS = CFG.NO_MEMS __sep \
+    \
+    __opt EN_LPCPU = CFG.EN_LPCPU __sep \
+    __opt EN_LPMEM = CFG.EN_LPMEM __sep \
+    __opt EN_DEBUG = CFG.EN_DEBUG __sep \
+    \
+    __opt NO_LSBP_GPIOS  = CFG.NO_LSBP_GPIOS __sep \
+    __opt NO_LSBP_SPIS   = CFG.NO_LSBP_SPIS __sep \
+    __opt NO_LSBP_TIMERS = CFG.NO_LSBP_TIMERS __sep \
+    __opt NO_LSBP_UARTS  = CFG.NO_LSBP_UARTS __sep \
+    \
+    __opt NO_LSIP_GPIOS  = CFG.NO_LSIP_GPIOS __sep \
+    __opt NO_LSIP_SPIS   = CFG.NO_LSIP_SPIS __sep \
+    __opt NO_LSIP_TIMERS = CFG.NO_LSIP_TIMERS __sep \
+    __opt NO_LSIP_UARTS  = CFG.NO_LSIP_UARTS __sep \
+    \
+    __opt NO_LSBPS = NO_LSBP_GPIOS + NO_LSBP_SPIS + NO_LSBP_TIMERS + \
+        NO_LSBP_UARTS __sep \
+    \
+    __opt NO_LSIPS = NO_LSIP_GPIOS + NO_LSIP_SPIS + NO_LSIP_TIMERS + \
+        NO_LSIP_UARTS __sep \
+    \
+    __opt NO_HSBPS = 1 __sep \
+    __opt NO_HSIPS = 1 __sep \
+    \
+    __opt STRB_WIDTH  = DATA_WIDTH/8 __sep \
+    \
+    __opt type ADDR_T = logic [ADDR_WIDTH-1:0] __sep \
+    __opt type PROT_T = logic [2:0] __sep \
+    __opt type DATA_T = logic [DATA_WIDTH-1:0] __sep \
+    __opt type STRB_T = logic [STRB_WIDTH-1:0] __sep \
+    __opt type RESP_T = logic [1:0]
+
 `define ADAM_CFG_PARAMS \
-    parameter type CFG_T = adam_cfg_pkg::CFG_T, \
-    parameter CFG_T CFG  = adam_cfg_pkg::CFG, \
-    \
-    parameter ADDR_WIDTH = CFG.ADDR_WIDTH, \
-    parameter DATA_WIDTH = CFG.DATA_WIDTH, \
-    parameter GPIO_WIDTH = CFG.GPIO_WIDTH, \
-    \
-    parameter RST_BOOT_ADDR = CFG.RST_BOOT_ADDR, \
-    \
-    parameter NO_CPUS = CFG.NO_CPUS, \
-    parameter NO_DMAS = CFG.NO_DMAS, \
-    parameter NO_MEMS = CFG.NO_MEMS, \
-    \
-    parameter EN_LPCPU = CFG.EN_LPCPU, \
-    parameter EN_LPMEM = CFG.EN_LPMEM, \
-    parameter EN_DEBUG = CFG.EN_DEBUG, \
-    \
-    parameter NO_LSBP_GPIOS  = CFG.NO_LSBP_GPIOS, \
-    parameter NO_LSBP_SPIS   = CFG.NO_LSBP_SPIS, \
-    parameter NO_LSBP_TIMERS = CFG.NO_LSBP_TIMERS, \
-    parameter NO_LSBP_UARTS  = CFG.NO_LSBP_UARTS, \
-    \
-    parameter NO_LSIP_GPIOS  = CFG.NO_LSIP_GPIOS, \
-    parameter NO_LSIP_SPIS   = CFG.NO_LSIP_SPIS, \
-    parameter NO_LSIP_TIMERS = CFG.NO_LSIP_TIMERS, \
-    parameter NO_LSIP_UARTS  = CFG.NO_LSIP_UARTS, \
-    \
-    parameter NO_LSBPS = NO_LSBP_GPIOS + NO_LSBP_SPIS + NO_LSBP_TIMERS + \
-        NO_LSBP_UARTS, \
-    \
-    parameter NO_LSIPS = NO_LSIP_GPIOS + NO_LSIP_SPIS + NO_LSIP_TIMERS + \
-        NO_LSIP_UARTS, \
-    \
-    parameter NO_HSBPS = 1, \
-    parameter NO_HSIPS = 1, \
-    \
-    parameter STRB_WIDTH  = DATA_WIDTH/8, \
-    \
-    parameter type ADDR_T = logic [ADDR_WIDTH-1:0], \
-    parameter type PROT_T = logic [2:0], \
-    parameter type DATA_T = logic [DATA_WIDTH-1:0], \
-    parameter type STRB_T = logic [STRB_WIDTH-1:0], \
-    parameter type RESP_T = logic [1:0]
+    `ADAM_CFG_PARAMS_GENERIC(parameter, `ADAM_COMMA)
+
+`define ADAM_CFG_LOCALPARAMS \
+    `ADAM_CFG_PARAMS_GENERIC(localparam, `ADAM_SEMICOLON)
 
 `define ADAM_CFG_PARAMS_MAP \
     .CFG_T (CFG_T), \

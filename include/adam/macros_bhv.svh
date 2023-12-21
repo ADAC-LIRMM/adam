@@ -5,16 +5,23 @@
 
 // ADAM_BHV_CFG ===============================================================
 
+`define ADAM_BHV_CFG_PARAMS_GENERIC(__opt, __sep) \
+    __opt type      BHV_CFG_T = adam_cfg_pkg::BHV_CFG_T __sep \
+    __opt BHV_CFG_T BHV_CFG   = adam_cfg_pkg::BHV_CFG __sep \
+    \
+    __opt CLK_PERIOD = BHV_CFG.CLK_PERIOD __sep \
+    __opt RST_CYCLES = BHV_CFG.RST_CYCLES __sep \
+    \
+    __opt TA = BHV_CFG.TA __sep \
+    __opt TT = BHV_CFG.TT
+
 `define ADAM_BHV_CFG_PARAMS \
     `ADAM_CFG_PARAMS, \
-    parameter type      BHV_CFG_T = adam_cfg_pkg::BHV_CFG_T, \
-    parameter BHV_CFG_T BHV_CFG   = adam_cfg_pkg::BHV_CFG, \
-    \
-    parameter CLK_PERIOD = BHV_CFG.CLK_PERIOD, \
-    parameter RST_CYCLES = BHV_CFG.RST_CYCLES, \
-    \
-    parameter TA = BHV_CFG.TA, \
-    parameter TT = BHV_CFG.TT
+    `ADAM_BHV_CFG_PARAMS_GENERIC(parameter, `ADAM_COMMA)
+
+`define ADAM_BHV_CFG_LOCALPARAMS \
+    `ADAM_CFG_LOCALPARAMS; \
+    `ADAM_BHV_CFG_PARAMS_GENERIC(localparam, `ADAM_SEMICOLON)
 
 `define ADAM_BHV_CFG_PARAMS_MAP \
     `ADAM_CFG_PARAMS_MAP, \

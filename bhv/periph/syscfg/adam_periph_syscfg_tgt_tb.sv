@@ -3,9 +3,23 @@
 `include "apb/assign.svh"
 `include "vunit_defines.svh"
 
-module adam_periph_syscfg_tgt_tb #(
-    `ADAM_BHV_CFG_PARAMS
-);
+module adam_periph_syscfg_tgt_tb;
+    `ADAM_BHV_CFG_LOCALPARAMS;
+
+    localparam EN_BOOTSTRAP = 1;
+    localparam EN_BOOT_ADDR = 1;
+    localparam EN_IRQ       = 1;
+
+    localparam SR  = 'h0000;
+    localparam MR  = 'h0004;
+    localparam BAR = 'h0008;
+    localparam IER = 'h000C;
+    
+    localparam IDLE   = 'd0;
+    localparam RESUME = 'd1;
+    localparam PAUSE  = 'd2;
+    localparam STOP   = 'd3;
+    localparam RESET  = 'd4;
 
     ADAM_SEQ   seq   ();
     ADAM_PAUSE pause ();
@@ -28,24 +42,118 @@ module adam_periph_syscfg_tgt_tb #(
 
     `ADAM_APB_BHV_MST_FACTORY(apb, seq.clk);
 
-    // adam_periph_syscfg_tgt #(
-    //     `ADAM_CFG_PARAMS_MAP
-    // ) dut (
-    //     .seq   (seq),
-    //     .pause (pause),
-    //     .slv   (apb)
-    //     // ... Other connections
-    // );
+    DATA_T     irq_vec;
+    
+    logic      tgt_rst;        
+    ADAM_PAUSE tgt_pause ();
+    ADDR_T     tgt_boot_addr;
+    logic      tgt_irq;
+
+    adam_periph_syscfg_tgt #(
+        `ADAM_CFG_PARAMS_MAP,
+
+        .EN_BOOTSTRAP (EN_BOOTSTRAP),
+        .EN_BOOT_ADDR (EN_BOOT_ADDR),
+        .EN_IRQ       (EN_IRQ)
+    ) dut (
+        .seq   (seq),
+        .pause (pause),
+
+        .slv (apb),
+
+        .irq_vec (irq_vec),
+
+        .tgt_rst       (tgt_rst),        
+        .tgt_pause     (tgt_pause),
+        .tgt_boot_addr (tgt_boot_addr),
+        .tgt_irq       (tgt_irq)
+    ); 
     
     `TEST_SUITE begin
-        `TEST_CASE("basic") begin
-            #10us;
+        `TEST_CASE("basic") begin  
+            // Step 0: Hard-reset =============================================
+
+            tgt_pause.ack <= #TA '1;
+            apb_bhv.reset_master();
+            `ADAM_UNTIL(!seq.rst);
+
+            verify_status('b11);
+
+            // Step 1: RESUME =================================================
+
+            start_action(RESUME);
+            complete_action(RESUME);
+            verify_status('b00);
+
+            // Step 2: RESET ==================================================
+            
+            start_action(RESET);
+            complete_action(STOP); // RESET's step 1
+            verify_status('b11);
+            complete_action(RESUME); // RESET's step 2
+            verify_status('b00);
+
+            // Step 3: PAUSE ==================================================
+
+            start_action(PAUSE);
+            complete_action(PAUSE);
+            verify_status('b01);
+
+            // Step 4: STOP ===================================================
+
+            start_action(STOP);
+            complete_action(STOP);
+            verify_status('b11);
+
+            repeat (10) @(posedge seq.clk);
         end
     end
 
     initial begin
         #1000us $error("timeout");
     end
+
+    task start_action(input DATA_T action);
+        automatic logic resp;
+        apb_bhv.write(MR, action, 4'b1111, resp);
+        assert (resp == apb_pkg::RESP_OKAY);
+    endtask
+    
+    task verify_status(input bit [1:0] expected);
+        automatic DATA_T data;
+        automatic logic  resp;
+        apb_bhv.read(SR, data, resp);
+        assert (resp == apb_pkg::RESP_OKAY);
+        assert (data[1] == expected[1]); // stopped status
+        assert (data[0] == expected[0]); // paused status
+    endtask
+
+    task complete_action(input DATA_T action);
+        case (action)
+            IDLE: begin
+                // EMPTY
+            end
+            RESUME: begin
+                tgt_pause.ack <= #TA '0;
+                `ADAM_UNTIL_FINNALY(!tgt_pause.req && !tgt_pause.ack,
+                    assert(!tgt_rst));
+            end
+            PAUSE: begin
+                tgt_pause.ack <= #TA '1;
+                `ADAM_UNTIL(tgt_pause.req && tgt_pause.ack);
+            end
+            STOP: begin
+                tgt_pause.ack <= #TA '1;
+                `ADAM_UNTIL_DO(tgt_pause.req && tgt_pause.ack,
+                    assert(!tgt_rst));
+                `ADAM_UNTIL(tgt_rst);
+            end
+            RESET: begin
+                complete_action(STOP);
+                complete_action(RESUME);
+            end
+        endcase
+    endtask
 
     task cycle_start();
         #TT;

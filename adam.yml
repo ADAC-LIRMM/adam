@@ -70,7 +70,6 @@ fsets:
       - periph/spi/adam_periph_spi_phy_tb.sv
       - periph/spi/adam_periph_spi_tb.sv
       - periph/syscfg/adam_periph_syscfg_tgt_tb.sv
-      #- periph/sysctrl/adam_periph_sysctrl_tb.sv
       - periph/timer/adam_periph_timer_tb.sv
       - periph/uart/adam_periph_uart_rx_tb.sv
       - periph/uart/adam_periph_uart_tx_tb.sv
