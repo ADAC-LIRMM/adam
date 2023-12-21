@@ -39,11 +39,17 @@
     __opt NO_LSBPS = NO_LSBP_GPIOS + NO_LSBP_SPIS + NO_LSBP_TIMERS + \
         NO_LSBP_UARTS __sep \
     \
+    __opt EN_LSBP = (NO_LSBPS > 0) __sep \
+    \
     __opt NO_LSIPS = NO_LSIP_GPIOS + NO_LSIP_SPIS + NO_LSIP_TIMERS + \
         NO_LSIP_UARTS __sep \
     \
+    __opt EN_LSIP = (NO_LSIPS > 0) __sep \
+    \
     __opt NO_HSBPS = 1 __sep \
+    __opt EN_HSBP  = 1 __sep \
     __opt NO_HSIPS = 1 __sep \
+    __opt EN_HSIP  = 1 __sep \
     \
     __opt STRB_WIDTH  = DATA_WIDTH/8 __sep \
     \

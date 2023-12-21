@@ -109,6 +109,7 @@ fsets:
       - periph/spi/adam_periph_spi.sv
       - periph/spi/adam_periph_spi_phy.sv
       - periph/syscfg/adam_periph_syscfg_tgt.sv
+      - periph/syscfg/adam_periph_syscfg.sv
       - periph/timer/adam_periph_timer.sv
       - periph/uart/adam_periph_uart_rx.sv
       - periph/uart/adam_periph_uart_tx.sv
