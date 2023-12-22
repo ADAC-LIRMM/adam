@@ -124,8 +124,8 @@ module adam_fabric_hsdom_tb;
     
     `SLV_FACTORY(mem0     , 0, 32'h0000_0000, 32'h0100_0000);
     `SLV_FACTORY(mem1     , 1, 32'h0000_0000, 32'h0100_0000);
-    `SLV_FACTORY(hsip0    , 2, 32'h0000_0000, 32'h0000_0400);
-    `SLV_FACTORY(hsip1    , 3, 32'h0000_0000, 32'h0000_0400);
+    `SLV_FACTORY(hsp0    , 2, 32'h0000_0000, 32'h0000_0400);
+    `SLV_FACTORY(hsp1    , 3, 32'h0000_0000, 32'h0000_0400);
     `SLV_FACTORY(debug_mst, 4, 32'h0000_0000, 32'h0000_4000);
     `SLV_FACTORY(to_lsdom , 5, 32'h0000_0000, 32'h0008_0000);
 
@@ -138,7 +138,7 @@ module adam_fabric_hsdom_tb;
         .NO_CPUS (2),
         .NO_DMAS (2),
         .NO_MEMS (2),
-        .NO_HSIP (2),
+        .NO_HSP (2),
 
         .EN_DEBUG (1)
     ) dut (
@@ -151,7 +151,7 @@ module adam_fabric_hsdom_tb;
         .from_lsdom (from_lsdom),
 
         .mems ('{mem0, mem1}),
-        .hsip ('{hsip0, hsip1}),
+        .hsp ('{hsp0, hsp1}),
         .debug_mst (debug_mst),
         .to_lsdom (to_lsdom)
     );

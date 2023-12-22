@@ -91,21 +91,21 @@ Registers Table
 +------------+--------------+---------------------------------+
 | 0x007      | FAB_HSDOM_MR | Fabric HSDOM Maestro Register   |
 +------------+--------------+---------------------------------+
-| 0x008      | FAB_LSBP_SR  | Fabric LSBP Status Register     |
+| 0x008      | FAB_LSPA_SR  | Fabric LSPA Status Register     |
 +------------+--------------+---------------------------------+
-| 0x009      | FAB_LSBP_MR  | Fabric LSBP Maestro Register    |
+| 0x009      | FAB_LSPA_MR  | Fabric LSPA Maestro Register    |
 +------------+--------------+---------------------------------+
-| 0x00A      | FAB_LSIP_SR  | Fabric LSIP Status Register     |
+| 0x00A      | FAB_LSPB_SR  | Fabric LSPB Status Register     |
 +------------+--------------+---------------------------------+
-| 0x00B      | FAB_LSIP_MR  | Fabric LSIP Maestro Register    |
+| 0x00B      | FAB_LSPB_MR  | Fabric LSPB Maestro Register    |
 +------------+--------------+---------------------------------+
 | 0x00C      | FAB_HSBP_SR  | Fabric HSBP Status Register     |
 +------------+--------------+---------------------------------+
 | 0x00D      | FAB_HSBP_MR  | Fabric HSBP Maestro Register    |
 +------------+--------------+---------------------------------+
-| 0x00E      | FAB_HSIP_SR  | Fabric HSIP Status Register     |
+| 0x00E      | FAB_HSP_SR  | Fabric HSP Status Register     |
 +------------+--------------+---------------------------------+
-| 0x00F      | FAB_HSIP_MR  | Fabric HSIP Maestro Register    |
+| 0x00F      | FAB_HSP_MR  | Fabric HSP Maestro Register    |
 +------------+--------------+---------------------------------+
 | 0x010      | LPCPU_SR     | LPCPU Status Register           |
 +------------+--------------+---------------------------------+
@@ -145,21 +145,21 @@ Registers Table
 +------------+--------------+---------------------------------+
 | ...        | ...          |                                 |
 +------------+--------------+---------------------------------+
-| 0x400 + 2x | LSBPx_SR     | LSBP x Status Register          |
+| 0x400 + 2x | LSPAx_SR     | LSPA x Status Register          |
 +------------+--------------+---------------------------------+
-| 0x401 + 2x | LSBPx_MR     | LSBP x Maestro Register         |
-+------------+--------------+---------------------------------+
-| ...        | ...          |                                 |
-+------------+--------------+---------------------------------+
-| 0x500 + 2x | LSIPx_SR     | LSIP x Status Register          |
-+------------+--------------+---------------------------------+
-| 0x501 + 2x | LSIPx_MR     | LSIP x Maestro Register         |
+| 0x401 + 2x | LSPAx_MR     | LSPA x Maestro Register         |
 +------------+--------------+---------------------------------+
 | ...        | ...          |                                 |
 +------------+--------------+---------------------------------+
-| 0x600 + 2x | HSIPx_SR     | HSIP x Status Register          |
+| 0x500 + 2x | LSPBx_SR     | LSPB x Status Register          |
 +------------+--------------+---------------------------------+
-| 0x601 + 2x | HSIPx_MR     | HSIP x Maestro Register         |
+| 0x501 + 2x | LSPBx_MR     | LSPB x Maestro Register         |
++------------+--------------+---------------------------------+
+| ...        | ...          |                                 |
++------------+--------------+---------------------------------+
+| 0x600 + 2x | HSPx_SR     | HSP x Status Register          |
++------------+--------------+---------------------------------+
+| 0x601 + 2x | HSPx_MR     | HSP x Maestro Register         |
 +------------+--------------+---------------------------------+
 | ...        | ...          |                                 |
 +------------+--------------+---------------------------------+
@@ -218,9 +218,9 @@ Specific Considerations
    This allows for individual control and monitoring of each instance.
    In the automatically generated memory map C header file, these indexed
    register names can be replaced by the actual name of the instance.
-   For example, LSBPx_SR could be specifically named ``LSBP_UART0_SR`` to
+   For example, LSPAx_SR could be specifically named ``LSPA_UART0_SR`` to
    represent the status register of the first UART module connected to the
-   Low-Speed Base Peripheral (LSBP) interconnect.
+   Low-Speed Base Peripheral (LSPA) interconnect.
 
 4. **Reserved Registers**:
    If a specific component described in the register map is not included in a

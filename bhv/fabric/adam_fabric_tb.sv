@@ -81,14 +81,14 @@ module adam_fabric_tb;
     localparam NO_CPUS = 2;
     localparam NO_DMAS = 2;
     localparam NO_MEMS = 2;
-    localparam NO_HSIP = 2;
-    localparam NO_LSBP = 2;
-    localparam NO_LSIP = 2;
+    localparam NO_HSP = 2;
+    localparam NO_LSPA = 2;
+    localparam NO_LSPB = 2;
     
     localparam EN_LPCPU = 1;
     localparam EN_LPMEM = 1;
-    localparam EN_LSBP  = 1;
-    localparam EN_LSIP  = 1;
+    localparam EN_LSPA  = 1;
+    localparam EN_LSPB  = 1;
     localparam EN_DEBUG = 1;
 
     localparam CLK_PERIOD = 20ns;
@@ -109,8 +109,8 @@ module adam_fabric_tb;
 
     ADAM_SEQ   lsdom_seq ();
     ADAM_PAUSE lsdom_pause ();
-    ADAM_PAUSE lsdom_pause_lsbp ();
-    ADAM_PAUSE lsdom_pause_lsip ();
+    ADAM_PAUSE lsdom_pause_lspa ();
+    ADAM_PAUSE lsdom_pause_lspb ();
 
     adam_seq_bhv #(
         .CLK_PERIOD (CLK_PERIOD),
@@ -139,9 +139,9 @@ module adam_fabric_tb;
 
         .TA (TA),
         .TT (TT)
-    ) lsdom_adam_pause_bhv_lsbp (
+    ) lsdom_adam_pause_bhv_lspa (
         .seq   (lsdom_seq),
-        .pause (lsdom_pause_lsbp)
+        .pause (lsdom_pause_lspa)
     );
 
     adam_pause_bhv #(
@@ -150,9 +150,9 @@ module adam_fabric_tb;
 
         .TA (TA),
         .TT (TT)
-    ) lsdom_adam_pause_bhv_lsip (
+    ) lsdom_adam_pause_bhv_lspb (
         .seq   (lsdom_seq),
-        .pause (lsdom_pause_lsip)
+        .pause (lsdom_pause_lspb)
     );
 
     // hsdom seq / pause ======================================================
@@ -203,19 +203,19 @@ module adam_fabric_tb;
     `AXI_SLV_FACTORY(lsdom_lpmem,  0);
     `AXI_SLV_FACTORY(lsdom_syscfg, 1);
 
-    `APB_SLV_FACTORY(lsdom_lsbp0,  2);
-    `APB_SLV_FACTORY(lsdom_lsbp1,  3);
+    `APB_SLV_FACTORY(lsdom_lspa0,  2);
+    `APB_SLV_FACTORY(lsdom_lspa1,  3);
 
-    `APB_SLV_FACTORY(lsdom_lsip0,  4);
-    `APB_SLV_FACTORY(lsdom_lsip1,  5);
+    `APB_SLV_FACTORY(lsdom_lspb0,  4);
+    `APB_SLV_FACTORY(lsdom_lspb1,  5);
 
     // hsdom slaves ===========================================================
 
     `AXI_SLV_FACTORY(hsdom_mems0, 6);
     `AXI_SLV_FACTORY(hsdom_mems1, 7);
 
-    `AXI_SLV_FACTORY(hsdom_hsip0, 8);
-    `AXI_SLV_FACTORY(hsdom_hsip1, 9);
+    `AXI_SLV_FACTORY(hsdom_hsp0, 8);
+    `AXI_SLV_FACTORY(hsdom_hsp1, 9);
 
     `AXI_SLV_FACTORY(hsdom_debug_mst, 10);
 
@@ -230,9 +230,9 @@ module adam_fabric_tb;
         .NO_CPUS (2),
         .NO_DMAS (2),
         .NO_MEMS (2),
-        .NO_HSIP (2),
-        .NO_LSBP (2),
-        .NO_LSIP (2),
+        .NO_HSP (2),
+        .NO_LSPA (2),
+        .NO_LSPB (2),
 
         .EN_LPCPU (1),
         .EN_LPMEM (1),
@@ -240,15 +240,15 @@ module adam_fabric_tb;
     ) dut (
         .lsdom_seq        (lsdom_seq),
         .lsdom_pause      (lsdom_pause),
-        .lsdom_pause_lsbp (lsdom_pause_lsbp),
-        .lsdom_pause_lsip (lsdom_pause_lsip),
+        .lsdom_pause_lspa (lsdom_pause_lspa),
+        .lsdom_pause_lspb (lsdom_pause_lspb),
     
         .lsdom_lpcpu  ('{lsdom_lpcpu0, lsdom_lpcpu1}),
 
         .lsdom_lpmem  (lsdom_lpmem),
         .lsdom_syscfg (lsdom_syscfg),
-        .lsdom_lsbp   ('{lsdom_lsbp0, lsdom_lsbp1}),
-        .lsdom_lsip   ('{lsdom_lsip0, lsdom_lsip1}),
+        .lsdom_lspa   ('{lsdom_lspa0, lsdom_lspa1}),
+        .lsdom_lspb   ('{lsdom_lspb0, lsdom_lspb1}),
 
         .hsdom_seq   (hsdom_seq),
         .hsdom_pause (hsdom_pause),
@@ -258,7 +258,7 @@ module adam_fabric_tb;
         .hsdom_debug_slv (hsdom_debug_slv),
 
         .hsdom_mems      ('{hsdom_mems0, hsdom_mems1}),
-        .hsdom_hsip      ('{hsdom_hsip0, hsdom_hsip1}),
+        .hsdom_hsp      ('{hsdom_hsp0, hsdom_hsp1}),
         .hsdom_debug_mst (hsdom_debug_mst)
     );
 

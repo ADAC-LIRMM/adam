@@ -15,9 +15,9 @@ module adam_fabric #(
     parameter NO_CPUS = 2,
     parameter NO_DMAS = 2,
     parameter NO_MEMS = 2,
-    parameter NO_HSIP = 2,
-    parameter NO_LSBP = 2,
-    parameter NO_LSIP = 2,
+    parameter NO_HSP = 2,
+    parameter NO_LSPA = 2,
+    parameter NO_LSPB = 2,
 
     parameter EN_LPCPU = 1,
     parameter EN_LPMEM = 1,
@@ -35,15 +35,15 @@ module adam_fabric #(
     
     ADAM_SEQ.Slave   lsdom_seq,
     ADAM_PAUSE.Slave lsdom_pause,
-    ADAM_PAUSE.Slave lsdom_pause_lsbp,
-    ADAM_PAUSE.Slave lsdom_pause_lsip,
+    ADAM_PAUSE.Slave lsdom_pause_lspa,
+    ADAM_PAUSE.Slave lsdom_pause_lspb,
 
     AXI_LITE.Slave lsdom_lpcpu [2],
 
     AXI_LITE.Master lsdom_lpmem,
     AXI_LITE.Master lsdom_syscfg,
-    AXI_LITE.Master lsdom_lsbp [NO_LSBP],
-    AXI_LITE.Master lsdom_lsip [NO_LSIP],
+    AXI_LITE.Master lsdom_lspa [NO_LSPA],
+    AXI_LITE.Master lsdom_lspb [NO_LSPB],
 
     // hsdom ==================================================================
     
@@ -55,7 +55,7 @@ module adam_fabric #(
     AXI_LITE.Slave hsdom_debug_slv,
 
     AXI_LITE.Master hsdom_mems [NO_MEMS],
-    AXI_LITE.Master hsdom_hsip [NO_HSIP],
+    AXI_LITE.Master hsdom_hsp [NO_HSP],
     AXI_LITE.Master hsdom_debug_mst
 );
 
@@ -64,8 +64,8 @@ module adam_fabric #(
     `AXIL_I lsdom_from_hsdom ();
     `AXIL_I lsdom_to_hsdom ();
 
-    `AXIL_I lsdom_to_lsbp ();
-    `AXIL_I lsdom_to_lsip ();
+    `AXIL_I lsdom_to_lspa ();
+    `AXIL_I lsdom_to_lspb ();
     
     adam_fabric_lsdom #(
         .ADDR_WIDTH (ADDR_WIDTH),
@@ -75,8 +75,8 @@ module adam_fabric #(
 
         .EN_LPCPU (EN_LPCPU),
         .EN_LPMEM (EN_LPMEM),
-        .EN_LSBP  (NO_LSBP > 0),
-        .EN_LSIP  (NO_LSIP > 0)
+        .EN_LSPA  (NO_LSPA > 0),
+        .EN_LSPB  (NO_LSPB > 0)
     ) adam_fabric_lsdom (
         .seq   (lsdom_seq),
         .pause (lsdom_pause),
@@ -86,48 +86,48 @@ module adam_fabric #(
 
         .lpmem    (lsdom_lpmem),
         .syscfg   (lsdom_syscfg),
-        .lsbp     (lsdom_to_lsbp),
-        .lsip     (lsdom_to_lsip),
+        .lspa     (lsdom_to_lspa),
+        .lspb     (lsdom_to_lspb),
         .to_hsdom (lsdom_to_hsdom)
     );
 
     generate
-        if (NO_LSBP > 0) begin
+        if (NO_LSPA > 0) begin
             adam_fabric_lsxp #(
                 .ADDR_WIDTH (ADDR_WIDTH),
                 .DATA_WIDTH (DATA_WIDTH),
 
-                .NO_MSTS (NO_LSBP)
-            ) adam_fabric_lsbp (
+                .NO_MSTS (NO_LSPA)
+            ) adam_fabric_lspa (
                 .seq   (lsdom_seq),
-                .pause (lsdom_pause_lsbp),
+                .pause (lsdom_pause_lspa),
 
-                .slv  (lsdom_to_lsbp),
-                .msts (lsdom_lsbp)
+                .slv  (lsdom_to_lspa),
+                .msts (lsdom_lspa)
             );
         end
         else begin
-            `ADAM_PAUSE_SLV_TIE_OFF(lsdom_pause_lsbp);
-            `ADAM_AXIL_SLV_TIE_OFF(lsdom_to_lsbp);
+            `ADAM_PAUSE_SLV_TIE_OFF(lsdom_pause_lspa);
+            `ADAM_AXIL_SLV_TIE_OFF(lsdom_to_lspa);
         end
 
-        if (NO_LSIP > 0) begin
+        if (NO_LSPB > 0) begin
             adam_fabric_lsxp #(
                 .ADDR_WIDTH (ADDR_WIDTH),
                 .DATA_WIDTH (DATA_WIDTH),
 
-                .NO_MSTS (NO_LSIP)
-            ) adam_fabric_lsip (
+                .NO_MSTS (NO_LSPB)
+            ) adam_fabric_lspb (
                 .seq   (lsdom_seq),
-                .pause (lsdom_pause_lsip),
+                .pause (lsdom_pause_lspb),
 
-                .slv  (lsdom_to_lsip),
-                .msts (lsdom_lsip)
+                .slv  (lsdom_to_lspb),
+                .msts (lsdom_lspb)
             );
         end
         else begin
-            `ADAM_PAUSE_SLV_TIE_OFF(lsdom_pause_lsip);
-            `ADAM_AXIL_SLV_TIE_OFF(lsdom_to_lsip);
+            `ADAM_PAUSE_SLV_TIE_OFF(lsdom_pause_lspb);
+            `ADAM_AXIL_SLV_TIE_OFF(lsdom_to_lspb);
         end
     endgenerate
 
@@ -145,7 +145,7 @@ module adam_fabric #(
         .NO_CPUS (NO_CPUS),
         .NO_DMAS (NO_DMAS),
         .NO_MEMS (NO_MEMS),
-        .NO_HSIP (NO_HSIP),
+        .NO_HSP (NO_HSP),
 
         .EN_DEBUG (EN_DEBUG)
     ) adam_fabric_hsdom (
@@ -158,7 +158,7 @@ module adam_fabric #(
         .from_lsdom (hsdom_from_lsdom),
 
         .mems      (hsdom_mems),
-        .hsip      (hsdom_hsip),
+        .hsp      (hsdom_hsp),
         .debug_mst (hsdom_debug_mst),
         .to_lsdom  (hsdom_to_lsdom)
     );

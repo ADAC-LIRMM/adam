@@ -118,8 +118,8 @@ module adam_fabric_lsdom_tb;
     
     `SLV_FACTORY(lpmem   , 0, 32'h0000_0000, 32'h0000_8000);
     `SLV_FACTORY(syscfg  , 1, 32'h0000_0000, 32'h0000_0400);
-    `SLV_FACTORY(lsbp    , 2, 32'h0000_0000, 32'h0001_8000);
-    `SLV_FACTORY(lsip    , 3, 32'h0000_0000, 32'h0000_8000);
+    `SLV_FACTORY(lspa    , 2, 32'h0000_0000, 32'h0001_8000);
+    `SLV_FACTORY(lspb    , 3, 32'h0000_0000, 32'h0000_8000);
     `SLV_FACTORY(to_hsdom, 4, 32'h0008_0000, 32'hFFFF_FFFF);
 
     adam_fabric_lsdom #(
@@ -130,8 +130,8 @@ module adam_fabric_lsdom_tb;
 
         .EN_LPCPU (1),
         .EN_LPMEM (1),
-        .EN_LSBP  (1),
-        .EN_LSIP  (1)
+        .EN_LSPA  (1),
+        .EN_LSPB  (1)
     ) dut (
         .seq   (seq),
         .pause (pause),
@@ -141,8 +141,8 @@ module adam_fabric_lsdom_tb;
 
         .lpmem    (lpmem),
         .syscfg   (syscfg),
-        .lsbp     (lsbp),
-        .lsip     (lsip),
+        .lspa     (lspa),
+        .lspb     (lspb),
         .to_hsdom (to_hsdom)
     );
 

@@ -14,8 +14,8 @@ module adam_fabric_lsdom #(
 
     parameter EN_LPCPU  = 1,
     parameter EN_LPMEM  = 1,
-    parameter EN_LSBP   = 1,
-    parameter EN_LSIP   = 1,
+    parameter EN_LSPA   = 1,
+    parameter EN_LSPB   = 1,
 
     // Dependent parameters below, do not override.
 
@@ -33,13 +33,13 @@ module adam_fabric_lsdom #(
 
     AXI_LITE.Master lpmem,
     AXI_LITE.Master syscfg,
-    AXI_LITE.Master lsbp,
-    AXI_LITE.Master lsip,
+    AXI_LITE.Master lspa,
+    AXI_LITE.Master lspb,
     AXI_LITE.Master to_hsdom
 );
 
     localparam NO_SLVS = 2*EN_LPCPU + 1;
-    localparam NO_MSTS = EN_LPMEM + EN_LSBP + EN_LSIP + 2;
+    localparam NO_MSTS = EN_LPMEM + EN_LSPA + EN_LSPB + 2;
 
     typedef struct packed {
         int unsigned idx;
@@ -83,13 +83,13 @@ module adam_fabric_lsdom #(
         localparam SYSCFG_S = MEM_E;
         localparam SYSCFG_E = SYSCFG_S + 1;
 
-        localparam LSBP_S = SYSCFG_E;
-        localparam LSBP_E = LSBP_S + EN_LSBP;
+        localparam LSPA_S = SYSCFG_E;
+        localparam LSPA_E = LSPA_S + EN_LSPA;
 
-        localparam LSIP_S = LSBP_E;
-        localparam LSIP_E = LSIP_S + EN_LSIP;
+        localparam LSPB_S = LSPA_E;
+        localparam LSPB_E = LSPB_S + EN_LSPB;
 
-        localparam TO_HSDOM_S = LSIP_E;
+        localparam TO_HSDOM_S = LSPB_E;
         localparam TO_HSDOM_E = TO_HSDOM_S + 1;
 
         // Memory
@@ -115,30 +115,30 @@ module adam_fabric_lsdom #(
             `ADAM_AXIL_OFFSET(syscfg, msts[i], addr_map[i].start_addr);
         end
 
-        // Low Speed Base Peripherals (LSBP)
-        for (genvar i = LSBP_S; i < LSBP_E; i++) begin
+        // Low Speed Base Peripherals (LSPA)
+        for (genvar i = LSPA_S; i < LSPA_E; i++) begin
             assign addr_map[i] = '{
                 idx: i,
                 start_addr: 32'h0001_0000,
                 end_addr:   32'h0001_8000
             };
-            `ADAM_AXIL_OFFSET(lsbp, msts[i], addr_map[i].start_addr);
+            `ADAM_AXIL_OFFSET(lspa, msts[i], addr_map[i].start_addr);
         end
-        if (!EN_LSBP) begin
-            `ADAM_AXIL_MST_TIE_OFF(lsbp);
+        if (!EN_LSPA) begin
+            `ADAM_AXIL_MST_TIE_OFF(lspa);
         end
 
-        // Low Speed Intermittent Peripherals (LSIP)
-        for (genvar i = LSIP_S; i < LSIP_E; i++) begin
+        // Low Speed Intermittent Peripherals (LSPB)
+        for (genvar i = LSPB_S; i < LSPB_E; i++) begin
             assign addr_map[i] = '{
                 idx: i,
                 start_addr: 32'h0001_8000,
                 end_addr:   32'h0002_0000
             };
-            `ADAM_AXIL_OFFSET(lsip, msts[i], addr_map[i].start_addr);
+            `ADAM_AXIL_OFFSET(lspb, msts[i], addr_map[i].start_addr);
         end
-        if (!EN_LSIP) begin
-            `ADAM_AXIL_MST_TIE_OFF(lsip);
+        if (!EN_LSPB) begin
+            `ADAM_AXIL_MST_TIE_OFF(lspb);
         end
 
         // To High Speed Domain (HSDOM)

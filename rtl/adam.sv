@@ -24,16 +24,16 @@ module adam #(
 
     // async ==================================================================
     
-    ADAM_IO.Master     gpio_io   [NO_LSBP_GPIOS*GPIO_WIDTH],
-    output logic [1:0] gpio_func [NO_LSBP_GPIOS*GPIO_WIDTH],
+    ADAM_IO.Master     gpio_io   [NO_LSPA_GPIOS*GPIO_WIDTH],
+    output logic [1:0] gpio_func [NO_LSPA_GPIOS*GPIO_WIDTH],
     
-    ADAM_IO.Master spi_sclk [NO_LSBP_SPIS],
-    ADAM_IO.Master spi_mosi [NO_LSBP_SPIS],
-    ADAM_IO.Master spi_miso [NO_LSBP_SPIS],
-    ADAM_IO.Master spi_ss_n [NO_LSBP_SPIS],
+    ADAM_IO.Master spi_sclk [NO_LSPA_SPIS],
+    ADAM_IO.Master spi_mosi [NO_LSPA_SPIS],
+    ADAM_IO.Master spi_miso [NO_LSPA_SPIS],
+    ADAM_IO.Master spi_ss_n [NO_LSPA_SPIS],
 
-    ADAM_IO.Master uart_tx [NO_LSBP_UARTS],
-    ADAM_IO.Master uart_rx [NO_LSBP_UARTS]
+    ADAM_IO.Master uart_tx [NO_LSPA_UARTS],
+    ADAM_IO.Master uart_rx [NO_LSPA_UARTS]
 );
     
     // lsdom - lpcpu ==========================================================
@@ -68,30 +68,30 @@ module adam #(
 
     `ADAM_AXIL_SLV_TIE_OFF(lsdom_syscfg_axil);
 
-    // lsdom - lsbp ===========================================================
+    // lsdom - lspa ===========================================================
 
-    ADAM_SEQ   lsdom_lsbp_seq   [NO_LSBPS] ();
-    ADAM_PAUSE lsdom_lsbp_pause [NO_LSBPS] ();
+    ADAM_SEQ   lsdom_lspa_seq   [NO_LSPAS] ();
+    ADAM_PAUSE lsdom_lspa_pause [NO_LSPAS] ();
 
-    `ADAM_APB_I lsdom_lsbp_apb [NO_LSBPS] ();
+    `ADAM_APB_I lsdom_lspa_apb [NO_LSPAS] ();
     
-    logic lsdom_lsbp_irq [NO_LSBPS];
+    logic lsdom_lspa_irq [NO_LSPAS];
 
     generate
-        localparam LSBP_GPIOS_S = 0;
-        localparam LSBP_GPIOS_E = LSBP_GPIOS_S + NO_LSBP_GPIOS;
+        localparam LSPA_GPIOS_S = 0;
+        localparam LSPA_GPIOS_E = LSPA_GPIOS_S + NO_LSPA_GPIOS;
 
-        localparam LSBP_SPIS_S = LSBP_GPIOS_E;
-        localparam LSBP_SPIS_E = LSBP_SPIS_S + NO_LSBP_SPIS;
+        localparam LSPA_SPIS_S = LSPA_GPIOS_E;
+        localparam LSPA_SPIS_E = LSPA_SPIS_S + NO_LSPA_SPIS;
 
-        localparam LSBP_TIMERS_S = LSBP_SPIS_E;
-        localparam LSBP_TIMERS_E = LSBP_TIMERS_S + NO_LSBP_TIMERS;
+        localparam LSPA_TIMERS_S = LSPA_SPIS_E;
+        localparam LSPA_TIMERS_E = LSPA_TIMERS_S + NO_LSPA_TIMERS;
 
-        localparam LSBP_UARTS_S = LSBP_TIMERS_E;
-        localparam LSBP_UARTS_E = LSBP_UARTS_S + NO_LSBP_UARTS;
+        localparam LSPA_UARTS_S = LSPA_TIMERS_E;
+        localparam LSPA_UARTS_E = LSPA_UARTS_S + NO_LSPA_UARTS;
 
-        for (genvar i = LSBP_GPIOS_S; i < LSBP_GPIOS_S; i++) begin
-            localparam OFFSET = GPIO_WIDTH*(i - LSBP_GPIOS_S);
+        for (genvar i = LSPA_GPIOS_S; i < LSPA_GPIOS_S; i++) begin
+            localparam OFFSET = GPIO_WIDTH*(i - LSPA_GPIOS_S);
 
             ADAM_IO     io   [GPIO_WIDTH] ();
             logic [1:0] func [GPIO_WIDTH];
@@ -105,76 +105,76 @@ module adam #(
                 .ADDR_WIDTH (ADDR_WIDTH),
                 .DATA_WIDTH (DATA_WIDTH),
                 .GPIO_WIDTH (GPIO_WIDTH)
-            ) lsbp_gpio (
-                .seq   (lsdom_lsbp_seq[i]),
-                .pause (lsdom_lsbp_pause[i]),
+            ) lspa_gpio (
+                .seq   (lsdom_lspa_seq[i]),
+                .pause (lsdom_lspa_pause[i]),
                 
-                .apb (lsdom_lsbp_apb[i]),
+                .apb (lsdom_lspa_apb[i]),
 
-                .irq (lsdom_lsbp_irq[i]),
+                .irq (lsdom_lspa_irq[i]),
 
                 .io   (io),
                 .func (func)
             );
         end
 
-        for (genvar i = LSBP_SPIS_S; i < LSBP_SPIS_E; i++) begin
+        for (genvar i = LSPA_SPIS_S; i < LSPA_SPIS_E; i++) begin
             adam_periph_spi #(
                 .ADDR_WIDTH (ADDR_WIDTH),
                 .DATA_WIDTH (DATA_WIDTH)
-            ) lsbp_spi (
-                .seq   (lsdom_lsbp_seq[i]),
-                .pause (lsdom_lsbp_pause[i]),
+            ) lspa_spi (
+                .seq   (lsdom_lspa_seq[i]),
+                .pause (lsdom_lspa_pause[i]),
                 
-                .apb (lsdom_lsbp_apb[i]),
+                .apb (lsdom_lspa_apb[i]),
 
-                .irq (lsdom_lsbp_irq[i]),
+                .irq (lsdom_lspa_irq[i]),
 
-                .sclk (spi_sclk[i - LSBP_SPIS_S]),
-                .mosi (spi_mosi[i - LSBP_SPIS_S]),
-                .miso (spi_miso[i - LSBP_SPIS_S]),
-                .ss_n (spi_ss_n[i - LSBP_SPIS_S])
+                .sclk (spi_sclk[i - LSPA_SPIS_S]),
+                .mosi (spi_mosi[i - LSPA_SPIS_S]),
+                .miso (spi_miso[i - LSPA_SPIS_S]),
+                .ss_n (spi_ss_n[i - LSPA_SPIS_S])
             );
         end
 
-        for (genvar i = LSBP_TIMERS_S; i < LSBP_TIMERS_E; i++) begin
+        for (genvar i = LSPA_TIMERS_S; i < LSPA_TIMERS_E; i++) begin
             adam_periph_timer #(
                 .ADDR_WIDTH (ADDR_WIDTH),
                 .DATA_WIDTH (DATA_WIDTH)
-            ) lsbp_timer (
-                .seq   (lsdom_lsbp_seq[i]),
-                .pause (lsdom_lsbp_pause[i]),
+            ) lspa_timer (
+                .seq   (lsdom_lspa_seq[i]),
+                .pause (lsdom_lspa_pause[i]),
                 
-                .apb   (lsdom_lsbp_apb[i]),
+                .apb   (lsdom_lspa_apb[i]),
 
-                .irq (lsdom_lsbp_irq[i])
+                .irq (lsdom_lspa_irq[i])
             );
         end
 
-        for (genvar i = LSBP_UARTS_S; i < LSBP_UARTS_E; i++) begin
+        for (genvar i = LSPA_UARTS_S; i < LSPA_UARTS_E; i++) begin
             adam_periph_uart #(
                 .ADDR_WIDTH(ADDR_WIDTH),
                 .DATA_WIDTH(DATA_WIDTH)
-            ) lsbp_uart (
-                .seq   (lsdom_lsbp_seq[i]),
-                .pause (lsdom_lsbp_pause[i]),
-                .apb   (lsdom_lsbp_apb[i]),
+            ) lspa_uart (
+                .seq   (lsdom_lspa_seq[i]),
+                .pause (lsdom_lspa_pause[i]),
+                .apb   (lsdom_lspa_apb[i]),
 
-                .irq (lsdom_lsbp_irq[i]),
+                .irq (lsdom_lspa_irq[i]),
 
-                .tx (uart_tx[i - LSBP_UARTS_S]),
-                .rx (uart_rx[i - LSBP_UARTS_S])
+                .tx (uart_tx[i - LSPA_UARTS_S]),
+                .rx (uart_rx[i - LSPA_UARTS_S])
             );
         end
     endgenerate
 
-    // lsdom - lsip ===========================================================
+    // lsdom - lspb ===========================================================
 
-    `ADAM_APB_I lsdom_lsip_apb [NO_LSIPS] ();
+    `ADAM_APB_I lsdom_lspb_apb [NO_LSPBS] ();
 
     generate
-        for (genvar i = 0; i < NO_LSIPS; i++) begin
-            `ADAM_APB_SLV_TIE_OFF(lsdom_lsip_apb[i]);
+        for (genvar i = 0; i < NO_LSPBS; i++) begin
+            `ADAM_APB_SLV_TIE_OFF(lsdom_lspb_apb[i]);
         end
     endgenerate
 
@@ -212,12 +212,12 @@ module adam #(
         end
     endgenerate
 
-    // hsdom - hsip ===========================================================
+    // hsdom - hsp ===========================================================
 
-    `ADAM_AXIL_I hsdom_hsip_axil [NO_HSIPS] ();
+    `ADAM_AXIL_I hsdom_hsp_axil [NO_HSPS] ();
 
-    for (genvar i = 0; i < NO_HSIPS; i++) begin
-        `ADAM_AXIL_SLV_TIE_OFF(hsdom_hsip_axil[i]);
+    for (genvar i = 0; i < NO_HSPS; i++) begin
+        `ADAM_AXIL_SLV_TIE_OFF(hsdom_hsp_axil[i]);
     end
 
     // hsdom - debug ==========================================================
@@ -230,11 +230,11 @@ module adam #(
 
     // pause logic ============================================================
 
-    ADAM_PAUSE lsdom_pause_lsbp_bus ();
-    ADAM_PAUSE lsdom_pause_lsip_bus ();
+    ADAM_PAUSE lsdom_pause_lspa_bus ();
+    ADAM_PAUSE lsdom_pause_lspb_bus ();
 
-    `ADAM_PAUSE_MST_TIE_ON(lsdom_pause_lsbp_bus);
-    `ADAM_PAUSE_MST_TIE_ON(lsdom_pause_lsip_bus);
+    `ADAM_PAUSE_MST_TIE_ON(lsdom_pause_lspa_bus);
+    `ADAM_PAUSE_MST_TIE_ON(lsdom_pause_lspb_bus);
 
     ADAM_PAUSE hsdom_pause ();
 
@@ -251,9 +251,9 @@ module adam #(
         .NO_CPUS (NO_CPUS),
         .NO_DMAS (NO_DMAS),
         .NO_MEMS (NO_MEMS),
-        .NO_HSIP (NO_HSIPS),
-        .NO_LSBP (NO_LSBPS),
-        .NO_LSIP (NO_LSIPS),
+        .NO_HSP (NO_HSPS),
+        .NO_LSPA (NO_LSPAS),
+        .NO_LSPB (NO_LSPBS),
 
         .EN_LPCPU (EN_LPCPU),
         .EN_LPMEM (EN_LPMEM),
@@ -261,15 +261,15 @@ module adam #(
     ) adam_fabric (
         .lsdom_seq        (lsdom_seq),
         .lsdom_pause      (lsdom_pause),
-        .lsdom_pause_lsbp (lsdom_pause_lsbp_bus),
-        .lsdom_pause_lsip (lsdom_pause_lsip_bus),
+        .lsdom_pause_lspa (lsdom_pause_lspa_bus),
+        .lsdom_pause_lspb (lsdom_pause_lspb_bus),
     
         .lsdom_lpcpu (lsdom_lpcpu_axil),
 
         .lsdom_lpmem  (lsdom_lpmem_axil),
         .lsdom_syscfg (lsdom_syscfg_axil),
-        .lsdom_lsbp   (lsdom_lsbp_apb),
-        .lsdom_lsip   (lsdom_lsip_apb),
+        .lsdom_lspa   (lsdom_lspa_apb),
+        .lsdom_lspb   (lsdom_lspb_apb),
 
         .hsdom_seq   (hsdom_seq),
         .hsdom_pause (hsdom_pause),
@@ -279,7 +279,7 @@ module adam #(
         .hsdom_debug_slv (hsdom_debug_slv_axil),
 
         .hsdom_mems      (hsdom_mem_axil),
-        .hsdom_hsip      (hsdom_hsip_axil),
+        .hsdom_hsp      (hsdom_hsp_axil),
         .hsdom_debug_mst (hsdom_debug_mst_axil)
     );
 

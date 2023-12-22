@@ -19,15 +19,15 @@ package adam_cfg_pkg;
         bit EN_LPMEM;
         bit EN_DEBUG;
 
-        int NO_LSBP_GPIOS;
-        int NO_LSBP_SPIS;
-        int NO_LSBP_TIMERS;
-        int NO_LSBP_UARTS;
+        int NO_LSPA_GPIOS;
+        int NO_LSPA_SPIS;
+        int NO_LSPA_TIMERS;
+        int NO_LSPA_UARTS;
 
-        int NO_LSIP_GPIOS;
-        int NO_LSIP_SPIS;
-        int NO_LSIP_TIMERS;
-        int NO_LSIP_UARTS;
+        int NO_LSPB_GPIOS;
+        int NO_LSPB_SPIS;
+        int NO_LSPB_TIMERS;
+        int NO_LSPB_UARTS;
 
         int EN_BOOTSTRAP_CPU0;
         int EN_BOOTSTRAP_MEM0;
@@ -50,15 +50,15 @@ package adam_cfg_pkg;
         EN_LPMEM : 1,
         EN_DEBUG : 1,
         
-        NO_LSBP_GPIOS  : 1,
-        NO_LSBP_SPIS   : 1,
-        NO_LSBP_TIMERS : 1,
-        NO_LSBP_UARTS  : 1,
+        NO_LSPA_GPIOS  : 1,
+        NO_LSPA_SPIS   : 1,
+        NO_LSPA_TIMERS : 1,
+        NO_LSPA_UARTS  : 1,
 
-        NO_LSIP_GPIOS  : 1,
-        NO_LSIP_SPIS   : 1,
-        NO_LSIP_TIMERS : 1,
-        NO_LSIP_UARTS  : 1,
+        NO_LSPB_GPIOS  : 1,
+        NO_LSPB_SPIS   : 1,
+        NO_LSPB_TIMERS : 1,
+        NO_LSPB_UARTS  : 1,
 
         EN_BOOTSTRAP_CPU0  : 1,
         EN_BOOTSTRAP_MEM0  : 1,

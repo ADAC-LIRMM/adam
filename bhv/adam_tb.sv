@@ -14,10 +14,10 @@ module adam_tb;
     localparam EN_LPMEM = 1;
     localparam EN_DEBUG = 1;
 
-    localparam NO_LSBP_GPIOS  = 1;
-    localparam NO_LSBP_SPIS   = 1;
-    localparam NO_LSBP_TIMERS = 1;
-    localparam NO_LSBP_UARTS  = 1;
+    localparam NO_LSPA_GPIOS  = 1;
+    localparam NO_LSPA_SPIS   = 1;
+    localparam NO_LSPA_TIMERS = 1;
+    localparam NO_LSPA_UARTS  = 1;
 
     localparam BOOT_ADDR = 32'h0000_0000;
     
@@ -30,10 +30,10 @@ module adam_tb;
     localparam TA = 2ns;
     localparam TT = CLK_PERIOD - TA;
 
-    localparam NO_GPIOS  = NO_LSBP_GPIOS;
-    localparam NO_SPIS   = NO_LSBP_SPIS;
-    localparam NO_TIMERS = NO_LSBP_TIMERS;
-    localparam NO_UARTS  = NO_LSBP_UARTS;
+    localparam NO_GPIOS  = NO_LSPA_GPIOS;
+    localparam NO_SPIS   = NO_LSPA_SPIS;
+    localparam NO_TIMERS = NO_LSPA_TIMERS;
+    localparam NO_UARTS  = NO_LSPA_UARTS;
 
     ADAM_SEQ   lsdom_seq ();
     ADAM_PAUSE lsdom_pause ();

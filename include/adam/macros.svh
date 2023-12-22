@@ -26,35 +26,33 @@
     __opt EN_LPMEM = CFG.EN_LPMEM __sep \
     __opt EN_DEBUG = CFG.EN_DEBUG __sep \
     \
-    __opt NO_LSBP_GPIOS  = CFG.NO_LSBP_GPIOS __sep \
-    __opt NO_LSBP_SPIS   = CFG.NO_LSBP_SPIS __sep \
-    __opt NO_LSBP_TIMERS = CFG.NO_LSBP_TIMERS __sep \
-    __opt NO_LSBP_UARTS  = CFG.NO_LSBP_UARTS __sep \
+    __opt NO_LSPA_GPIOS  = CFG.NO_LSPA_GPIOS __sep \
+    __opt NO_LSPA_SPIS   = CFG.NO_LSPA_SPIS __sep \
+    __opt NO_LSPA_TIMERS = CFG.NO_LSPA_TIMERS __sep \
+    __opt NO_LSPA_UARTS  = CFG.NO_LSPA_UARTS __sep \
     \
-    __opt NO_LSIP_GPIOS  = CFG.NO_LSIP_GPIOS __sep \
-    __opt NO_LSIP_SPIS   = CFG.NO_LSIP_SPIS __sep \
-    __opt NO_LSIP_TIMERS = CFG.NO_LSIP_TIMERS __sep \
-    __opt NO_LSIP_UARTS  = CFG.NO_LSIP_UARTS __sep \
+    __opt NO_LSPB_GPIOS  = CFG.NO_LSPB_GPIOS __sep \
+    __opt NO_LSPB_SPIS   = CFG.NO_LSPB_SPIS __sep \
+    __opt NO_LSPB_TIMERS = CFG.NO_LSPB_TIMERS __sep \
+    __opt NO_LSPB_UARTS  = CFG.NO_LSPB_UARTS __sep \
     \
     __opt EN_BOOTSTRAP_CPU0  = CFG.EN_BOOTSTRAP_CPU0 __sep \
     __opt EN_BOOTSTRAP_MEM0  = CFG.EN_BOOTSTRAP_MEM0 __sep \
     __opt EN_BOOTSTRAP_LPCPU = CFG.EN_BOOTSTRAP_LPCPU __sep \
     __opt EN_BOOTSTRAP_LPMEM = CFG.EN_BOOTSTRAP_LPMEM __sep \
     \
-    __opt NO_LSBPS = NO_LSBP_GPIOS + NO_LSBP_SPIS + NO_LSBP_TIMERS + \
-        NO_LSBP_UARTS __sep \
+    __opt NO_LSPAS = NO_LSPA_GPIOS + NO_LSPA_SPIS + NO_LSPA_TIMERS + \
+        NO_LSPA_UARTS __sep \
     \
-    __opt EN_LSBP = (NO_LSBPS > 0) __sep \
+    __opt EN_LSPA = (NO_LSPAS > 0) __sep \
     \
-    __opt NO_LSIPS = NO_LSIP_GPIOS + NO_LSIP_SPIS + NO_LSIP_TIMERS + \
-        NO_LSIP_UARTS __sep \
+    __opt NO_LSPBS = NO_LSPB_GPIOS + NO_LSPB_SPIS + NO_LSPB_TIMERS + \
+        NO_LSPB_UARTS __sep \
     \
-    __opt EN_LSIP = (NO_LSIPS > 0) __sep \
+    __opt EN_LSPB = (NO_LSPBS > 0) __sep \
     \
-    __opt NO_HSBPS = 1 __sep \
-    __opt EN_HSBP  = 1 __sep \
-    __opt NO_HSIPS = 1 __sep \
-    __opt EN_HSIP  = 1 __sep \
+    __opt NO_HSPS = 1 __sep \
+    __opt EN_HSP  = 1 __sep \
     \
     __opt STRB_WIDTH  = DATA_WIDTH/8 __sep \
     \

@@ -15,7 +15,7 @@ module adam_fabric_hsdom #(
     parameter NO_CPUS = 2,
     parameter NO_DMAS = 2,
     parameter NO_MEMS = 2,
-    parameter NO_HSIP = 2,
+    parameter NO_HSP = 2,
 
     parameter EN_DEBUG = 1,
 
@@ -36,12 +36,12 @@ module adam_fabric_hsdom #(
     AXI_LITE.Slave from_lsdom,
 
     AXI_LITE.Master mems [NO_MEMS],
-    AXI_LITE.Master hsip [NO_HSIP],
+    AXI_LITE.Master hsp [NO_HSP],
     AXI_LITE.Master debug_mst,
     AXI_LITE.Master to_lsdom
 );
     localparam NO_SLVS = 2*NO_CPUS + NO_DMAS + EN_DEBUG + 1;
-    localparam NO_MSTS = NO_MEMS + NO_HSIP + EN_DEBUG + 1;
+    localparam NO_MSTS = NO_MEMS + NO_HSP + EN_DEBUG + 1;
 
     typedef struct packed {
         int unsigned idx;
@@ -97,10 +97,10 @@ module adam_fabric_hsdom #(
         localparam MEMS_S = 0;
         localparam MEMS_E = MEMS_S + NO_MEMS;
 
-        localparam HSIP_S = MEMS_E;
-        localparam HSIP_E = HSIP_S + NO_HSIP;
+        localparam HSP_S = MEMS_E;
+        localparam HSP_E = HSP_S + NO_HSP;
 
-        localparam DEBUG_MST_S = HSIP_E;
+        localparam DEBUG_MST_S = HSP_E;
         localparam DEBUG_MST_E = DEBUG_MST_S + EN_DEBUG;
 
         localparam TO_LSDOM_S = DEBUG_MST_E;
@@ -116,14 +116,14 @@ module adam_fabric_hsdom #(
             `ADAM_AXIL_OFFSET(mems[i-MEMS_S], msts[i], addr_map[i].start_addr);
         end
 
-        // High Speed Intermittent Peripherals (HSIP)
-        for (genvar i = HSIP_S; i < HSIP_E; i++) begin
+        // High Speed Intermittent Peripherals (HSP)
+        for (genvar i = HSP_S; i < HSP_E; i++) begin
             assign addr_map[i] = '{
                 idx: i,
-                start_addr: 32'h0009_0000 + 32'h0000_0400*(i-HSIP_S),
-                end_addr:   32'h0009_0000 + 32'h0000_0400*(i-HSIP_S+1)
+                start_addr: 32'h0009_0000 + 32'h0000_0400*(i-HSP_S),
+                end_addr:   32'h0009_0000 + 32'h0000_0400*(i-HSP_S+1)
             };
-            `ADAM_AXIL_OFFSET(hsip[i-HSIP_S], msts[i], addr_map[i].start_addr);
+            `ADAM_AXIL_OFFSET(hsp[i-HSP_S], msts[i], addr_map[i].start_addr);
         end
 
         // Debug
