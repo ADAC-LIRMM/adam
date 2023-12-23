@@ -1,30 +1,34 @@
+`include "adam/macros.svh"
+
 module adam_pause_demux #(
+    `ADAM_CFG_PARAMS,
+
     parameter NO_MSTS  = 8,
     parameter PARALLEL = 0
 ) (
     ADAM_SEQ.Slave   seq,
 
     ADAM_PAUSE.Slave  slv,
-    ADAM_PAUSE.Master msts [NO_MSTS]
+    ADAM_PAUSE.Master mst [NO_MSTS+1]
 );
     logic slv_req;
     logic slv_ack;
 
-    logic msts_req [NO_MSTS];
-    logic msts_ack [NO_MSTS];
+    logic mst_req [NO_MSTS+1];
+    logic mst_ack [NO_MSTS+1];
 
     generate
         assign slv_req = slv.req;
         assign slv.ack = slv_ack;
 
         for (genvar i = 0; i < NO_MSTS; i++) begin
-            assign msts[i].req = msts_req[i];
-            assign msts_ack[i] = msts[i].ack;
+            assign mst[i].req = mst_req[i];
+            assign mst_ack[i] = mst[i].ack;
         end    
     
         if (PARALLEL) begin
             for (genvar i = 0; i < NO_MSTS; i++) begin
-                assign msts_req[i] = slv_req;
+                assign mst_req[i] = slv_req;
             end
         end
         else begin
@@ -32,22 +36,22 @@ module adam_pause_demux #(
                 if (seq.rst) begin
                     slv_ack <= 1;
                     for (int i = 0; i < NO_MSTS; i++) begin
-                        msts_req[i] <= 1;
+                        mst_req[i] <= 1;
                     end
                 end
                 else if (slv_req && slv_ack) begin
                     // PAUSED
                 end
                 else if (slv_req) begin
-                    msts_req[0] <= 1;
+                    mst_req[0] <= 1;
                     for (int i = 1; i < NO_MSTS; i++) begin
-                        msts_req[i] <= (msts_req[i-1] && msts_ack[i-1]);
+                        mst_req[i] <= (mst_req[i-1] && mst_ack[i-1]);
                     end
                 end
                 else begin
-                    msts_req[NO_MSTS-1] <= 0;
+                    mst_req[NO_MSTS-1] <= 0;
                     for (int i = 0; i < NO_MSTS-1; i++) begin
-                        msts_req[i] <= (msts_req[i+1] || msts_ack[i+1]);
+                        mst_req[i] <= (mst_req[i+1] || mst_ack[i+1]);
                     end
                 end
             end
@@ -58,13 +62,13 @@ module adam_pause_demux #(
         if (slv_req) begin
             slv_ack = 1;
             for (int i = 0; i < NO_MSTS; i++) begin
-                slv_ack &= msts_ack[i];
+                slv_ack &= mst_ack[i];
             end
         end
         else begin
             slv_ack = 0;
             for (int i = 0; i < NO_MSTS; i++) begin
-                slv_ack |= msts_ack[i];
+                slv_ack |= mst_ack[i];
             end
         end
     end

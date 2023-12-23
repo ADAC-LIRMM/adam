@@ -117,6 +117,11 @@
     .AXI_DATA_WIDTH (CFG.DATA_WIDTH) \
 )
 
+`define ADAM_AXIL_DV_I AXI_LITE_DV #( \
+    .AXI_ADDR_WIDTH (ADDR_WIDTH), \
+    .AXI_DATA_WIDTH (DATA_WIDTH) \
+)
+
 `define ADAM_AXIL_MST_TIE_OFF(mst) \
     assign mst.aw_addr = '0; \
     assign mst.aw_prot = 3'b000; \

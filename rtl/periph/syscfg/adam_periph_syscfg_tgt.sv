@@ -18,7 +18,8 @@ module adam_periph_syscfg_tgt #(
     ADAM_PAUSE.Master tgt_pause,
     output ADDR_T     tgt_boot_addr,
     output logic      tgt_irq
-);  
+);
+  
     typedef enum logic [3:0] {
         IDLE   = 0, // No Action (Default) 
         RESUME = 1,
@@ -87,24 +88,24 @@ module adam_periph_syscfg_tgt #(
 
     always_comb begin
         // APB inputs
-        paddr   = apb.paddr;
-        psel    = apb.psel;
-        penable = apb.penable;
-        pwrite  = apb.pwrite;
-        pwdata  = apb.pwdata;
-        pstrb   = apb.pstrb;
+        paddr   = slv.paddr;
+        psel    = slv.psel;
+        penable = slv.penable;
+        pwrite  = slv.pwrite;
+        pwdata  = slv.pwdata;
+        pstrb   = slv.pstrb;
         
         // APB outputs
-        apb.pready  = pready;
-        apb.prdata  = prdata;
-        apb.pslverr = pslverr;
+        slv.pready  = pready;
+        slv.prdata  = prdata;
+        slv.pslverr = pslverr;
 
         // APB address
         index = paddr[ADDR_WIDTH-1:$clog2(STRB_WIDTH)];
 
         // APB strobe
         for (int i = 0; i < DATA_WIDTH/8; i++) begin
-            mask[i*8 +: 8] = (apb.pstrb[i]) ? 8'hFF : 8'h00; 
+            mask[i*8 +: 8] = (slv.pstrb[i]) ? 8'hFF : 8'h00; 
         end
     end
 
@@ -308,14 +309,16 @@ module adam_periph_syscfg_tgt #(
 
     // pause demux ============================================================
 
+    ADAM_PAUSE pause_null ();
+
     adam_pause_demux #(
         .NO_MSTS  (2),
         .PARALLEL (0)
     ) adam_pause_demux (
         .seq (seq),
 
-        .slv  (pause),
-        .msts ('{apb_pause, maestro_pause})
+        .slv (pause),
+        .mst ('{apb_pause, maestro_pause, pause_null})
     );
 
 endmodule

@@ -70,11 +70,14 @@ module adam_periph_syscfg #(
     localparam NO_TGTS = 4 + EN_LSPA + EN_LSPB + EN_HSP + EN_LPCPU + EN_LPMEM +
         NO_CPUS + NO_DMAS + NO_MEMS + NO_LSPAS + NO_LSPBS;
     
+    DATA_T irq_vec;
+
     // Pause ==================================================================
 
     ADAM_PAUSE apb_pause ();
     ADAM_PAUSE tgt_demux_pause ();
     ADAM_PAUSE tgt_pause [NO_TGTS+1] ();
+    ADAM_PAUSE pause_null ();
 
     adam_pause_demux #(
         .NO_MSTS  (2),
@@ -82,8 +85,8 @@ module adam_periph_syscfg #(
     ) top_pause_demux (
         .seq (seq),
 
-        .slv  ('{apb_pause, tgt_demux_pause}),
-        .msts (tgt_pause)
+        .slv (pause),
+        .mst ('{apb_pause, tgt_demux_pause, pause_null})
     );
 
     adam_pause_demux #(
@@ -92,8 +95,8 @@ module adam_periph_syscfg #(
     ) tgt_pause_demux (
         .seq (seq),
 
-        .slv  (tgt_demux_pause),
-        .msts (tgt_pause)
+        .slv (tgt_demux_pause),
+        .mst (tgt_pause)
     );
     
     // Interconnect ===========================================================
@@ -119,16 +122,15 @@ module adam_periph_syscfg #(
     adam_axil_apb_bridge #(
         `ADAM_CFG_PARAMS_MAP,
 
-        .NO_APBS (NO_TGTS),
+        .NO_MSTS (NO_TGTS),
     
         .RULE_T (rule_t)
-    ) dut (
+    ) adam_axil_apb_bridge (
         .seq   (seq),
         .pause (apb_pause),
 
-        .axil (slv),
-        
-        .apb (tgt_apb),
+        .slv (slv),
+        .mst (tgt_apb),
 
         .addr_map (tgt_addr_map)
     );
@@ -177,6 +179,9 @@ module adam_periph_syscfg #(
 
         localparam LSPB_S = LSPA_E;
         localparam LSPB_E = LSPB_S + NO_LSPBS;
+
+        localparam HSP_S = LSPB_E;
+        localparam HSP_E = HSP_S + NO_HSPS;
 
         if (LSDOM_E > LSDOM_S) begin
             adam_periph_syscfg_tgt #(
@@ -411,10 +416,10 @@ module adam_periph_syscfg #(
 
                 .irq_vec (irq_vec),
 
-                .tgt_rst       (cpu_rst[i]),        
-                .tgt_pause     (cpu_pause[i]),
-                .tgt_boot_addr (cpu_boot_addr[i]),
-                .tgt_irq       (cpu_irq[i])
+                .tgt_rst       (cpu_rst      [i - CPU_S]),        
+                .tgt_pause     (cpu_pause    [i - CPU_S]),
+                .tgt_boot_addr (cpu_boot_addr[i - CPU_S]),
+                .tgt_irq       (cpu_irq      [i - CPU_S])
             );
         end
 
@@ -433,10 +438,10 @@ module adam_periph_syscfg #(
 
                 .irq_vec (irq_vec),
 
-                .tgt_rst       (dma_rst[i]),        
-                .tgt_pause     (dma_pause[i]),
+                .tgt_rst       (dma_rst  [i - DMA_S]),        
+                .tgt_pause     (dma_pause[i - DMA_S]),
                 .tgt_boot_addr (),
-                .tgt_irq       (dma_irq[i])
+                .tgt_irq       (dma_irq  [i - DMA_S])
             );
         end
 
@@ -449,14 +454,14 @@ module adam_periph_syscfg #(
                 .EN_IRQ       (0)
             ) tgt_mem (
                 .seq   (seq),
-                .pause (tgt_mem_syscfg_pause),
+                .pause (tgt_pause[i]),
 
                 .slv (tgt_apb[i]),
 
                 .irq_vec (irq_vec),
 
-                .tgt_rst       (mem_rst[i]),        
-                .tgt_pause     (mem_pause[i]),
+                .tgt_rst       (mem_rst  [i - MEM_S]),        
+                .tgt_pause     (mem_pause[i - MEM_S]),
                 .tgt_boot_addr (),
                 .tgt_irq       ()
             );
@@ -477,8 +482,8 @@ module adam_periph_syscfg #(
 
                 .irq_vec (irq_vec),
 
-                .tgt_rst       (lspa_rst[i]),        
-                .tgt_pause     (lspa_pause[i]),
+                .tgt_rst       (lspa_rst  [i - LSPA_S]),        
+                .tgt_pause     (lspa_pause[i - LSPA_S]),
                 .tgt_boot_addr (),
                 .tgt_irq       ()
             );
@@ -499,8 +504,30 @@ module adam_periph_syscfg #(
 
                 .irq_vec (irq_vec),
 
-                .tgt_rst       (lspb_rst[i]),        
-                .tgt_pause     (lspb_pause[i]),
+                .tgt_rst       (lspb_rst  [i - LSPB_S]),        
+                .tgt_pause     (lspb_pause[i - LSPB_S]),
+                .tgt_boot_addr (),
+                .tgt_irq       ()
+            );
+        end
+
+        for (genvar i = HSP_S; i < HSP_E; i++) begin
+            adam_periph_syscfg_tgt #(
+                `ADAM_CFG_PARAMS_MAP,
+
+                .EN_BOOTSTRAP (0),
+                .EN_BOOT_ADDR (0),
+                .EN_IRQ       (0)
+            ) tgt_hsp (
+                .seq   (seq),
+                .pause (tgt_pause[i]),
+
+                .slv (tgt_apb[i]),
+
+                .irq_vec (irq_vec),
+
+                .tgt_rst       (hsp_rst  [i - HSP_S]),        
+                .tgt_pause     (hsp_pause[i - HSP_S]),
                 .tgt_boot_addr (),
                 .tgt_irq       ()
             );

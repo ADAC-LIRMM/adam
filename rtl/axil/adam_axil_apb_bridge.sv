@@ -21,19 +21,44 @@ provided.
 module adam_axil_apb_bridge #(
     `ADAM_CFG_PARAMS,
 
-    parameter NO_APBS = 1,
+    parameter NO_MSTS   = 1,
+    parameter MAX_TRANS = NO_MSTS,
 
-    parameter type RULE_T  = logic
+    parameter type RULE_T = logic
 ) (
     ADAM_SEQ.Slave   seq,
     ADAM_PAUSE.Slave pause,
 
-    AXI_LITE.Slave axil,
-    
-    APB.Master apb [NO_APBS],
+    AXI_LITE.Slave slv,
+    APB.Master     mst [NO_MSTS+1],
 
-    input RULE_T [NO_APBS-1:0] addr_map
+    input RULE_T addr_map [NO_MSTS+1]
 );
+
+    // pause ==================================================================
+
+    `ADAM_AXIL_I slv_after_pause ();
+
+    adam_axil_pause #(
+        `ADAM_CFG_PARAMS_MAP,
+
+        .MAX_TRANS  (MAX_TRANS)
+    ) adam_axil_pause (
+        .seq   (seq),
+        .pause (pause),
+
+        .slv (slv),
+        .mst (slv_after_pause)
+    );
+
+    // phy ====================================================================
+
+    typedef struct packed {
+        int unsigned idx;
+        ADDR_T start_addr;
+        ADDR_T end_addr;
+    } phy_rule_t;
+
     typedef struct packed {
         ADDR_T paddr;  
         PROT_T pprot;  
@@ -58,72 +83,72 @@ module adam_axil_apb_bridge #(
     `AXI_LITE_TYPEDEF_REQ_T(axil_req_t, aw_chan_t, w_chan_t, ar_chan_t);
     `AXI_LITE_TYPEDEF_RESP_T(axil_resp_t, b_chan_t, r_chan_t);
 
-    `ADAM_AXIL_I axil_pause ();
-
-    axil_req_t  axil_pause_req;
-    axil_resp_t axil_pause_resp;
-
-    apb_req_t  [NO_APBS-1:0] apb_req;
-    apb_resp_t [NO_APBS-1:0] apb_resp;
-
-    `AXI_LITE_ASSIGN_TO_REQ(axil_pause_req, axil_pause);
-    `AXI_LITE_ASSIGN_FROM_RESP(axil_pause, axil_pause_resp);
-
-    adam_axil_pause #(
-        `ADAM_CFG_PARAMS_MAP,
-
-        .MAX_TRANS  (NO_APBS)
-    ) adam_axil_pause (
-        .seq   (seq),
-        .pause (pause),
-
-        .slv (axil),
-        .mst (axil_pause)
-    );
-
-    axi_lite_to_apb #(
-        .NoApbSlaves      (NO_APBS),
-        .NoRules          (NO_APBS),
-        .AddrWidth        (ADDR_WIDTH),
-        .DataWidth        (DATA_WIDTH),
-        .PipelineRequest  (1),
-        .PipelineResponse (1),
-        .axi_lite_req_t   (axil_req_t),
-        .axi_lite_resp_t  (axil_resp_t),
-        .apb_req_t        (apb_req_t),
-        .apb_resp_t       (apb_resp_t),
-        .rule_t           (RULE_T)
-    ) axi_lite_to_apb (
-        .clk_i  (seq.clk),
-        .rst_ni (!seq.rst),
-
-        .axi_lite_req_i  (axil_pause_req),
-        .axi_lite_resp_o (axil_pause_resp),
-
-        .apb_req_o  (apb_req),
-        .apb_resp_i (apb_resp),
-
-        .addr_map_i (addr_map)
-    );
-
     generate
-        for (genvar i = 0; i < NO_APBS; i++) begin
-            always_comb begin
-                apb[i].paddr = apb_req[i].paddr -
-                    addr_map[i].start_addr;
-                
-                apb[i].pprot   = apb_req[i].pprot;
-                apb[i].psel    = apb_req[i].psel;
-                apb[i].penable = apb_req[i].penable;
-                apb[i].pwrite  = apb_req[i].pwrite;
-                apb[i].pwdata  = apb_req[i].pwdata;
-                apb[i].pstrb   = apb_req[i].pstrb;
+        if (NO_MSTS > 0) begin
+            axil_req_t  slv_req;
+            axil_resp_t slv_resp;
             
-                apb_resp[i].pready  = apb[i].pready;
-                apb_resp[i].prdata  = apb[i].prdata;
-                apb_resp[i].pslverr = apb[i].pslverr;
+            apb_req_t  [NO_MSTS-1:0] mst_req;
+            apb_resp_t [NO_MSTS-1:0] mst_resp;
+
+            phy_rule_t [NO_MSTS-1:0] phy_addr_map;
+
+            `AXI_LITE_ASSIGN_TO_REQ(slv_req, slv_after_pause);
+            `AXI_LITE_ASSIGN_FROM_RESP(slv_after_pause, slv_resp);
+
+            for (genvar i = 0; i < NO_MSTS; i++) begin
+                assign mst[i].paddr = mst_req[i].paddr -
+                        addr_map[i].start_addr;
+                    
+                assign mst[i].pprot   = mst_req[i].pprot;
+                assign mst[i].psel    = mst_req[i].psel;
+                assign mst[i].penable = mst_req[i].penable;
+                assign mst[i].pwrite  = mst_req[i].pwrite;
+                assign mst[i].pwdata  = mst_req[i].pwdata;
+                assign mst[i].pstrb   = mst_req[i].pstrb;
+            
+                assign mst_resp[i].pready  = mst[i].pready;
+                assign mst_resp[i].prdata  = mst[i].prdata;
+                assign mst_resp[i].pslverr = mst[i].pslverr;
+
+                assign phy_addr_map[i] = '{
+                    idx: i,
+                    start_addr: addr_map[i].start_addr,
+                    end_addr:   addr_map[i].end_addr
+                };
+            end
+            
+            axi_lite_to_apb #(
+                .NoApbSlaves      (NO_MSTS),
+                .NoRules          (NO_MSTS),
+                .AddrWidth        (ADDR_WIDTH),
+                .DataWidth        (DATA_WIDTH),
+                .PipelineRequest  (1),
+                .PipelineResponse (1),
+                .axi_lite_req_t   (axil_req_t),
+                .axi_lite_resp_t  (axil_resp_t),
+                .apb_req_t        (apb_req_t),
+                .apb_resp_t       (apb_resp_t),
+                .rule_t           (phy_rule_t)
+            ) axi_lite_to_apb (
+                .clk_i  (seq.clk),
+                .rst_ni (!seq.rst),
+
+                .axi_lite_req_i  (slv_req),
+                .axi_lite_resp_o (slv_resp),
+
+                .apb_req_o  (mst_req),
+                .apb_resp_i (mst_resp),
+
+                .addr_map_i (phy_addr_map)
+            );
+        end
+        else begin
+            `ADAM_AXIL_SLV_TIE_OFF(slv_after_pause);
+
+            for (genvar i = 0; i < NO_MSTS; i++) begin
+                `ADAM_APB_MST_TIE_OFF(mst[i]);
             end
         end
     endgenerate
-
 endmodule

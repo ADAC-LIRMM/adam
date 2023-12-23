@@ -1,47 +1,36 @@
 `timescale 1ns/1ps
+`include "adam/macros_bhv.svh"
 
 package adam_axil_mst_bhv;
 
 class adam_axil_mst_bhv #(
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32,
-    
-    parameter TA = 2ns,
-    parameter TT = 18ns,
+    `ADAM_BHV_CFG_PARAMS,
     
     parameter MAX_TRANS = 4
 );
 
-    localparam STRB_WIDTH = DATA_WIDTH/8;
-
-    typedef logic [ADDR_WIDTH-1:0] addr_t;
-    typedef logic [1:0]            prot_t;       
-    typedef logic [DATA_WIDTH-1:0] data_t;
-    typedef logic [STRB_WIDTH-1:0] strb_t;
-    typedef logic [1:0]            resp_t;
-
     typedef struct {
-        addr_t addr;
-        prot_t prot;
+        ADDR_T addr;
+        PROT_T prot;
     } aw_t;
 
     typedef struct {
-        data_t data;
-        strb_t strb;
+        DATA_T data;
+        STRB_T strb;
     } w_t;
 
     typedef struct {
-        resp_t resp;
+        RESP_T resp;
     } b_t;
 
     typedef struct {
-        addr_t addr;
-        prot_t prot;
+        ADDR_T addr;
+        PROT_T prot;
     } ar_t;
     
     typedef struct {
-        data_t data;
-        resp_t resp;
+        DATA_T data;
+        RESP_T resp;
     } r_t;
 
     typedef virtual AXI_LITE_DV #(
@@ -64,21 +53,21 @@ class adam_axil_mst_bhv #(
     endfunction
 
     task send_aw(
-        input addr_t addr,
-        input prot_t prot
+        input ADDR_T addr,
+        input PROT_T prot
     );
         aw_queue.push_front('{addr, prot});
     endtask
 
     task send_w(
-        input data_t data,
-        input strb_t strb
+        input DATA_T data,
+        input STRB_T strb
     );
         w_queue.push_front('{data, strb});
     endtask
 
     task recv_b(
-        output resp_t resp
+        output RESP_T resp
     );
         b_t b;
 
@@ -93,15 +82,15 @@ class adam_axil_mst_bhv #(
     endtask
 
     task send_ar(
-        input addr_t addr,
-        input prot_t prot
+        input ADDR_T addr,
+        input PROT_T prot
     );
         ar_queue.push_front('{addr, prot});
     endtask
 
     task recv_r(
-        output data_t data,
-        output resp_t resp
+        output DATA_T data,
+        output RESP_T resp
     );
         r_t r;
 

@@ -16,10 +16,10 @@ module adam_pause_demux_tb;
     ADAM_SEQ seq ();
 
     ADAM_PAUSE mst ();
-    ADAM_PAUSE slvs [NO_SLVS] ();
+    ADAM_PAUSE slvs [NO_SLVS+1] ();
 
-    logic slvs_req [NO_SLVS];
-    logic slvs_ack [NO_SLVS];
+    logic slvs_req [NO_SLVS+1];
+    logic slvs_ack [NO_SLVS+1];
 
     integer paused;
 
@@ -50,8 +50,8 @@ module adam_pause_demux_tb;
     ) dut (
         .seq (seq),
 
-        .slv  (mst),
-        .msts (slvs)
+        .slv (mst),
+        .mst (slvs)
     );
 
     generate

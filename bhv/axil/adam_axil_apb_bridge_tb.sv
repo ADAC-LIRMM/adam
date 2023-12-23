@@ -10,12 +10,11 @@ module adam_axil_apb_bridge_tb;
 
     `ADAM_BHV_CFG_LOCALPARAMS;
     
-    localparam NO_APBS = 8;
+    localparam NO_MSTS = 8;
 
     localparam MAX_TRANS = 7;
 
     typedef struct packed {
-        int unsigned idx;
         ADDR_T start_addr;
         ADDR_T end_addr;
     } rule_t;
@@ -23,44 +22,36 @@ module adam_axil_apb_bridge_tb;
     ADAM_SEQ   seq   ();
     ADAM_PAUSE pause ();
 
-    rule_t [NO_APBS-1:0] addr_map;
+    rule_t addr_map [NO_MSTS+1];
 
-    ADDR_T paddr   [NO_APBS];
-    PROT_T pprot   [NO_APBS];
-    logic  psel    [NO_APBS];
-    logic  penable [NO_APBS];
-    logic  pwrite  [NO_APBS];
-    DATA_T pwdata  [NO_APBS];
-    STRB_T pstrb   [NO_APBS];
-    logic  pready  [NO_APBS];
-    DATA_T prdata  [NO_APBS];
-    logic  pslverr [NO_APBS];
+    ADDR_T paddr   [NO_MSTS+1];
+    PROT_T pprot   [NO_MSTS+1];
+    logic  psel    [NO_MSTS+1];
+    logic  penable [NO_MSTS+1];
+    logic  pwrite  [NO_MSTS+1];
+    DATA_T pwdata  [NO_MSTS+1];
+    STRB_T pstrb   [NO_MSTS+1];
+    logic  pready  [NO_MSTS+1];
+    DATA_T prdata  [NO_MSTS+1];
+    logic  pslverr [NO_MSTS+1];
 
     `ADAM_AXIL_I axil ();
     
-    AXI_LITE_DV #(
-        .AXI_ADDR_WIDTH(ADDR_WIDTH),
-        .AXI_DATA_WIDTH(DATA_WIDTH)
-    ) axil_dv (seq.clk);
+    `ADAM_AXIL_DV_I axil_dv (seq.clk);
 
     `AXI_LITE_ASSIGN(axil, axil_dv);
 
     adam_axil_mst_bhv #(
-        .ADDR_WIDTH (ADDR_WIDTH),
-        .DATA_WIDTH (DATA_WIDTH),
-    
-        .TA (TA),
-        .TT (TT),
+        `ADAM_BHV_CFG_PARAMS_MAP,
 
         .MAX_TRANS (MAX_TRANS)
     ) axil_bhv = new(axil_dv);
 
-    `ADAM_APB_I apb [NO_APBS] ();
+    `ADAM_APB_I apb [NO_MSTS+1] ();
 
     always_comb begin
-        for (int i = 0; i < NO_APBS; i++) begin
+        for (int i = 0; i < NO_MSTS; i++) begin
             addr_map[i] = '{
-                idx: i,
                 start_addr: i << 16,
                 end_addr: (i + 1) << 16
             };
@@ -86,22 +77,21 @@ module adam_axil_apb_bridge_tb;
     adam_axil_apb_bridge #(
         `ADAM_CFG_PARAMS_MAP,
 
-        .NO_APBS (NO_APBS),
+        .NO_MSTS (NO_MSTS),
     
         .RULE_T (rule_t)
     ) dut (
         .seq   (seq),
         .pause (pause),
 
-        .axil (axil),
-        
-        .apb (apb),
+        .slv (axil),
+        .mst (apb),
 
         .addr_map (addr_map)
     );
 
     generate
-        for (genvar i = 0; i < NO_APBS; i++) begin
+        for (genvar i = 0; i < NO_MSTS; i++) begin
             assign paddr  [i] = apb[i].paddr;
             assign pprot  [i] = apb[i].pprot;
             assign psel   [i] = apb[i].psel;
@@ -124,7 +114,7 @@ module adam_axil_apb_bridge_tb;
             DATA_T data;
             RESP_T resp;
 
-            for (int i = 0; i < NO_APBS; i++) begin
+            for (int i = 0; i < NO_MSTS; i++) begin
                 pready [i] = 0;
                 prdata [i] = 0;
                 pslverr[i] = 0;
@@ -133,7 +123,7 @@ module adam_axil_apb_bridge_tb;
             @(negedge seq.rst);
             @(posedge seq.clk);
 
-            for (int i = 0; i < NO_APBS; i++) begin
+            for (int i = 0; i < NO_MSTS; i++) begin
                 addr = (i << 16);
                 data = $urandom();
 

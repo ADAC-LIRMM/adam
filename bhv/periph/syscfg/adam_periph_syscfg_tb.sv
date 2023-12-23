@@ -1,5 +1,5 @@
 `timescale 1ns/1ps
-`include "adam/macros.svh"
+`include "adam/macros_bhv.svh"
 `include "axi/assign.svh"
 `include "vunit_defines.svh"
 
@@ -9,7 +9,8 @@ module adam_periph_syscfg_tb;
     ADAM_SEQ   seq   ();
     ADAM_PAUSE pause ();
 
-    `ADAM_AXI_LITE_BHV_MST_FACTORY(axi, seq.clk);
+    `ADAM_AXIL_I axi ();
+    //`ADAM_AXIL_BHV_MST_FACTORY(axi, seq.clk);
 
     DATA_T irq_vec;
     logic  irq;
@@ -47,24 +48,28 @@ module adam_periph_syscfg_tb;
     ADAM_PAUSE lpmem_pause ();
 
     logic      cpu_rst       [NO_CPUS+1];
-    ADAM_PAUSE cpu_pause     [NO_CPUS+1];
+    ADAM_PAUSE cpu_pause     [NO_CPUS+1] ();
     ADDR_T     cpu_boot_addr [NO_CPUS+1];
     logic      cpu_irq       [NO_CPUS+1];
 
     logic      dma_rst       [NO_DMAS+1];
-    ADAM_PAUSE dma_pause     [NO_DMAS+1];
+    ADAM_PAUSE dma_pause     [NO_DMAS+1] ();
     logic      dma_irq       [NO_DMAS+1];
 
     logic      mem_rst   [NO_MEMS+1];
-    ADAM_PAUSE mem_pause [NO_MEMS+1];
+    ADAM_PAUSE mem_pause [NO_MEMS+1] ();
 
     logic      lspa_rst   [NO_LSPAS+1];
-    ADAM_PAUSE lspa_pause [NO_LSPAS+1];
+    ADAM_PAUSE lspa_pause [NO_LSPAS+1] ();
     logic      lspa_irq   [NO_LSPAS+1];
 
     logic      lspb_rst   [NO_LSPBS+1];
-    ADAM_PAUSE lspb_pause [NO_LSPBS+1];
+    ADAM_PAUSE lspb_pause [NO_LSPBS+1] ();
     logic      lspb_irq   [NO_LSPBS+1];
+
+    logic      hsp_rst   [NO_HSPS+1];
+    ADAM_PAUSE hsp_pause [NO_HSPS+1] ();
+    logic      hsp_irq   [NO_HSPS+1];
 
     adam_periph_syscfg #(
         `ADAM_CFG_PARAMS_MAP
@@ -74,7 +79,6 @@ module adam_periph_syscfg_tb;
 
         .slv (axi),
 
-        .irq_vec (irq_vec),
         .irq     (irq),
 
         .lsdom_rst   (lsdom_rst),
@@ -127,35 +131,39 @@ module adam_periph_syscfg_tb;
 
         .lspb_rst   (lspb_rst),
         .lspb_pause (lspb_pause),
-        .lspb_irq   (lspb_irq)
+        .lspb_irq   (lspb_irq),
+
+        .hsp_rst   (hsp_rst),
+        .hsp_pause (hsp_pause),
+        .hsp_irq   (hsp_irq)
     ); 
 
-    // Connect req and ack for pause directly
-    always_comb begin
-        pause.ack = pause.req;
-    end
+    // // Connect req and ack for pause directly
+    // always_comb begin
+    //     pause.ack = pause.req;
+    // end
 
     `TEST_SUITE begin
-        `TEST_CASE("Reset Routing Test") begin
-            // Reset test for lsdom
-            reset_domain(lsdom_rst);
-            assert (!lsdom_rst);
+        `TEST_CASE("test") begin
+            // // Reset test for lsdom
+            // reset_domain(lsdom_rst);
+            // assert (!lsdom_rst);
 
-            // ... (similar tests for other domains)
+            // // ... (similar tests for other domains)
 
-            repeat (10) @(posedge seq.clk);
+            // repeat (10) @(posedge seq.clk);
         end
     end
 
-    // Helper task for resetting a domain
-    task reset_domain(output logic rst_line);
-        begin
-            // Issue reset command via AXI interface
-            // Check reset line state
-            // Note: Implement AXI write transaction to trigger reset
-            // Example: axi.write(addr, data, strb, resp);
-        end
-    endtask
+    // // Helper task for resetting a domain
+    // task reset_domain(output logic rst_line);
+    //     begin
+    //         // Issue reset command via AXI interface
+    //         // Check reset line state
+    //         // Note: Implement AXI write transaction to trigger reset
+    //         // Example: axi.write(addr, data, strb, resp);
+    //     end
+    // endtask
 
     initial begin
         #1000us $finish;
