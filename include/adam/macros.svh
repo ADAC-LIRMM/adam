@@ -9,8 +9,10 @@
 // ADAM_CFG ===================================================================
 
 `define ADAM_CFG_PARAMS_GENERIC(__opt, __sep) \
-    __opt type CFG_T = adam_cfg_pkg::CFG_T __sep \
-    __opt CFG_T CFG  = adam_cfg_pkg::CFG __sep \
+    __opt type CFG_T  = adam_cfg_pkg::CFG_T __sep \
+    __opt CFG_T CFG   = adam_cfg_pkg::CFG __sep \
+    \
+    __opt type MMAP_T = adam_cfg_pkg::MMAP_T __sep \
     \
     __opt ADDR_WIDTH = CFG.ADDR_WIDTH __sep \
     __opt DATA_WIDTH = CFG.DATA_WIDTH __sep \
@@ -40,6 +42,19 @@
     __opt EN_BOOTSTRAP_MEM0  = CFG.EN_BOOTSTRAP_MEM0 __sep \
     __opt EN_BOOTSTRAP_LPCPU = CFG.EN_BOOTSTRAP_LPCPU __sep \
     __opt EN_BOOTSTRAP_LPMEM = CFG.EN_BOOTSTRAP_LPMEM __sep \
+    \
+    __opt FAB_MAX_TRANS = CFG.FAB_MAX_TRANS __sep \
+    \
+    __opt MMAP_T MMAP_LPMEM  = CFG.MMAP_LPMEM __sep \
+    __opt MMAP_T MMAP_SYSCFG = CFG.MMAP_SYSCFG __sep \
+    __opt MMAP_T MMAP_LSPA   = CFG.MMAP_LSPA __sep \
+    __opt MMAP_T MMAP_LSPB   = CFG.MMAP_LSPB __sep \
+    \
+    __opt MMAP_BOUNDRY = CFG.MMAP_BOUNDRY __sep \
+    \
+    __opt MMAP_T MMAP_DEBUG = CFG.MMAP_DEBUG __sep \
+    __opt adam_cfg_pkg::MMAP_T MMAP_HSP   = CFG.MMAP_HSP __sep \
+    __opt adam_cfg_pkg::MMAP_T MMAP_MEM   = CFG.MMAP_MEM __sep \
     \
     __opt NO_LSPAS = NO_LSPA_GPIOS + NO_LSPA_SPIS + NO_LSPA_TIMERS + \
         NO_LSPA_UARTS __sep \

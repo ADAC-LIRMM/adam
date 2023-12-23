@@ -1,14 +1,10 @@
 `timescale 1ns/1ps
+`include "adam/macros_bhv.svh"
 `include "axi/assign.svh"
 `include "vunit_defines.svh"
 
-`define AXIL_I AXI_LITE #( \
-    .AXI_ADDR_WIDTH (ADDR_WIDTH), \
-    .AXI_DATA_WIDTH (DATA_WIDTH) \
-)
-
 `define MST_FACTORY(MST) \
-    `AXIL_I MST (); \
+    `ADAM_AXIL_I MST (); \
     AXI_LITE_DV #( \
         .AXI_ADDR_WIDTH(ADDR_WIDTH), \
         .AXI_DATA_WIDTH(DATA_WIDTH) \
@@ -27,11 +23,11 @@
     end
 
 `define MST_TEST(MST) begin \
-    addr_t addr; \
-    data_t data_w; \
-    data_t data_r; \
-    resp_t resp_b; \
-    resp_t resp_d; \
+    ADDR_T addr; \
+    DATA_T data_w; \
+    DATA_T data_r; \
+    RESP_T resp_b; \
+    RESP_T resp_d; \
     for (int i = 0; i < 6; i++) begin \
         for (int j = 0; j < 2; j++) begin \
             if (j == 0) begin \
@@ -40,7 +36,7 @@
             else begin \
                 addr = map[i].end_addr - 1; \
             end \
-            data_w = map[i].idx; \
+            data_w = DATA_T'(i); \
             fork \
                 ``MST``_bhv.send_aw(addr, 3'b000); \
                 ``MST``_bhv.send_w(data_w, 4'b1111); \
@@ -56,7 +52,7 @@
 end
 
 `define SLV_FACTORY(SLV, ID, _ADDR_S, _ADDR_E) \
-    `AXIL_I SLV (); \
+    `ADAM_AXIL_I SLV (); \
     adam_axil_slv_simple_bhv #( \
         .ADDR_WIDTH (ADDR_WIDTH), \
         .DATA_WIDTH (DATA_WIDTH), \
@@ -75,29 +71,13 @@ module adam_fabric_hsdom_tb;
     import adam_axil_mst_bhv::*;
     import adam_axil_slv_bhv::*;
 
-    localparam ADDR_WIDTH = 32;
-    localparam DATA_WIDTH = 32;
+    `ADAM_BHV_CFG_LOCALPARAMS;
 
     localparam MAX_TRANS = 7;
 
-    localparam CLK_PERIOD = 20ns;
-    localparam RST_CYCLES = 5;
-
-    localparam TA = 2ns;
-    localparam TT = CLK_PERIOD - TA;
-
-    localparam STRB_WIDTH = DATA_WIDTH/8;
-
-    typedef logic [ADDR_WIDTH-1:0] addr_t;
-    typedef logic [2:0]            prot_t;       
-    typedef logic [DATA_WIDTH-1:0] data_t;
-    typedef logic [STRB_WIDTH-1:0] strb_t;
-    typedef logic [1:0]            resp_t;
-
     typedef struct packed {
-        int unsigned idx;
-        addr_t start_addr;
-        addr_t end_addr;
+        ADDR_T start_addr;
+        ADDR_T end_addr;
     } rule_t;
 
     ADAM_SEQ   seq   ();
@@ -105,12 +85,12 @@ module adam_fabric_hsdom_tb;
     
     rule_t [5:0] map;
     assign map = '{
-        '{ idx: 5, start_addr: 32'h0000_0000, end_addr: 32'h0008_0000},
-        '{ idx: 4, start_addr: 32'h0008_0000, end_addr: 32'h0008_4000},
-        '{ idx: 3, start_addr: 32'h0009_0400, end_addr: 32'h0009_0800},
-        '{ idx: 2, start_addr: 32'h0009_0000, end_addr: 32'h0009_0400},
-        '{ idx: 1, start_addr: 32'h0200_0400, end_addr: 32'h0200_0800},
-        '{ idx: 0, start_addr: 32'h0100_0000, end_addr: 32'h0200_0000}
+        '{32'h0000_0000, 32'h0008_0000},
+        '{32'h0008_0000, 32'h0008_4000},
+        '{32'h0009_0400, 32'h0009_0800},
+        '{32'h0009_0000, 32'h0009_0400},
+        '{32'h0200_0400, 32'h0200_0800},
+        '{32'h0100_0000, 32'h0200_0000}
     };
 
     `MST_FACTORY(cpu0);
@@ -124,8 +104,8 @@ module adam_fabric_hsdom_tb;
     
     `SLV_FACTORY(mem0     , 0, 32'h0000_0000, 32'h0100_0000);
     `SLV_FACTORY(mem1     , 1, 32'h0000_0000, 32'h0100_0000);
-    `SLV_FACTORY(hsp0    , 2, 32'h0000_0000, 32'h0000_0400);
-    `SLV_FACTORY(hsp1    , 3, 32'h0000_0000, 32'h0000_0400);
+    `SLV_FACTORY(hsp0     , 2, 32'h0000_0000, 32'h0000_0400);
+    `SLV_FACTORY(hsp1     , 3, 32'h0000_0000, 32'h0000_0400);
     `SLV_FACTORY(debug_mst, 4, 32'h0000_0000, 32'h0000_4000);
     `SLV_FACTORY(to_lsdom , 5, 32'h0000_0000, 32'h0008_0000);
 
@@ -133,12 +113,10 @@ module adam_fabric_hsdom_tb;
         .ADDR_WIDTH (ADDR_WIDTH),
         .DATA_WIDTH (DATA_WIDTH),
         
-        .MAX_TRANS (MAX_TRANS),
-
         .NO_CPUS (2),
         .NO_DMAS (2),
         .NO_MEMS (2),
-        .NO_HSP (2),
+        .NO_HSPS (2),
 
         .EN_DEBUG (1)
     ) dut (
@@ -157,21 +135,16 @@ module adam_fabric_hsdom_tb;
     );
 
     adam_seq_bhv #(
-        .CLK_PERIOD (CLK_PERIOD),
-        .RST_CYCLES (RST_CYCLES),
-
-        .TA (TA),
-        .TT (TT)
+        `ADAM_BHV_CFG_PARAMS_MAP
     ) adam_seq_bhv (
         .seq (seq)
     );
 
     adam_pause_bhv #(
-        .DELAY    (10us),
-        .DURATION (10us),
+        `ADAM_BHV_CFG_PARAMS_MAP,
 
-        .TA (TA),
-        .TT (TT)
+        .DELAY    (10us),
+        .DURATION (10us)
     ) adam_pause_bhv (
         .seq   (seq),
         .pause (pause)

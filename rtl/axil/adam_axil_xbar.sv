@@ -103,8 +103,8 @@ module adam_axil_xbar #(
 
                 assign phy_addr_map[i] = '{
                     idx: i,
-                    start_addr: addr_map[i].start_addr,
-                    end_addr:   addr_map[i].end_addr
+                    start_addr: addr_map[i].start,
+                    end_addr:   addr_map[i].end_
                 };
             end
  

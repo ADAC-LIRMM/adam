@@ -1,31 +1,8 @@
 `include "adam/macros.svh"
 `include "axi/assign.svh"
 
-`define AXIL_I AXI_LITE #( \
-    .AXI_ADDR_WIDTH (ADDR_WIDTH), \
-    .AXI_DATA_WIDTH (DATA_WIDTH) \
-)
-
 module adam_fabric_hsdom #(
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32,
-
-    parameter MAX_TRANS = 7,
-
-    parameter NO_CPUS = 2,
-    parameter NO_DMAS = 2,
-    parameter NO_MEMS = 2,
-    parameter NO_HSP = 2,
-
-    parameter EN_DEBUG = 1,
-
-    // Dependent parameters bellow, do not override.
-
-    parameter STRB_WIDTH  = DATA_WIDTH/8,
-
-    parameter type addr_t = logic [ADDR_WIDTH-1:0],
-    parameter type data_t = logic [DATA_WIDTH-1:0],
-    parameter type strb_t = logic [STRB_WIDTH-1:0]    
+    `ADAM_CFG_PARAMS
 ) (
     ADAM_SEQ.Slave   seq,
     ADAM_PAUSE.Slave pause,
@@ -36,23 +13,19 @@ module adam_fabric_hsdom #(
     AXI_LITE.Slave from_lsdom,
 
     AXI_LITE.Master mems [NO_MEMS],
-    AXI_LITE.Master hsp [NO_HSP],
+    AXI_LITE.Master hsp  [NO_HSPS],
     AXI_LITE.Master debug_mst,
     AXI_LITE.Master to_lsdom
 );
     localparam NO_SLVS = 2*NO_CPUS + NO_DMAS + EN_DEBUG + 1;
-    localparam NO_MSTS = NO_MEMS + NO_HSP + EN_DEBUG + 1;
+    localparam NO_MSTS = NO_MEMS + NO_HSPS + EN_DEBUG + 1;
 
-    typedef struct packed {
-        int unsigned idx;
-        addr_t start_addr;
-        addr_t end_addr;
-    } rule_t;
+    localparam type RULE_T = adam_cfg_pkg::MMAP_T;
 
-    `AXIL_I slvs [NO_SLVS] ();
-    `AXIL_I msts [NO_MSTS] ();
+    `ADAM_AXIL_I slvs [NO_SLVS+1] ();
+    `ADAM_AXIL_I msts [NO_MSTS+1] ();
     
-    rule_t [NO_MSTS-1:0] addr_map;
+    RULE_T addr_map [NO_MSTS+1];
     
     // Slave Mapping
     generate 
@@ -98,7 +71,7 @@ module adam_fabric_hsdom #(
         localparam MEMS_E = MEMS_S + NO_MEMS;
 
         localparam HSP_S = MEMS_E;
-        localparam HSP_E = HSP_S + NO_HSP;
+        localparam HSP_E = HSP_S + NO_HSPS;
 
         localparam DEBUG_MST_S = HSP_E;
         localparam DEBUG_MST_E = DEBUG_MST_S + EN_DEBUG;
@@ -109,31 +82,25 @@ module adam_fabric_hsdom #(
         // Memories
         for (genvar i = MEMS_S; i < MEMS_E; i++) begin
             assign addr_map[i] = '{
-                idx: i,
-                start_addr: 32'h0100_0000 + 32'h0100_0000*(i-MEMS_S),
-                end_addr:   32'h0100_0000 + 32'h0100_0000*(i-MEMS_S+1)
+                start: MMAP_MEM.start + MMAP_MEM.inc*(i-MEMS_S),
+                end_:  MMAP_MEM.start + MMAP_MEM.inc*(i-MEMS_S+1)
             };
-            `ADAM_AXIL_OFFSET(mems[i-MEMS_S], msts[i], addr_map[i].start_addr);
+            `ADAM_AXIL_OFFSET(mems[i-MEMS_S], msts[i], addr_map[i].start);
         end
 
         // High Speed Intermittent Peripherals (HSP)
         for (genvar i = HSP_S; i < HSP_E; i++) begin
             assign addr_map[i] = '{
-                idx: i,
-                start_addr: 32'h0009_0000 + 32'h0000_0400*(i-HSP_S),
-                end_addr:   32'h0009_0000 + 32'h0000_0400*(i-HSP_S+1)
+                start: MMAP_HSP.start + MMAP_HSP.inc*(i-HSP_S),
+                end_:  MMAP_HSP.start + MMAP_HSP.inc*(i-HSP_S+1)
             };
-            `ADAM_AXIL_OFFSET(hsp[i-HSP_S], msts[i], addr_map[i].start_addr);
+            `ADAM_AXIL_OFFSET(hsp[i-HSP_S], msts[i], addr_map[i].start);
         end
 
         // Debug
         for (genvar i = DEBUG_MST_S; i < DEBUG_MST_E; i++) begin
-            assign addr_map[i] = '{
-                idx: i,
-                start_addr: 32'h0008_0000,
-                end_addr:   32'h0008_4000
-            };
-            `ADAM_AXIL_OFFSET(debug_mst, msts[i], addr_map[i].start_addr);
+            assign addr_map[i] = MMAP_DEBUG;
+            `ADAM_AXIL_OFFSET(debug_mst, msts[i], addr_map[i].start);
         end
         if (!EN_DEBUG) begin
             `ADAM_AXIL_MST_TIE_OFF(debug_mst);
@@ -142,30 +109,28 @@ module adam_fabric_hsdom #(
         // To Low Speed Domain (LSDOM)
         for (genvar i = TO_LSDOM_S; i < TO_LSDOM_E; i++) begin
             assign addr_map[i] = '{
-                idx: i,
-                start_addr: 32'h0000_0000,
-                end_addr:   32'h0008_0000
+                start: '0,
+                end_:  MMAP_BOUNDRY
             };
             `AXI_LITE_ASSIGN(to_lsdom, msts[i]);
         end
     endgenerate
 
     adam_axil_xbar #(
-        .ADDR_WIDTH (ADDR_WIDTH),
-        .DATA_WIDTH (DATA_WIDTH),
+        `ADAM_CFG_PARAMS_MAP,
 
         .NO_SLVS (NO_SLVS),
         .NO_MSTS (NO_MSTS),
         
-        .MAX_TRANS (MAX_TRANS),
+        .MAX_TRANS (FAB_MAX_TRANS),
 
-        .rule_t (rule_t)
+        .RULE_T (RULE_T)
     ) adam_axil_xbar (
         .seq   (seq),
         .pause (pause),
 
-        .axil_slvs (slvs),
-        .axil_msts (msts),
+        .slv (slvs),
+        .mst (msts),
 
         .addr_map (addr_map)
     );

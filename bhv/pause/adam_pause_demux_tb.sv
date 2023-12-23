@@ -16,10 +16,10 @@ module adam_pause_demux_tb;
     ADAM_SEQ seq ();
 
     ADAM_PAUSE mst ();
-    ADAM_PAUSE slvs [NO_SLVS+1] ();
+    ADAM_PAUSE slv [NO_SLVS+1] ();
 
-    logic slvs_req [NO_SLVS+1];
-    logic slvs_ack [NO_SLVS+1];
+    logic slv_req [NO_SLVS+1];
+    logic slv_ack [NO_SLVS+1];
 
     integer paused;
 
@@ -51,28 +51,28 @@ module adam_pause_demux_tb;
         .seq (seq),
 
         .slv (mst),
-        .mst (slvs)
+        .mst (slv)
     );
 
     generate
         for (genvar i = 0; i < NO_SLVS; i++) begin
-            assign slvs_req[i] = slvs[i].req;
-            assign slvs[i].ack = slvs_ack[i];
+            assign slv_req[i] = slv[i].req;
+            assign slv[i].ack = slv_ack[i];
         
             initial begin
-                slvs_ack[i] = 1;
+                slv_ack[i] = 1;
 
                 `ADAM_UNTIL(!seq.rst);
 
                 forever begin
-                    `ADAM_UNTIL(slvs_req[i] != slvs_ack[i]);         
+                    `ADAM_UNTIL(slv_req[i] != slv_ack[i]);         
                     repeat ($urandom_range(0, 100)) `ADAM_UNTIL(1);
                     
-                    paused += (slvs_req[i]) ? 1 : -1;
+                    paused += (slv_req[i]) ? 1 : -1;
                     cycle_start();
                     cycle_end();
 
-                    slvs_ack[i] <= #TA slvs_req[i];
+                    slv_ack[i] <= #TA slv_req[i];
                     cycle_start();
                     cycle_end();
                 end
