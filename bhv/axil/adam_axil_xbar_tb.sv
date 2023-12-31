@@ -17,8 +17,8 @@ module adam_axil_xbar_tb;
     localparam NO_TESTS = 1000;
 
     typedef struct packed {
-        ADDR_T start_addr;
-        ADDR_T end_addr;
+        ADDR_T start;
+        ADDR_T end_;
     } rule_t;
     
     integer done;
@@ -69,8 +69,8 @@ module adam_axil_xbar_tb;
     always_comb begin
         for (int i = 0; i < NO_XBAR_MSTS; i++) begin
             addr_map[i] = '{
-                start_addr: (i     << 16),
-                end_addr:   ((i+1) << 16)
+                start : (i     << 16),
+                end_  : ((i+1) << 16)
             };
         end
     end

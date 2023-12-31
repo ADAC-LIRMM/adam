@@ -116,4 +116,44 @@ end
 `define ADAM_UNTIL_FINNALY(cond, finnaly) \
     `ADAM_UNTIL_DO_FINNALY(cond,, finnaly);
 
+// ADAM_AXIL_BHV Factories ====================================================
+
+`define ADAM_AXIL_BHV_MST_FACTORY(
+    _MAX_TRANS,
+    mst, clk
+) \
+    `ADAM_AXIL_I mst (); \
+    `ADAM_AXIL_DV_I ``mst``_dv (clk); \
+    adam_axil_mst_bhv #( \
+        `ADAM_BHV_CFG_PARAMS_MAP, \
+        \
+        .MAX_TRANS (_MAX_TRANS) \
+    ) ``mst``_bhv; \
+    `AXI_LITE_ASSIGN(mst, ``mst``_dv); \
+    initial begin \
+        ``mst``_bhv = new(``mst``_dv); \
+        ``mst``_bhv.loop(); \
+    end
+
+`define ADAM_AXIL_BHV_MST_ARRAY_FACTORY(
+    _MAX_TRANS,
+    mst, size, clk
+) \
+    `ADAM_AXIL_I mst [size] (); \
+    `ADAM_AXIL_DV_I ``mst``_dv [size] (clk); \
+    adam_axil_mst_bhv #( \
+        `ADAM_BHV_CFG_PARAMS_MAP, \
+        \
+        .MAX_TRANS (_MAX_TRANS) \
+    ) ``mst``_bhv [size]; \
+    generate \
+        for (genvar i = 0; i < (size); i++) begin \
+            `AXI_LITE_ASSIGN(mst[i], ``mst``_dv[i]); \
+            initial begin \
+                ``mst``_bhv[i] = new(``mst``_dv[i]); \
+                ``mst``_bhv[i].loop(); \
+            end \
+        end \
+    endgenerate
+    
 `endif

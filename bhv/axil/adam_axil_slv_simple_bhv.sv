@@ -1,16 +1,13 @@
 `timescale 1ns/1ps
+`include "adam/macros_bhv.svh"
 `include "axi/assign.svh"
 
 module adam_axil_slv_simple_bhv #(
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32,
+    `ADAM_BHV_CFG_PARAMS,
     
     parameter ADDR_S = 32'h0000_0000,
     parameter ADDR_E = 32'hFFFF_FFFF,
     parameter DATA   = 32'h0000_FFFF,
-
-    parameter TA = 2ns,
-    parameter TT = 18ns,
     
     parameter MAX_TRANS = 4
 ) (
@@ -19,25 +16,13 @@ module adam_axil_slv_simple_bhv #(
 );
     import adam_axil_slv_bhv::*;
     
-    localparam STRB_WIDTH = DATA_WIDTH/8;
-
-    typedef logic [ADDR_WIDTH-1:0] addr_t;
-    typedef logic [2:0]            prot_t;       
-    typedef logic [DATA_WIDTH-1:0] data_t;
-    typedef logic [STRB_WIDTH-1:0] strb_t;
-    typedef logic [1:0]            resp_t;
-
     AXI_LITE_DV #(
         .AXI_ADDR_WIDTH(ADDR_WIDTH),
         .AXI_DATA_WIDTH(DATA_WIDTH)
     ) slv_dv (seq.clk);
 
     adam_axil_slv_bhv #(
-        .ADDR_WIDTH (ADDR_WIDTH),
-        .DATA_WIDTH (DATA_WIDTH),
-        
-        .TA (TA),
-        .TT (TT),
+        `ADAM_BHV_CFG_PARAMS_MAP,
         
         .MAX_TRANS (MAX_TRANS)
     ) slv_bhv;
@@ -50,11 +35,11 @@ module adam_axil_slv_simple_bhv #(
     end
 
     initial begin
-        addr_t addr;
-        prot_t prot;
-        data_t data;
-        strb_t strb;
-        resp_t resp;
+        ADDR_T addr;
+        PROT_T prot;
+        DATA_T data;
+        STRB_T strb;
+        RESP_T resp;
 
         @(negedge seq.rst);
         @(posedge seq.clk);
@@ -69,9 +54,14 @@ module adam_axil_slv_simple_bhv #(
                 (addr < ADDR_E) &&
                 (data == DATA)
             ) begin
+                $display("%x %x %x", addr, ADDR_S, ADDR_E);
+                $display("%d %d", data, DATA);
                 resp = axi_pkg::RESP_OKAY;
             end
             else begin
+                $directly("error");
+                $display("%x %x %x", addr, ADDR_S, ADDR_E);
+                $display("%d %d", data, DATA);
                 resp = axi_pkg::RESP_DECERR;
             end
             slv_bhv.send_b(resp);
@@ -79,11 +69,11 @@ module adam_axil_slv_simple_bhv #(
     end
 
     initial begin
-        addr_t addr;
-        prot_t prot;
-        data_t data;
-        strb_t strb;
-        resp_t resp;
+        ADDR_T addr;
+        PROT_T prot;
+        DATA_T data;
+        STRB_T strb;
+        RESP_T resp;
 
         @(negedge seq.rst);
         @(posedge seq.clk);

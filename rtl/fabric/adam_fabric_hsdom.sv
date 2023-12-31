@@ -7,13 +7,13 @@ module adam_fabric_hsdom #(
     ADAM_SEQ.Slave   seq,
     ADAM_PAUSE.Slave pause,
 
-    AXI_LITE.Slave cpus [2*NO_CPUS],
-    AXI_LITE.Slave dmas [NO_DMAS],
+    AXI_LITE.Slave cpu [2*NO_CPUS+1],
+    AXI_LITE.Slave dma [NO_DMAS+1],
     AXI_LITE.Slave debug_slv,
     AXI_LITE.Slave from_lsdom,
 
-    AXI_LITE.Master mems [NO_MEMS],
-    AXI_LITE.Master hsp  [NO_HSPS],
+    AXI_LITE.Master mem [NO_MEMS+1],
+    AXI_LITE.Master hsp [NO_HSPS+1],
     AXI_LITE.Master debug_mst,
     AXI_LITE.Master to_lsdom
 );
@@ -43,12 +43,12 @@ module adam_fabric_hsdom #(
 
         // Cores
         for (genvar i = CPUS_S; i < CPUS_E; i++) begin
-            `AXI_LITE_ASSIGN(slvs[i], cpus[i-CPUS_S]);
+            `AXI_LITE_ASSIGN(slvs[i], cpu[i-CPUS_S]);
         end
 
         // DMAs
         for (genvar i = DMAS_S; i < DMAS_E; i++) begin
-            `AXI_LITE_ASSIGN(slvs[i], dmas[i-DMAS_S]);
+            `AXI_LITE_ASSIGN(slvs[i], dma[i-DMAS_S]);
         end
 
         // Debug
@@ -85,7 +85,7 @@ module adam_fabric_hsdom #(
                 start: MMAP_MEM.start + MMAP_MEM.inc*(i-MEMS_S),
                 end_:  MMAP_MEM.start + MMAP_MEM.inc*(i-MEMS_S+1)
             };
-            `ADAM_AXIL_OFFSET(mems[i-MEMS_S], msts[i], addr_map[i].start);
+            `ADAM_AXIL_OFFSET(mem[i-MEMS_S], msts[i], addr_map[i].start);
         end
 
         // High Speed Intermittent Peripherals (HSP)

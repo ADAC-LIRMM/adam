@@ -3,70 +3,6 @@
 `include "axi/assign.svh"
 `include "vunit_defines.svh"
 
-`define MST_FACTORY(MST) \
-    `ADAM_AXIL_I MST (); \
-    AXI_LITE_DV #( \
-        .AXI_ADDR_WIDTH(ADDR_WIDTH), \
-        .AXI_DATA_WIDTH(DATA_WIDTH) \
-    ) ``MST``_dv (seq.clk); \
-    `AXI_LITE_ASSIGN(MST, ``MST``_dv); \
-    adam_axil_mst_bhv #( \
-        .ADDR_WIDTH (ADDR_WIDTH), \
-        .DATA_WIDTH (DATA_WIDTH), \
-        .TA (TA), \
-        .TT (TT), \
-        .MAX_TRANS (MAX_TRANS) \
-    ) ``MST``_bhv; \
-    initial begin \
-        ``MST``_bhv = new(``MST``_dv); \
-        ``MST``_bhv.loop(); \
-    end
-
-`define MST_TEST(MST) begin \
-    ADDR_T addr; \
-    DATA_T data_w; \
-    DATA_T data_r; \
-    RESP_T resp_b; \
-    RESP_T resp_d; \
-    for (int i = 0; i < 6; i++) begin \
-        for (int j = 0; j < 2; j++) begin \
-            if (j == 0) begin \
-                addr = map[i].start_addr; \
-            end \
-            else begin \
-                addr = map[i].end_addr - 1; \
-            end \
-            data_w = DATA_T'(i); \
-            fork \
-                ``MST``_bhv.send_aw(addr, 3'b000); \
-                ``MST``_bhv.send_w(data_w, 4'b1111); \
-                ``MST``_bhv.recv_b(resp_b); \
-                ``MST``_bhv.send_ar(addr, 3'b000); \
-                ``MST``_bhv.recv_r(data_r, resp_d); \
-            join \
-            assert (resp_b == axi_pkg::RESP_OKAY); \
-            assert (resp_d == axi_pkg::RESP_OKAY); \
-            assert (data_r == data_w); \
-        end \
-    end \
-end
-
-`define SLV_FACTORY(SLV, ID, _ADDR_S, _ADDR_E) \
-    `ADAM_AXIL_I SLV (); \
-    adam_axil_slv_simple_bhv #( \
-        .ADDR_WIDTH (ADDR_WIDTH), \
-        .DATA_WIDTH (DATA_WIDTH), \
-        .ADDR_S (_ADDR_S), \
-        .ADDR_E (_ADDR_E), \
-        .DATA (ID), \
-        .TA (TA), \
-        .TT (TT), \
-        .MAX_TRANS (MAX_TRANS) \
-    ) ``SLV``_bhv ( \
-        .seq (seq), \
-        .slv (SLV) \
-    );
-
 module adam_fabric_hsdom_tb;
     import adam_axil_mst_bhv::*;
     import adam_axil_slv_bhv::*;
@@ -75,65 +11,14 @@ module adam_fabric_hsdom_tb;
 
     localparam MAX_TRANS = 7;
 
-    typedef struct packed {
-        ADDR_T start_addr;
-        ADDR_T end_addr;
-    } rule_t;
+    localparam NO_MSTS = 2*NO_CPUS + NO_DMAS + EN_DEBUG + 1;
+    localparam NO_SLVS = NO_MEMS + NO_HSPS + EN_DEBUG + 1;
+    
+    // seq and pause ==========================================================
 
     ADAM_SEQ   seq   ();
     ADAM_PAUSE pause ();
     
-    rule_t [5:0] map;
-    assign map = '{
-        '{32'h0000_0000, 32'h0008_0000},
-        '{32'h0008_0000, 32'h0008_4000},
-        '{32'h0009_0400, 32'h0009_0800},
-        '{32'h0009_0000, 32'h0009_0400},
-        '{32'h0200_0400, 32'h0200_0800},
-        '{32'h0100_0000, 32'h0200_0000}
-    };
-
-    `MST_FACTORY(cpu0);
-    `MST_FACTORY(cpu1);
-    `MST_FACTORY(cpu2);
-    `MST_FACTORY(cpu3);
-    `MST_FACTORY(dma0);
-    `MST_FACTORY(dma1);
-    `MST_FACTORY(debug_slv);
-    `MST_FACTORY(from_lsdom);
-    
-    `SLV_FACTORY(mem0     , 0, 32'h0000_0000, 32'h0100_0000);
-    `SLV_FACTORY(mem1     , 1, 32'h0000_0000, 32'h0100_0000);
-    `SLV_FACTORY(hsp0     , 2, 32'h0000_0000, 32'h0000_0400);
-    `SLV_FACTORY(hsp1     , 3, 32'h0000_0000, 32'h0000_0400);
-    `SLV_FACTORY(debug_mst, 4, 32'h0000_0000, 32'h0000_4000);
-    `SLV_FACTORY(to_lsdom , 5, 32'h0000_0000, 32'h0008_0000);
-
-    adam_fabric_hsdom #(
-        .ADDR_WIDTH (ADDR_WIDTH),
-        .DATA_WIDTH (DATA_WIDTH),
-        
-        .NO_CPUS (2),
-        .NO_DMAS (2),
-        .NO_MEMS (2),
-        .NO_HSPS (2),
-
-        .EN_DEBUG (1)
-    ) dut (
-        .seq   (seq),
-        .pause (pause),
-        
-        .cpus ('{cpu0, cpu1, cpu2, cpu3}),
-        .dmas ('{dma0, dma1}),
-        .debug_slv (debug_slv),
-        .from_lsdom (from_lsdom),
-
-        .mems ('{mem0, mem1}),
-        .hsp ('{hsp0, hsp1}),
-        .debug_mst (debug_mst),
-        .to_lsdom (to_lsdom)
-    );
-
     adam_seq_bhv #(
         `ADAM_BHV_CFG_PARAMS_MAP
     ) adam_seq_bhv (
@@ -149,25 +34,214 @@ module adam_fabric_hsdom_tb;
         .seq   (seq),
         .pause (pause)
     );
+    
+    // Masters ================================================================
+
+    `ADAM_AXIL_I cpu [2*NO_CPUS+1] ();
+    `ADAM_AXIL_I dma [NO_DMAS+1] ();
+    `ADAM_AXIL_I debug_mst ();
+    `ADAM_AXIL_I from_lsdom ();
+
+    `ADAM_AXIL_BHV_MST_ARRAY_FACTORY(MAX_TRANS, mst, NO_MSTS, seq.clk);
+
+    generate
+        localparam CPU_S = 0;
+        localparam CPU_E = CPU_S + 2*NO_CPUS;
+
+        localparam DMA_S = CPU_E;
+        localparam DMA_E = DMA_S + NO_DMAS;
+
+        localparam DEBUG_MST_S = DMA_E;
+        localparam DEBUG_MST_E = DEBUG_MST_S + EN_DEBUG;
+
+        localparam FROM_LSDOM_S = DEBUG_MST_E;
+        localparam FROM_LSDOM_E = FROM_LSDOM_S + 1;
+
+        for (genvar i = CPU_S; i < CPU_E; i++) begin
+            `AXI_LITE_ASSIGN(cpu[i-CPU_S], mst[i]);
+        end
+
+        for (genvar i = DMA_S; i < DMA_E; i++) begin
+            `AXI_LITE_ASSIGN(dma[i-DMA_S], mst[i]);
+        end
+
+        for (genvar i = DEBUG_MST_S; i < DEBUG_MST_E; i++) begin
+            `AXI_LITE_ASSIGN(debug_mst, mst[i]);
+        end
+
+        for (genvar i = FROM_LSDOM_S; i < FROM_LSDOM_E; i++) begin
+            `AXI_LITE_ASSIGN(from_lsdom, mst[i]);
+        end
+    endgenerate
+
+    // Slaves =================================================================
+
+    `ADAM_AXIL_I mem  [NO_MEMS+1] ();
+    `ADAM_AXIL_I hsp [NO_HSPS+1] ();
+    `ADAM_AXIL_I debug_slv ();
+    `ADAM_AXIL_I to_lsdom ();
+
+    MMAP_T addr_map [NO_SLVS+1];
+
+    generate  
+        localparam MEM_S = 0;
+        localparam MEM_E = MEM_S + NO_MEMS;
+
+        localparam HSP_S = MEM_E;
+        localparam HSP_E = HSP_S + NO_HSPS;
+
+        localparam DEBUG_SLV_S = HSP_E;
+        localparam DEBUG_SLV_E = DEBUG_SLV_S + EN_DEBUG;
+
+        localparam TO_LSDOM_S = DEBUG_SLV_E;
+        localparam TO_LSDOM_E = TO_LSDOM_S + 1;
+
+        for (genvar i = MEM_S; i < MEM_E; i++) begin
+            assign addr_map[i] = '{
+                start : MMAP_MEM.start + MMAP_MEM.inc*i,
+                end_  : MMAP_MEM.start + MMAP_MEM.inc*(i+1),
+                inc   : '0
+            };
+
+            adam_axil_slv_simple_bhv #(
+                `ADAM_BHV_CFG_PARAMS_MAP,
+
+                .ADDR_S ('0),
+                .ADDR_E (MMAP_MEM.inc),
+                .DATA   (DATA_T'(i)),
+
+                .MAX_TRANS (MAX_TRANS)
+            ) mem_bhv (
+                .seq (seq),
+                .slv (mem[i-MEM_S])
+            );
+        end
+
+        for (genvar i = HSP_S; i < HSP_E; i++) begin
+            assign addr_map[i] = '{
+                start : MMAP_HSP.start + MMAP_HSP.inc*i,
+                end_  : MMAP_HSP.start + MMAP_HSP.inc*(i+1),
+                inc   : '0
+            };
+
+            adam_axil_slv_simple_bhv #(
+                `ADAM_BHV_CFG_PARAMS_MAP,
+
+                .ADDR_S ('0),
+                .ADDR_E (MMAP_HSP.inc),
+                .DATA   (DATA_T'(i)),
+
+                .MAX_TRANS (MAX_TRANS)
+            ) mem_bhv (
+                .seq (seq),
+                .slv (hsp[i-HSP_S])
+            );
+        end
+
+        for (genvar i = DEBUG_SLV_S; i < DEBUG_SLV_E; i++) begin
+            assign addr_map[i] = {
+                start : MMAP_DEBUG.start,
+                end_  : MMAP_DEBUG.end_,
+                inc   : '0
+            };
+
+            adam_axil_slv_simple_bhv #(
+                `ADAM_BHV_CFG_PARAMS_MAP,
+
+                .ADDR_S ('0),
+                .ADDR_E (MMAP_DEBUG.end_ - MMAP_DEBUG.start),
+                .DATA   (DATA_T'(i)),
+
+                .MAX_TRANS (MAX_TRANS)
+            ) mem_bhv (
+                .seq (seq),
+                .slv (debug_slv)
+            );
+        end
+
+        for (genvar i = TO_LSDOM_S; i < TO_LSDOM_E; i++) begin
+            assign addr_map[i] = '{
+                start : '0,
+                end_  : MMAP_BOUNDRY,
+                inc   : '0
+            };
+
+            adam_axil_slv_simple_bhv #(
+                `ADAM_BHV_CFG_PARAMS_MAP,
+
+                .ADDR_S ('0),
+                .ADDR_E (MMAP_BOUNDRY),
+                .DATA   (DATA_T'(i)),
+
+                .MAX_TRANS (MAX_TRANS)
+            ) mem_bhv (
+                .seq (seq),
+                .slv (to_lsdom)
+            );
+        end
+    endgenerate
+
+    // DUT ====================================================================
+
+    adam_fabric_hsdom #(
+        `ADAM_CFG_PARAMS_MAP
+    ) dut (
+        .seq   (seq),
+        .pause (pause),
+        
+        .cpu        (cpu),
+        .dma        (dma),
+        .debug_slv  (debug_mst),
+        .from_lsdom (from_lsdom),
+
+        .mem       (mem),
+        .hsp       (hsp),
+        .debug_mst (debug_slv),
+        .to_lsdom  (to_lsdom)
+    );
 
     `TEST_SUITE begin
         `TEST_CASE("test") begin
-            @(negedge seq.rst);
-            @(posedge seq.clk);
+            ADDR_T addr;
+            DATA_T data_w;
+            DATA_T data_r;
+            RESP_T resp_b;
+            RESP_T resp_r;
+
+            `ADAM_UNTIL(!seq.rst);
             
-            `MST_TEST(cpu0);
-            `MST_TEST(cpu1);
-            `MST_TEST(cpu2);
-            `MST_TEST(cpu3);
-            `MST_TEST(dma0);
-            `MST_TEST(dma1);
-            `MST_TEST(debug_slv);
-            `MST_TEST(from_lsdom);
+            for (int i = 0; i < NO_MSTS; i++) begin
+                for (int j = 0; j < NO_SLVS; j++) begin
+                    for (int k = 0; k < 2; k++) begin
+                        $display("%d %d %d", i, j, k);
+                        addr = (k == 0) ? (addr_map[i].start) : (addr_map[i].end_ - 1);
+                        data_w = DATA_T'(j);
+                        fork
+                            mst_bhv[i].send_aw(addr, 3'b000);
+                            mst_bhv[i].send_w(data_w, 4'b1111);
+                            mst_bhv[i].recv_b(resp_b);
+                            mst_bhv[i].send_ar(addr, 3'b000);
+                            mst_bhv[i].recv_r(data_r, resp_r);
+                        join
+                        assert (resp_b == axi_pkg::RESP_OKAY);
+                        assert (resp_r == axi_pkg::RESP_OKAY);
+                        assert (data_r == data_w);
+                    end
+                end
+            end
         end
     end
 
     initial begin
         #1000us $error("timeout");
     end
+
+    task cycle_start();
+        #TT;
+    endtask
+
+    task cycle_end();
+        @(posedge seq.clk);
+    endtask
 
 endmodule
