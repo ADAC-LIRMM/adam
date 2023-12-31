@@ -108,7 +108,7 @@ module adam_fabric_hsdom_tb;
 
                 .ADDR_S ('0),
                 .ADDR_E (MMAP_MEM.inc),
-                .DATA   (DATA_T'(i)),
+                .DATA   (i),
 
                 .MAX_TRANS (MAX_TRANS)
             ) mem_bhv (
@@ -129,7 +129,7 @@ module adam_fabric_hsdom_tb;
 
                 .ADDR_S ('0),
                 .ADDR_E (MMAP_HSP.inc),
-                .DATA   (DATA_T'(i)),
+                .DATA   (i),
 
                 .MAX_TRANS (MAX_TRANS)
             ) mem_bhv (
@@ -150,7 +150,7 @@ module adam_fabric_hsdom_tb;
 
                 .ADDR_S ('0),
                 .ADDR_E (MMAP_DEBUG.end_ - MMAP_DEBUG.start),
-                .DATA   (DATA_T'(i)),
+                .DATA   (i),
 
                 .MAX_TRANS (MAX_TRANS)
             ) mem_bhv (
@@ -213,8 +213,8 @@ module adam_fabric_hsdom_tb;
             for (int i = 0; i < NO_MSTS; i++) begin
                 for (int j = 0; j < NO_SLVS; j++) begin
                     for (int k = 0; k < 2; k++) begin
-                        $display("%d %d %d", i, j, k);
-                        addr = (k == 0) ? (addr_map[i].start) : (addr_map[i].end_ - 1);
+                        $display("i: %d; j: %d; k: %d", i, j, k);
+                        addr = (k == 0) ? (addr_map[j].start) : (addr_map[j].end_ - 1);
                         data_w = DATA_T'(j);
                         fork
                             mst_bhv[i].send_aw(addr, 3'b000);

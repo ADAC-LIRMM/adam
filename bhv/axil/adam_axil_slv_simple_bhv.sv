@@ -51,7 +51,7 @@ module adam_axil_slv_simple_bhv #(
             join
             if (
                 (addr >= ADDR_S) &&
-                (addr < ADDR_E) &&
+                (addr <  ADDR_E) &&
                 (data == DATA)
             ) begin
                 $display("%x %x %x", addr, ADDR_S, ADDR_E);
@@ -59,7 +59,7 @@ module adam_axil_slv_simple_bhv #(
                 resp = axi_pkg::RESP_OKAY;
             end
             else begin
-                $directly("error");
+                $display("error");
                 $display("%x %x %x", addr, ADDR_S, ADDR_E);
                 $display("%d %d", data, DATA);
                 resp = axi_pkg::RESP_DECERR;

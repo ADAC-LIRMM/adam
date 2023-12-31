@@ -66,8 +66,8 @@
     \
     __opt EN_LSPB = (NO_LSPBS > 0) __sep \
     \
-    __opt NO_HSPS = 1 __sep \
-    __opt EN_HSP  = 1 __sep \
+    __opt NO_HSPS = 0 __sep \
+    __opt EN_HSP  = 0 __sep \
     \
     __opt STRB_WIDTH  = DATA_WIDTH/8 __sep \
     \
