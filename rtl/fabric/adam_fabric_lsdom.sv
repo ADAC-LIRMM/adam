@@ -40,8 +40,8 @@ module adam_fabric_lsdom #(
             `AXI_LITE_ASSIGN(slv[i], lpcpu[i-LPCPU_S]);
         end
         if (!EN_LPCPU) begin
-            `ADAM_AXIL_SLV_TIE_OFF(slv[0]);
-            `ADAM_AXIL_SLV_TIE_OFF(slv[1]);
+            `ADAM_AXIL_SLV_TIE_OFF(lpcpu[0]);
+            `ADAM_AXIL_SLV_TIE_OFF(lpcpu[1]);
         end
 
         // From High Speed Domain (HSDOM)
