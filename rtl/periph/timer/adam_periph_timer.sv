@@ -1,28 +1,23 @@
+`include "adam/macros.svh"
+
 module adam_periph_timer #(
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32
+    `ADAM_CFG_PARAMS
 ) (    
     ADAM_SEQ.Slave   seq,
     ADAM_PAUSE.Slave pause,
 
-    APB.Slave apb,
+    APB.Slave slv,
 
     output logic irq
 );
-    localparam STRB_WIDTH = DATA_WIDTH/8;
-    
-    typedef logic [ADDR_WIDTH-1:0] addr_t;
-    typedef logic [DATA_WIDTH-1:0] data_t;
-    typedef logic [STRB_WIDTH-1:0] strb_t;
-    typedef logic [DATA_WIDTH-1:0] reg_t;
 
     // Registers
-    reg_t control;
-    reg_t prescaler;
-    reg_t value;
-    reg_t auto_reload;
-    reg_t events;
-    reg_t interrupt_enable;
+    DATA_T control;
+    DATA_T prescaler;
+    DATA_T value;
+    DATA_T auto_reload;
+    DATA_T events;
+    DATA_T interrupt_enable;
 
     // Control Register (CR)
     logic peripheral_enable;
@@ -34,42 +29,42 @@ module adam_periph_timer #(
     logic auto_reload_event_ie;
 
     // APB
-    addr_t paddr;
+    ADDR_T paddr;
     logic  psel;
     logic  penable;
     logic  pwrite;
-    data_t pwdata;
-    strb_t pstrb;
+    DATA_T pwdata;
+    STRB_T pstrb;
     logic  pready;
-    data_t prdata;
+    DATA_T prdata;
     logic  pslverr;
     
-    addr_t index;
-    reg_t  mask;
+    ADDR_T index;
+    DATA_T  mask;
 
-    reg_t clk_count;
+    DATA_T clk_count;
 
     always_comb begin
 
         // APB inputs
-        paddr   = apb.paddr;
-        psel    = apb.psel;
-        penable = apb.penable;
-        pwrite  = apb.pwrite;
-        pwdata  = apb.pwdata;
-        pstrb   = apb.pstrb;
+        paddr   = slv.paddr;
+        psel    = slv.psel;
+        penable = slv.penable;
+        pwrite  = slv.pwrite;
+        pwdata  = slv.pwdata;
+        pstrb   = slv.pstrb;
         
         // APB outputs
-        apb.pready  = pready;
-        apb.prdata  = prdata;
-        apb.pslverr = pslverr;
+        slv.pready  = pready;
+        slv.prdata  = prdata;
+        slv.pslverr = pslverr;
 
         // APB address
         index = paddr[ADDR_WIDTH-1:$clog2(STRB_WIDTH)];
 
         // APB strobe
         for (int i = 0; i < DATA_WIDTH/8; i++) begin
-            mask[i*8 +: 8] = (apb.pstrb[i]) ? 8'hFF : 8'h00; 
+            mask[i*8 +: 8] = (slv.pstrb[i]) ? 8'hFF : 8'h00; 
         end
         
         // Control Register (CR) 

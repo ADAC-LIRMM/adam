@@ -5,12 +5,10 @@
  * NOT part of the standard "pause protocol".
  */
 
+`include "adam/macros.svh"
+
 module adam_periph_spi_phy #(
-    parameter DATA_WIDTH = 32,
-
-    // Dependent parameters bellow, do not override.
-
-    parameter type data_t = logic [DATA_WIDTH-1:0]
+    `ADAM_CFG_PARAMS
 ) (
     ADAM_SEQ.Slave   seq,
     ADAM_PAUSE.Slave pause,
@@ -22,7 +20,7 @@ module adam_periph_spi_phy #(
     input  logic        clock_polarity,
     input  logic        data_order,
     input  logic  [7:0] data_length,
-    input  data_t       baud_rate,       
+    input  DATA_T       baud_rate,       
     
     ADAM_STREAM.Slave  tx,
     ADAM_STREAM.Master rx,
@@ -36,14 +34,14 @@ module adam_periph_spi_phy #(
     logic pclk;
     logic lpclk;
 
-    data_t clk_count;
+    DATA_T clk_count;
     logic  pclk_gen;
     logic  ss_n_gen; 
     logic sdo;
     logic sdi;
 
-    data_t tx_reg;
-    data_t rx_reg;
+    DATA_T tx_reg;
+    DATA_T rx_reg;
 
     logic tx_ok;
     logic rx_ok;
@@ -51,8 +49,8 @@ module adam_periph_spi_phy #(
     logic selected;
     logic lselected;
 
-    data_t index;
-    data_t reversed;
+    DATA_T index;
+    DATA_T reversed;
 
     // Handles all combinatory logic
     always_comb begin  

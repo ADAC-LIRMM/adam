@@ -1,6 +1,7 @@
+`include "adam/macros.svh"
+
 module adam_periph_spi #(
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32
+    `ADAM_CFG_PARAMS
 ) (
     ADAM_SEQ.Slave   seq,
     ADAM_PAUSE.Slave pause,
@@ -14,34 +15,27 @@ module adam_periph_spi #(
     ADAM_IO.Master miso,
     ADAM_IO.Master ss_n
 );
-
-    localparam STRB_WIDTH = DATA_WIDTH/8;
-    
-    typedef logic [ADDR_WIDTH-1:0] addr_t;
-    typedef logic [DATA_WIDTH-1:0] data_t;
-    typedef logic [STRB_WIDTH-1:0] strb_t;
-    typedef logic [DATA_WIDTH-1:0] reg_t;
     
     ADAM_PAUSE phy_pause ();
     ADAM_PAUSE apb_pause ();
 
     // Data (TX)
-    reg_t tx_buf;
+    DATA_T tx_buf;
     ADAM_STREAM #(
-        .data_t (data_t)
+        .T (DATA_T)
     ) tx ();
     
     // Data (RX)
-    reg_t rx_buf;
+    DATA_T rx_buf;
     ADAM_STREAM #(
-        .data_t (data_t)
+        .T (DATA_T)
     ) rx ();
 
     // Normal Registers
-    reg_t control;
-    reg_t status;
-    reg_t baud_rate;
-    reg_t interrupt_enable;
+    DATA_T control;
+    DATA_T status;
+    DATA_T baud_rate;
+    DATA_T interrupt_enable;
 
     // Control Register (CR)
     logic       periph_enable;
@@ -62,21 +56,21 @@ module adam_periph_spi #(
     logic rx_buf_full_ie;  // Receiver Buffer Full Interrupt Enable
 
     // APB
-    addr_t paddr;
+    ADDR_T paddr;
     logic  psel;
     logic  penable;
     logic  pwrite;
-    data_t pwdata;
-    strb_t pstrb;
+    DATA_T pwdata;
+    STRB_T pstrb;
     logic  pready;
-    data_t prdata;
+    DATA_T prdata;
     logic  pslverr;
 
-    addr_t index;
-    reg_t  mask;
+    ADDR_T index;
+    DATA_T  mask;
 
     adam_periph_spi_phy #(
-        .DATA_WIDTH (DATA_WIDTH)
+        `ADAM_CFG_PARAMS_MAP
     ) adam_periph_spi_phy (
         .seq   (seq),
         .pause (phy_pause),
@@ -165,7 +159,7 @@ module adam_periph_spi #(
     end
 
     always_ff @(posedge seq.clk) begin
-        automatic reg_t new_control;
+        automatic DATA_T new_control;
 
         if (seq.rst) begin
             tx_buf           <= 0;

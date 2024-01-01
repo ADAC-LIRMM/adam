@@ -1,10 +1,10 @@
 interface ADAM_STREAM #(
-    parameter type data_t = logic
+    parameter type T = logic
 );
 
-    data_t data;
-    logic  valid;
-    logic  ready;
+    T     data;
+    logic valid;
+    logic ready;
 
     modport Master (
         output data,
@@ -21,14 +21,14 @@ interface ADAM_STREAM #(
 endinterface
 
 interface ADAM_STREAM_DV #(
-    parameter type data_t = logic
+    parameter type T = logic
 ) (
     input logic clk
 );
 
-    data_t data;
-    logic  valid;
-    logic  ready;
+    T     data;
+    logic valid;
+    logic ready;
     
     modport Master (
         output data,

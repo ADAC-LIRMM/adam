@@ -1,28 +1,14 @@
 
 `timescale 1ns/1ps
+`include "adam/macros_bhv.svh"
 `include "apb/assign.svh"
 `include "vunit_defines.svh"
 
 module adam_periph_gpio_tb;
 
-    localparam ADDR_WIDTH = 32;
-    localparam DATA_WIDTH = 32;
-    localparam GPIO_WIDTH = 16;
-
-    localparam STRB_WIDTH = DATA_WIDTH/8;
-
-    localparam CLK_PERIOD = 20ns;
-    localparam RST_CYCLES = 5;
-
-    localparam TA = 2ns;
-    localparam TT = CLK_PERIOD - TA;
-    
+    `ADAM_BHV_CFG_LOCALPARAMS;
+        
     localparam NO_TESTS  = 100;
-
-    typedef logic [ADDR_WIDTH-1:0] addr_t;
-    typedef logic [DATA_WIDTH-1:0] data_t;
-    typedef logic [STRB_WIDTH-1:0] strb_t;
-    typedef logic [GPIO_WIDTH-1:0] reg_t;
 
     ADAM_SEQ   seq   ();
     ADAM_PAUSE pause ();
@@ -36,32 +22,26 @@ module adam_periph_gpio_tb;
     logic irq;
     logic ref_irq;
 
-    reg_t idr;
-    reg_t ref_idr;
+    GPIO_T idr;
+    GPIO_T ref_idr;
     
-    reg_t odr;
-    reg_t ref_odr;
+    GPIO_T odr;
+    GPIO_T ref_odr;
 
-    reg_t moder;
-    reg_t ref_moder;
+    GPIO_T moder;
+    GPIO_T ref_moder;
 
-    reg_t otyper;
-    reg_t ref_otyper;
+    GPIO_T otyper;
+    GPIO_T ref_otyper;
 
-    reg_t fsr     [2];
-    reg_t ref_fsr [2];
+    GPIO_T fsr     [2];
+    GPIO_T ref_fsr [2];
 
-    reg_t ref_ier;
+    GPIO_T ref_ier;
 
-    APB_DV #(
-        .ADDR_WIDTH(ADDR_WIDTH),
-        .DATA_WIDTH(DATA_WIDTH)
-    ) slave_dv (seq.clk);
+    `ADAM_APB_DV_I slave_dv (seq.clk);
 
-    APB #(
-        .ADDR_WIDTH(ADDR_WIDTH),
-        .DATA_WIDTH(DATA_WIDTH)
-    ) slave ();
+    `ADAM_APB_I slave ();
     
     `APB_ASSIGN(slave, slave_dv)
 
@@ -73,35 +53,28 @@ module adam_periph_gpio_tb;
     ) master = new(slave_dv);
 
     adam_seq_bhv #(
-        .CLK_PERIOD (CLK_PERIOD),
-        .RST_CYCLES (RST_CYCLES),
-
-        .TA (TA),
-        .TT (TT)
+        `ADAM_BHV_CFG_PARAMS_MAP
     ) adam_seq_bhv (
         .seq (seq)
     );
 
     adam_pause_bhv #(
-        .DELAY    (1us),
-        .DURATION (1us),
+        `ADAM_BHV_CFG_PARAMS_MAP,
 
-        .TA (TA),
-        .TT (TT)
+        .DELAY    (1us),
+        .DURATION (1us)
     ) adam_pause_bhv (
         .seq   (seq),
         .pause (pause_auto)
     );
 
     adam_periph_gpio #(
-        .ADDR_WIDTH(ADDR_WIDTH),
-        .DATA_WIDTH(DATA_WIDTH),
-        .GPIO_WIDTH(GPIO_WIDTH)
+        `ADAM_CFG_PARAMS_MAP
     ) dut (
         .seq   (seq),
         .pause (pause),
 
-        .apb (slave),
+        .slv (slave),
         
         .irq (irq),
 
@@ -142,13 +115,13 @@ module adam_periph_gpio_tb;
     
     `TEST_SUITE begin
         `TEST_CASE("test") begin
-            automatic addr_t addr;
-            automatic data_t data;
-            automatic strb_t strb;
+            automatic ADDR_T addr;
+            automatic GPIO_T data;
+            automatic STRB_T strb;
             automatic logic  resp;
             automatic bit    write;
 
-            automatic reg_t tmp;
+            automatic GPIO_T tmp;
 
             ref_irq    = 0;
             ref_idr    = 0;

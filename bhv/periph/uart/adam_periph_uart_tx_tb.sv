@@ -5,19 +5,11 @@
 module adam_periph_uart_tx_tb;
     import adam_stream_mst_bhv::*;
 
-    localparam DATA_WIDTH = 32;
-
-    localparam CLK_PERIOD = 20ns;
-    localparam RST_CYCLES = 5;
-
-    localparam TA = 2ns;
-    localparam TT = CLK_PERIOD - TA;
+    `ADAM_BHV_CFG_LOCALPARAMS;
 
     localparam BAUD_RATE = 115200;
     localparam MSG_LEN   = 256;
 
-    typedef logic [DATA_WIDTH-1:0] data_t;
-    
     ADAM_SEQ   seq   ();
     ADAM_PAUSE pause ();
 
@@ -25,14 +17,14 @@ module adam_periph_uart_tx_tb;
     logic       parity_control;
     logic [3:0] data_length;
     logic [1:0] stop_bits;
-    data_t      baud_rate;
+    DATA_T      baud_rate;
     
-    `ADAM_STREAM_BHV_MST_FACTORY(data_t, TA, TT, mst, seq.clk);
+    `ADAM_STREAM_BHV_MST_FACTORY(DATA_T, TA, TT, mst, seq.clk);
 
     logic tx;
 
     adam_periph_uart_tx #(
-        .DATA_WIDTH (DATA_WIDTH)
+        `ADAM_CFG_PARAMS_MAP
     ) dut (
         .seq   (seq),
         .pause (pause),
@@ -49,21 +41,16 @@ module adam_periph_uart_tx_tb;
     );
     
     adam_seq_bhv #(
-        .CLK_PERIOD (CLK_PERIOD),
-        .RST_CYCLES (RST_CYCLES),
-
-        .TA (TA),
-        .TT (TT)
+        `ADAM_BHV_CFG_PARAMS_MAP
     ) adam_seq_bhv (
         .seq (seq)
     );
 
     adam_pause_bhv #(
-        .DELAY    (1ms),
-        .DURATION (1ms),
+        `ADAM_BHV_CFG_PARAMS_MAP,
 
-        .TA (TA),
-        .TT (TT)
+        .DELAY    (1ms),
+        .DURATION (1ms)
     ) adam_pause_bhv (
         .seq   (seq),
         .pause (pause)
@@ -81,7 +68,7 @@ module adam_periph_uart_tx_tb;
             @(posedge seq.clk);
 
             for(int i = 0; i < MSG_LEN; i++) begin
-                mst_bhv.send(data_t'(i));
+                mst_bhv.send(DATA_T'(i));
             end
         end
     end

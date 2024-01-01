@@ -1,13 +1,15 @@
+`include "adam/macros.svh"
+
 module adam_stream_skid #(
-    parameter type data_t = logic
+    parameter type T = logic
 ) (
     ADAM_SEQ.Slave seq,
 
     ADAM_STREAM.Slave  slv,
     ADAM_STREAM.Master mst
 );
-    logic  stall;
-    data_t buffer;
+    logic stall;
+    T     buffer;
 
     always_comb begin
         mst.data  = (stall) ? buffer : slv.data;

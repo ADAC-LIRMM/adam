@@ -1,140 +1,113 @@
 `timescale 1ns/1ps
+`include "adam/macros_bhv.svh"
 `include "vunit_defines.svh"
 
 module adam_tb;
 
-    localparam ADDR_WIDTH = 32;
-    localparam DATA_WIDTH = 32;
-    localparam GPIO_WIDTH = 16;
-
-    localparam NO_CPUS = 2;
-    localparam NO_MEMS = 3;
+    // `ADAM_BHV_CFG_LOCALPARAMS;
     
-    localparam EN_LPCPU = 1;
-    localparam EN_LPMEM = 1;
-    localparam EN_DEBUG = 1;
+    // localparam integer MEM_SIZE [NO_MEMS] = 
+    //     '{32768, 32768, 32768};
 
-    localparam NO_LSPA_GPIOS  = 1;
-    localparam NO_LSPA_SPIS   = 1;
-    localparam NO_LSPA_TIMERS = 1;
-    localparam NO_LSPA_UARTS  = 1;
+    // ADAM_SEQ   lsdom_seq ();
+    // ADAM_PAUSE lsdom_pause ();
 
-    localparam BOOT_ADDR = 32'h0000_0000;
-    
-    localparam integer MEM_SIZE [NO_MEMS] = 
-        '{32768, 32768, 32768};
+    // ADAM_SEQ   lsdom_lpmem_seq ();
+    // ADAM_PAUSE lsdom_lpmem_pause ();
+    // AXI_LITE   lsdom_lpmem_axil ();
 
-    localparam CLK_PERIOD = 20ns;
-    localparam RST_CYCLES = 5;
+    // ADAM_SEQ hsdom_seq ();
 
-    localparam TA = 2ns;
-    localparam TT = CLK_PERIOD - TA;
+    // ADAM_SEQ   hsdom_mem_seq   [NO_MEMS+1] ();
+    // ADAM_PAUSE hsdom_mem_pause [NO_MEMS+1] ();
+    // AXI_LITE   hsdom_mem_axil  [NO_MEMS+1] ();
 
-    localparam NO_GPIOS  = NO_LSPA_GPIOS;
-    localparam NO_SPIS   = NO_LSPA_SPIS;
-    localparam NO_TIMERS = NO_LSPA_TIMERS;
-    localparam NO_UARTS  = NO_LSPA_UARTS;
+    // ADAM_IO     lspa_gpio_io   [NO_GPIOS*GPIO_WIDTH+1] ();
+    // logic [1:0] lspa_gpio_func [NO_GPIOS*GPIO_WIDTH+1];
 
-    ADAM_SEQ   lsdom_seq ();
-    ADAM_PAUSE lsdom_pause ();
+    // ADAM_IO lspa_spi_sclk [NO_SPIS] ();
+    // ADAM_IO lspa_spi_mosi [NO_SPIS] ();
+    // ADAM_IO lspa_spi_miso [NO_SPIS] ();
+    // ADAM_IO lspa_spi_ss_n [NO_SPIS] ();
 
-    ADAM_SEQ   lsdom_lpmem_seq ();
-    ADAM_PAUSE lsdom_lpmem_pause ();
-    AXI_LITE   lsdom_lpmem_axil ();
+    // ADAM_IO lspa_uart_tx [NO_UARTS] ();
+    // ADAM_IO lspa_uart_rx [NO_UARTS] ();
 
-    ADAM_SEQ hsdom_seq ();
+    // // TODO: implement pause
+    // assign lsdom_pause.req = 0;
 
-    ADAM_SEQ   hsdom_mem_seq   [NO_MEMS] ();
-    ADAM_PAUSE hsdom_mem_pause [NO_MEMS] ();
-    AXI_LITE   hsdom_mem_axil  [NO_MEMS] ();
+    // assign uart_rx[0].i = uart_tx[0].o; // loopback
 
-    ADAM_IO     gpio_io   [NO_GPIOS*GPIO_WIDTH] ();
-    logic [1:0] gpio_func [NO_GPIOS*GPIO_WIDTH];
+    // adam_seq_bhv #(
+    //     .CLK_PERIOD (CLK_PERIOD),
+    //     .RST_CYCLES (RST_CYCLES),
 
-    ADAM_IO spi_sclk [NO_SPIS] ();
-    ADAM_IO spi_mosi [NO_SPIS] ();
-    ADAM_IO spi_miso [NO_SPIS] ();
-    ADAM_IO spi_ss_n [NO_SPIS] ();
+    //     .TA (TA),
+    //     .TT (TT)
+    // ) lsdom_seq_bhv (
+    //     .seq (lsdom_seq)
+    // );
 
-    ADAM_IO uart_tx [NO_UARTS] ();
-    ADAM_IO uart_rx [NO_UARTS] ();
+    // adam_seq_bhv #(
+    //     .CLK_PERIOD (CLK_PERIOD),
+    //     .RST_CYCLES (RST_CYCLES),
 
-    // TODO: implement pause
-    assign lsdom_pause.req = 0;
+    //     .TA (TA),
+    //     .TT (TT)
+    // ) hsdom_seq_bhv (
+    //     .seq (hsdom_seq)
+    // );
 
-    assign uart_rx[0].i = uart_tx[0].o; // loopback
+    // adam #(
 
-    adam_seq_bhv #(
-        .CLK_PERIOD (CLK_PERIOD),
-        .RST_CYCLES (RST_CYCLES),
+    // ) dut (
+    //     .lsdom_seq       (lsdom_seq),
+    //     .lsdom_pause     (lsdom_pause),
+    //     .lsdom_lpmem_seq   (lsdom_lpmem_seq),
+    //     .lsdom_lpmem_pause (lsdom_lpmem_pause),
+    //     .lsdom_lpmem_axil  (lsdom_lpmem_axil),
 
-        .TA (TA),
-        .TT (TT)
-    ) lsdom_seq_bhv (
-        .seq (lsdom_seq)
-    );
+    //     .hsdom_seq       (hsdom_seq),
+    //     .hsdom_mem_seq   (hsdom_mem_seq),
+    //     .hsdom_mem_pause (hsdom_mem_pause),
+    //     .hsdom_mem_axil  (hsdom_mem_axil),
 
-    adam_seq_bhv #(
-        .CLK_PERIOD (CLK_PERIOD),
-        .RST_CYCLES (RST_CYCLES),
+    //     .gpio_io   (gpio_io),
+    //     .gpio_func (gpio_func),
 
-        .TA (TA),
-        .TT (TT)
-    ) hsdom_seq_bhv (
-        .seq (hsdom_seq)
-    );
+    //     .spi_sclk (spi_sclk),
+    //     .spi_mosi (spi_mosi),
+    //     .spi_miso (spi_miso),
+    //     .spi_ss_n (spi_ss_n),
 
-    adam #(
+    //     .uart_tx (uart_tx),
+    //     .uart_rx (uart_rx)
+    // );
 
-    ) dut (
-        .lsdom_seq       (lsdom_seq),
-        .lsdom_pause     (lsdom_pause),
-        .lsdom_lpmem_seq   (lsdom_lpmem_seq),
-        .lsdom_lpmem_pause (lsdom_lpmem_pause),
-        .lsdom_lpmem_axil  (lsdom_lpmem_axil),
-
-        .hsdom_seq       (hsdom_seq),
-        .hsdom_mem_seq   (hsdom_mem_seq),
-        .hsdom_mem_pause (hsdom_mem_pause),
-        .hsdom_mem_axil  (hsdom_mem_axil),
-
-        .gpio_io   (gpio_io),
-        .gpio_func (gpio_func),
-
-        .spi_sclk (spi_sclk),
-        .spi_mosi (spi_mosi),
-        .spi_miso (spi_miso),
-        .spi_ss_n (spi_ss_n),
-
-        .uart_tx (uart_tx),
-        .uart_rx (uart_rx)
-    );
-
-    generate
-        bootloader bootloader (
-            .clk   (hsdom_mem_seq[0].clk),
-            .rst   (hsdom_mem_seq[0].rst),
+    // generate
+    //     bootloader bootloader (
+    //         .clk   (hsdom_mem_seq[0].clk),
+    //         .rst   (hsdom_mem_seq[0].rst),
             
-            .pause_req (hsdom_mem_pause[0].req),
-            .pause_ack (hsdom_mem_pause[0].ack),
+    //         .pause_req (hsdom_mem_pause[0].req),
+    //         .pause_ack (hsdom_mem_pause[0].ack),
 
-            .slv (hsdom_mem_axil[0])
-        );
+    //         .slv (hsdom_mem_axil[0])
+    //     );
 
-        for (genvar i = 1; i < NO_MEMS; i++) begin
-            adam_axil_ram #(
-                .ADDR_WIDTH (ADDR_WIDTH),
-                .DATA_WIDTH (DATA_WIDTH),
+    //     for (genvar i = 1; i < NO_MEMS; i++) begin
+    //         adam_axil_ram #(
+    //             `ADAM_CFG_PARAMS_MAP,
 
-                .SIZE (MEM_SIZE[i])
-            ) adam_axil_ram (
-                .seq   (hsdom_mem_seq[i]),
-                .pause (hsdom_mem_pause[i]),
+    //             .SIZE (MEM_SIZE[i])
+    //         ) adam_axil_ram (
+    //             .seq   (hsdom_mem_seq[i]),
+    //             .pause (hsdom_mem_pause[i]),
 
-                .slv (hsdom_mem_axil[i])
-            );
-        end
-    endgenerate
+    //             .slv (hsdom_mem_axil[i])
+    //         );
+    //     end
+    // endgenerate
     
     `TEST_SUITE begin
         `TEST_CASE("test") begin

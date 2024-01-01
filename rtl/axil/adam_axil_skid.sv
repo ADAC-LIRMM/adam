@@ -1,35 +1,27 @@
+`include "adam/macros.svh"
 `include "axi/assign.svh"
 `include "axi/typedef.svh"
 
 module adam_axil_skid #(
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32,
-        
+    `ADAM_CFG_PARAMS,
+    
     parameter BYPASS_AW = 0,
     parameter BYPASS_W  = 0,
     parameter BYPASS_B  = 0,
     parameter BYPASS_AR = 0,
-    parameter BYPASS_R  = 0,
-
-    // Dependent parameters bellow, do not override.
-
-    parameter STRB_WIDTH  = DATA_WIDTH/8,
-
-    parameter type addr_t = logic [ADDR_WIDTH-1:0],
-    parameter type data_t = logic [DATA_WIDTH-1:0],
-    parameter type strb_t = logic [STRB_WIDTH-1:0]  
+    parameter BYPASS_R  = 0
 ) (
-    ADAM_SEQ.Slave   seq,
+    ADAM_SEQ.Slave seq,
 
     AXI_LITE.Slave  slv,
     AXI_LITE.Master mst
 );
 
-    `AXI_LITE_TYPEDEF_AW_CHAN_T(aw_chan_t, addr_t);
-    `AXI_LITE_TYPEDEF_W_CHAN_T(w_chan_t, data_t, strb_t);
+    `AXI_LITE_TYPEDEF_AW_CHAN_T(aw_chan_t, ADDR_T);
+    `AXI_LITE_TYPEDEF_W_CHAN_T(w_chan_t, DATA_T, STRB_T);
     `AXI_LITE_TYPEDEF_B_CHAN_T(b_chan_t);
-    `AXI_LITE_TYPEDEF_AR_CHAN_T(ar_chan_t, addr_t);
-    `AXI_LITE_TYPEDEF_R_CHAN_T(r_chan_t, data_t);
+    `AXI_LITE_TYPEDEF_AR_CHAN_T(ar_chan_t, ADDR_T);
+    `AXI_LITE_TYPEDEF_R_CHAN_T(r_chan_t, DATA_T);
 
     aw_chan_t aw_slv;
     w_chan_t  w_slv;
@@ -63,7 +55,7 @@ module adam_axil_skid #(
         end
         else begin
             ADAM_STREAM #(
-                .data_t (aw_chan_t)
+                .T (aw_chan_t)
             ) aw_slv_intf ();
 
             assign aw_slv_intf.data = aw_slv;
@@ -71,7 +63,7 @@ module adam_axil_skid #(
             assign slv.aw_ready = aw_slv_intf.ready;
 
             ADAM_STREAM #(
-                .data_t (aw_chan_t)
+                .T (aw_chan_t)
             ) aw_mst_intf ();
             
             assign aw_mst = aw_mst_intf.data;
@@ -79,7 +71,7 @@ module adam_axil_skid #(
             assign aw_mst_intf.ready = mst.aw_ready;
 
             adam_stream_skid #(
-                .data_t (aw_chan_t)
+                .T (aw_chan_t)
             ) aw_chan_skid (
                 .seq (seq),
 
@@ -97,7 +89,7 @@ module adam_axil_skid #(
         end
         else begin
             ADAM_STREAM #(
-                .data_t (w_chan_t)
+                .T (w_chan_t)
             ) w_slv_intf ();
 
             assign w_slv_intf.data = w_slv;
@@ -105,7 +97,7 @@ module adam_axil_skid #(
             assign slv.w_ready = w_slv_intf.ready;
 
             ADAM_STREAM #(
-                .data_t (w_chan_t)
+                .T (w_chan_t)
             ) w_mst_intf ();
             
             assign w_mst = w_mst_intf.data;
@@ -113,7 +105,7 @@ module adam_axil_skid #(
             assign w_mst_intf.ready = mst.w_ready;
 
             adam_stream_skid #(
-                .data_t (w_chan_t)
+                .T (w_chan_t)
             ) w_chan_skid (
                 .seq (seq),
 
@@ -131,7 +123,7 @@ module adam_axil_skid #(
         end
         else begin
             ADAM_STREAM #(
-                .data_t (b_chan_t)
+                .T (b_chan_t)
             ) b_mst_intf ();
 
             assign b_mst_intf.data = b_mst;
@@ -139,7 +131,7 @@ module adam_axil_skid #(
             assign mst.b_ready = b_mst_intf.ready;
 
             ADAM_STREAM #(
-                .data_t (b_chan_t)
+                .T (b_chan_t)
             ) b_slv_intf ();
             
             assign b_slv = b_slv_intf.data;
@@ -147,7 +139,7 @@ module adam_axil_skid #(
             assign b_slv_intf.ready = slv.b_ready;
 
             adam_stream_skid #(
-                .data_t (b_chan_t)
+                .T (b_chan_t)
             ) b_chan_skid (
                 .seq (seq),
 
@@ -165,7 +157,7 @@ module adam_axil_skid #(
         end
         else begin
             ADAM_STREAM #(
-                .data_t (ar_chan_t)
+                .T (ar_chan_t)
             ) ar_slv_intf ();
 
             assign ar_slv_intf.data = ar_slv;
@@ -173,7 +165,7 @@ module adam_axil_skid #(
             assign slv.ar_ready = ar_slv_intf.ready;
 
             ADAM_STREAM #(
-                .data_t (ar_chan_t)
+                .T (ar_chan_t)
             ) ar_mst_intf ();
             
             assign ar_mst = ar_mst_intf.data;
@@ -181,7 +173,7 @@ module adam_axil_skid #(
             assign ar_mst_intf.ready = mst.ar_ready;
 
             adam_stream_skid #(
-                .data_t (ar_chan_t)
+                .T (ar_chan_t)
             ) ar_chan_skid (
                 .seq (seq),
 
@@ -199,7 +191,7 @@ module adam_axil_skid #(
         end
         else begin
             ADAM_STREAM #(
-                .data_t (r_chan_t)
+                .T (r_chan_t)
             ) r_mst_intf ();
 
             assign r_mst_intf.data = r_mst;
@@ -207,7 +199,7 @@ module adam_axil_skid #(
             assign mst.r_ready = r_mst_intf.ready;
 
             ADAM_STREAM #(
-                .data_t (r_chan_t)
+                .T (r_chan_t)
             ) r_slv_intf ();
             
             assign r_slv = r_slv_intf.data;
@@ -215,7 +207,7 @@ module adam_axil_skid #(
             assign r_slv_intf.ready = slv.r_ready;
 
             adam_stream_skid #(
-                .data_t (r_chan_t)
+                .T (r_chan_t)
             ) r_chan_skid (
                 .seq (seq),
 

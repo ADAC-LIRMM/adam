@@ -1,27 +1,15 @@
 
 `timescale 1ns/1ps
+`include "adam/macros_bhv.svh"
 `include "apb/assign.svh"
 `include "vunit_defines.svh"
 
 module adam_periph_timer_tb;
 
-    localparam ADDR_WIDTH = 32;
-    localparam DATA_WIDTH = 32;
-
-    localparam STRB_WIDTH = DATA_WIDTH/8;
-
-    localparam CLK_PERIOD = 20ns;
-    localparam RST_CYCLES = 5;
-
-    localparam TA = 2ns;
-    localparam TT = CLK_PERIOD - TA;
+    `ADAM_BHV_CFG_LOCALPARAMS;
 
     localparam NO_TESTS = 10; 
     localparam FREQ     = 1e6;
-
-    typedef logic [ADDR_WIDTH-1:0] addr_t;
-    typedef logic [DATA_WIDTH-1:0] data_t;
-    typedef logic [STRB_WIDTH-1:0] strb_t;
 
     ADAM_SEQ   seq   ();
     ADAM_PAUSE pause ();
@@ -31,15 +19,9 @@ module adam_periph_timer_tb;
     ADAM_PAUSE pause_auto ();
     logic      critical;
 
-    APB_DV #(
-        .ADDR_WIDTH(ADDR_WIDTH),
-        .DATA_WIDTH(DATA_WIDTH)
-    ) slave_dv(seq.clk);
+    `ADAM_APB_DV_I slave_dv (seq.clk);
     
-    APB #(
-        .ADDR_WIDTH(ADDR_WIDTH),
-        .DATA_WIDTH(DATA_WIDTH)
-    ) slave();
+    `ADAM_APB_I slave();
     
     `APB_ASSIGN(slave, slave_dv)
 
@@ -51,34 +33,28 @@ module adam_periph_timer_tb;
     ) master = new(slave_dv);
 
     adam_seq_bhv #(
-        .CLK_PERIOD (CLK_PERIOD),
-        .RST_CYCLES (RST_CYCLES),
-
-        .TA (TA),
-        .TT (TT)
+        `ADAM_BHV_CFG_PARAMS_MAP
     ) adam_seq_bhv (
         .seq (seq)
     );
 
     adam_pause_bhv #(
-        .DELAY    (100us),
-        .DURATION (100us),
+        `ADAM_BHV_CFG_PARAMS_MAP,
 
-        .TA (TA),
-        .TT (TT)
+        .DELAY    (100us),
+        .DURATION (100us)
     ) adam_pause_bhv (
         .seq   (seq),
         .pause (pause_auto)
     );
 
     adam_periph_timer #(
-        .ADDR_WIDTH(ADDR_WIDTH),
-        .DATA_WIDTH(DATA_WIDTH)
+        `ADAM_CFG_PARAMS_MAP
     ) dut (
         .seq   (seq),
         .pause (pause),
 
-        .apb (slave),
+        .slv (slave),
         
         .irq (irq)
     );
@@ -90,15 +66,15 @@ module adam_periph_timer_tb;
 
     `TEST_SUITE begin
         `TEST_CASE("test") begin
-            automatic addr_t addr;
-            automatic data_t data;
-            automatic strb_t strb;
+            automatic ADDR_T addr;
+            automatic DATA_T data;
+            automatic STRB_T strb;
             automatic logic  resp;
             
-            automatic data_t check;
+            automatic DATA_T check;
 
-            automatic data_t value;
-            automatic data_t auto_reload;
+            automatic DATA_T value;
+            automatic DATA_T auto_reload;
             automatic int no_events;
 
             strb = 4'b1111;

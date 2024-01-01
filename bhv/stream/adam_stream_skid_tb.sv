@@ -6,21 +6,15 @@ module adam_stream_skid_tb;
     import adam_stream_mst_bhv::*;
     import adam_stream_slv_bhv::*;
 
-    localparam type data_t = logic [31:0];
+    `ADAM_BHV_CFG_LOCALPARAMS;
     
-    localparam CLK_PERIOD = 20ns;
-    localparam RST_CYCLES = 5;
-
-    localparam TA = 2ns;
-    localparam TT = CLK_PERIOD - TA;
-
     ADAM_SEQ seq();
 
-    `ADAM_STREAM_BHV_MST_FACTORY(data_t, TA, TT, mst, seq.clk);
-    `ADAM_STREAM_BHV_SLV_FACTORY(data_t, TA, TT, 1, slv, seq.clk);
+    `ADAM_STREAM_BHV_MST_FACTORY(DATA_T, TA, TT, mst, seq.clk);
+    `ADAM_STREAM_BHV_SLV_FACTORY(DATA_T, TA, TT, 1, slv, seq.clk);
 
     adam_stream_skid #(
-        .data_t (data_t)
+        .T (DATA_T)
     ) dut (
         .seq(seq),
 
@@ -40,7 +34,7 @@ module adam_stream_skid_tb;
 
     `TEST_SUITE begin
         `TEST_CASE("basic") begin
-            automatic data_t data = '0;
+            automatic DATA_T data = '0;
 
             @(negedge seq.rst);
             @(posedge seq.clk);
@@ -50,7 +44,7 @@ module adam_stream_skid_tb;
         end
 
         `TEST_CASE("stall") begin
-            automatic data_t data = '0;
+            automatic DATA_T data = '0;
 
             @(negedge seq.rst);
             @(posedge seq.clk);

@@ -75,7 +75,8 @@
     __opt type PROT_T = logic [2:0] __sep \
     __opt type DATA_T = logic [DATA_WIDTH-1:0] __sep \
     __opt type STRB_T = logic [STRB_WIDTH-1:0] __sep \
-    __opt type RESP_T = logic [1:0]
+    __opt type RESP_T = logic [1:0] __sep \
+    __opt type GPIO_T = logic [GPIO_WIDTH-1:0]
 
 `define ADAM_CFG_PARAMS \
     `ADAM_CFG_PARAMS_GENERIC(parameter, `ADAM_COMMA)

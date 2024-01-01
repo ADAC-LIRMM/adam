@@ -1,20 +1,21 @@
 `timescale 1ns/1ps
+`include "adam/macros_bhv.svh"
+
 package adam_stream_slv_bhv;
 
 class adam_stream_slv_bhv #(
-    parameter type data_t = logic,
+    `ADAM_BHV_CFG_PARAMS,
 
-    parameter TA = 2ns,
-    parameter TT = 18ns,
+    parameter MAX_TRANS = 4,
 
-    parameter MAX_TRANS = 4
+    parameter type T = logic
 );
 
     typedef virtual ADAM_STREAM_DV #(
-        .data_t (data_t)
+        .T (T)
     ) dv_t;
 
-    data_t queue [$];
+    T queue [$];
     dv_t   dv;
 
     function new(
@@ -24,7 +25,7 @@ class adam_stream_slv_bhv #(
     endfunction
 
     task recv(
-        output data_t data
+        output T data
     );
         while (queue.size() == 0) begin
             cycle_start();

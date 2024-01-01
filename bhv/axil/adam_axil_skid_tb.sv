@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+`include "adam/macros_bhv.svh"
 `include "axi/assign.svh"
 `include "vunit_defines.svh"
 
@@ -6,84 +7,44 @@ module adam_axil_skid_tb;
     import adam_axil_mst_bhv::*;
     import adam_axil_slv_bhv::*;
 
-    localparam ADDR_WIDTH = 32;
-    localparam DATA_WIDTH = 32;
+    `ADAM_BHV_CFG_LOCALPARAMS;
 
     localparam MAX_TRANS = 1;
 
-    localparam CLK_PERIOD = 20ns;
-    localparam RST_CYCLES = 5;
-
-    localparam TA = 2ns;
-    localparam TT = CLK_PERIOD - TA;
-
-    localparam STRB_WIDTH = DATA_WIDTH / 8;
-
-    typedef logic [ADDR_WIDTH-1:0] addr_t;
-    typedef logic [2:0] prot_t;
-    typedef logic [DATA_WIDTH-1:0] data_t;
-    typedef logic [STRB_WIDTH-1:0] strb_t;
-    typedef logic [1:0] resp_t;
-
     ADAM_SEQ seq();
 
-    AXI_LITE #(
-        .AXI_ADDR_WIDTH (ADDR_WIDTH),
-        .AXI_DATA_WIDTH (DATA_WIDTH)
-    ) mst ();
+    `ADAM_AXIL_I mst ();
 
-    AXI_LITE_DV #(
-        .AXI_ADDR_WIDTH (ADDR_WIDTH),
-        .AXI_DATA_WIDTH (DATA_WIDTH)
-    ) mst_dv(seq.clk);
+    `ADAM_AXIL_DV_I mst_dv (seq.clk);
 
     `AXI_LITE_ASSIGN(mst, mst_dv);
 
     adam_axil_mst_bhv #(
-        .ADDR_WIDTH (ADDR_WIDTH),
-        .DATA_WIDTH (DATA_WIDTH),
-
-        .TA(TA),
-        .TT(TT),
+        `ADAM_BHV_CFG_PARAMS_MAP,
         
-        .MAX_TRANS(MAX_TRANS)
+        .MAX_TRANS (MAX_TRANS)
     ) mst_bhv;
 
-    AXI_LITE #(
-        .AXI_ADDR_WIDTH(ADDR_WIDTH),
-        .AXI_DATA_WIDTH(DATA_WIDTH)
-    ) slv ();
+    `ADAM_AXIL_I slv ();
 
-    AXI_LITE_DV #(
-        .AXI_ADDR_WIDTH(ADDR_WIDTH),
-        .AXI_DATA_WIDTH(DATA_WIDTH)
-    ) slv_dv(seq.clk);
+    `ADAM_AXIL_DV_I slv_dv(seq.clk);
 
     `AXI_LITE_ASSIGN(slv_dv, slv);
 
     adam_axil_slv_bhv #(
-        .ADDR_WIDTH (ADDR_WIDTH),
-        .DATA_WIDTH (DATA_WIDTH),
-
-        .TA(TA),
-        .TT(TT),
+        `ADAM_BHV_CFG_PARAMS_MAP,
         
-        .MAX_TRANS(MAX_TRANS)
+        .MAX_TRANS (MAX_TRANS)
     ) slv_bhv;
 
     adam_seq_bhv #(
-        .CLK_PERIOD(CLK_PERIOD),
-        .RST_CYCLES(RST_CYCLES),
-        
-        .TA(TA),
-        .TT(TT)
+        `ADAM_BHV_CFG_PARAMS_MAP
     ) adam_seq_bhv (
         .seq(seq)
     );
 
     adam_axil_skid #(
-        .ADDR_WIDTH(ADDR_WIDTH),
-        .DATA_WIDTH(DATA_WIDTH),
+        `ADAM_CFG_PARAMS_MAP,
 
         .BYPASS_AW (0),
         .BYPASS_W  (0),
@@ -109,11 +70,11 @@ module adam_axil_skid_tb;
 
     `TEST_SUITE begin
         `TEST_CASE("basic") begin
-            automatic addr_t addr = $urandom();
-            automatic prot_t prot = 3'b000;
-            automatic data_t data = $urandom();
-            automatic strb_t strb = 4'b1111;
-            automatic resp_t resp = 2'b00;
+            automatic ADDR_T addr = $urandom();
+            automatic PROT_T prot = 3'b000;
+            automatic DATA_T data = $urandom();
+            automatic STRB_T strb = 4'b1111;
+            automatic RESP_T resp = 2'b00;
 
             @(negedge seq.rst);
             @(posedge seq.clk);
@@ -135,11 +96,11 @@ module adam_axil_skid_tb;
         end
 
         `TEST_CASE("stall") begin            
-            automatic addr_t addr;
-            automatic prot_t prot;
-            automatic data_t data;
-            automatic strb_t strb;
-            automatic resp_t resp;
+            automatic ADDR_T addr;
+            automatic PROT_T prot;
+            automatic DATA_T data;
+            automatic STRB_T strb;
+            automatic RESP_T resp;
             
             addr = '0;
             prot = 3'b000;

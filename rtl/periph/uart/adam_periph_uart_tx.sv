@@ -5,12 +5,10 @@
  * NOT part of the standard "pause protocol".
  */
  
+`include "adam/macros.svh"
+
 module adam_periph_uart_tx #(
-    parameter DATA_WIDTH = 32,
-
-    // Dependent parameters bellow, do not override.
-
-    parameter type data_t = logic [DATA_WIDTH-1:0]
+    `ADAM_CFG_PARAMS
 ) (
     ADAM_SEQ.Slave   seq,
     ADAM_PAUSE.Slave pause,
@@ -19,17 +17,17 @@ module adam_periph_uart_tx #(
     input  logic       parity_control,
     input  logic [3:0] data_length,
     input  logic       stop_bits,
-    input  data_t      baud_rate,
+    input  DATA_T      baud_rate,
 
     ADAM_STREAM.Slave slv,
     
     output logic tx
 );
-    data_t frame_size;
+    DATA_T frame_size;
 
-    data_t clk_count;
-    data_t bit_count;
-    data_t shift;
+    DATA_T clk_count;
+    DATA_T bit_count;
+    DATA_T shift;
     logic  parity;
 
     /* 

@@ -1,19 +1,19 @@
 `timescale 1ns/1ps
+`include "adam/macros_bhv.svh"
 
 package adam_stream_mst_bhv;
 
 class adam_stream_mst_bhv #(
-    parameter type data_t = logic,
+    `ADAM_BHV_CFG_PARAMS,
 
-    parameter TA = 2ns,
-    parameter TT = 18ns
+    parameter type T = logic
 );
 
     typedef virtual ADAM_STREAM_DV #(
-        .data_t (data_t)
+        .T (T)
     ) dv_t;
 
-    data_t queue [$];
+    T queue [$];
     dv_t   dv;
 
     function new(
@@ -23,7 +23,7 @@ class adam_stream_mst_bhv #(
     endfunction
 
     task send(
-        input data_t data
+        input T data
     );
         queue.push_front(data);
     endtask
@@ -31,7 +31,7 @@ class adam_stream_mst_bhv #(
     task loop();
         logic  start_transfer;
         logic  end_transfer;
-        data_t data;
+        T data;
 
         dv.data  = 0;
         dv.valid = 0;

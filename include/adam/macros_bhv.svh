@@ -46,21 +46,21 @@
 // ADAM_STREAM_BHV Factories ==================================================
 
 `define ADAM_STREAM_BHV_MST_FACTORY(
-    _data_t, _TA, _TT,
+    _T, _TA, _TT,
     prefix, clk
 ) \
     ADAM_STREAM #( \
-        .data_t (_data_t) \
+        .T (_T) \
     ) ``prefix`` (); \
     \
     ADAM_STREAM_DV #( \
-        .data_t (_data_t) \
+        .T (_T) \
     ) ``prefix``_dv (clk); \
     \
     `ADAM_STREAM_ASSIGN(``prefix``, ``prefix``_dv); \
     \
     adam_stream_mst_bhv #( \
-        .data_t (_data_t), \
+        .T (_T), \
         .TA (_TA), \
         .TT (_TT) \
     ) ``prefix``_bhv; \
@@ -71,21 +71,21 @@
     end
 
 `define ADAM_STREAM_BHV_SLV_FACTORY(
-    _data_t, _TA, _TT, _MAX_TRANS,
+    _T, _TA, _TT, _MAX_TRANS,
     prefix, clk
 ) \
     ADAM_STREAM #( \
-        .data_t (_data_t) \
+        .T (_T) \
     ) ``prefix`` (); \
     \
     ADAM_STREAM_DV #( \
-        .data_t (_data_t) \
+        .T (_T) \
     ) ``prefix``_dv (clk); \
     \
     `ADAM_STREAM_ASSIGN(``prefix``_dv, ``prefix``); \
     \
     adam_stream_slv_bhv #( \
-        .data_t (_data_t), \
+        .T (_T), \
         .TA (_TA), \
         .TT (_TT), \
         .MAX_TRANS (_MAX_TRANS) \
