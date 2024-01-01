@@ -1,19 +1,3 @@
-/*
-This wrapper module serves two primary functions:
-
-1. It is designed to subtract the master address offset in each master
-   interface. It only supports one rule per master port.
-
-2. It incorporates the implementation of the pause protocol, allowing for safe
-   power and clock gating operations.
-
-It is crucial to ensure that the index (idx) of any rule provided matches with
-the corresponding index in the addr_map for that rule. Kindly note that this
-restriction is not verified within the wrapper itself. It is the responsibility
-of the designer to ensure the correctness of the addr_map configuration
-provided.
-*/
-
 `include "adam/macros.svh"
 `include "axi/typedef.svh"
 `include "axi/assign.svh"
@@ -98,7 +82,7 @@ module adam_axil_apb_bridge #(
 
             for (genvar i = 0; i < NO_MSTS; i++) begin
                 assign mst[i].paddr = mst_req[i].paddr -
-                        addr_map[i].start_addr;
+                        addr_map[i].start;
                     
                 assign mst[i].pprot   = mst_req[i].pprot;
                 assign mst[i].psel    = mst_req[i].psel;
@@ -113,8 +97,8 @@ module adam_axil_apb_bridge #(
 
                 assign phy_addr_map[i] = '{
                     idx: i,
-                    start_addr: addr_map[i].start_addr,
-                    end_addr:   addr_map[i].end_addr
+                    start_addr: addr_map[i].start,
+                    end_addr:   addr_map[i].end_
                 };
             end
             

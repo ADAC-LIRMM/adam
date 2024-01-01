@@ -14,15 +14,12 @@ module adam_axil_apb_bridge_tb;
 
     localparam MAX_TRANS = 7;
 
-    typedef struct packed {
-        ADDR_T start_addr;
-        ADDR_T end_addr;
-    } rule_t;
+    localparam type RULE_T = adam_cfg_pkg::MMAP_T;
     
     ADAM_SEQ   seq   ();
     ADAM_PAUSE pause ();
 
-    rule_t addr_map [NO_MSTS+1];
+    RULE_T addr_map [NO_MSTS+1];
 
     ADDR_T paddr   [NO_MSTS+1];
     PROT_T pprot   [NO_MSTS+1];
@@ -52,8 +49,8 @@ module adam_axil_apb_bridge_tb;
     always_comb begin
         for (int i = 0; i < NO_MSTS; i++) begin
             addr_map[i] = '{
-                start_addr: i << 16,
-                end_addr: (i + 1) << 16
+                start : i << 16,
+                end_  : (i + 1) << 16
             };
         end
     end
@@ -79,7 +76,7 @@ module adam_axil_apb_bridge_tb;
 
         .NO_MSTS (NO_MSTS),
     
-        .RULE_T (rule_t)
+        .RULE_T (RULE_T)
     ) dut (
         .seq   (seq),
         .pause (pause),

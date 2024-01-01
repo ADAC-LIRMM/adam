@@ -93,7 +93,7 @@ module adam_fabric #(
 
     generate
         if (NO_LSPA > 0) begin
-            adam_fabric_lsxp #(
+            adam_fabric_lspx #(
                 .ADDR_WIDTH (ADDR_WIDTH),
                 .DATA_WIDTH (DATA_WIDTH),
 
@@ -112,7 +112,7 @@ module adam_fabric #(
         end
 
         if (NO_LSPB > 0) begin
-            adam_fabric_lsxp #(
+            adam_fabric_lspx #(
                 .ADDR_WIDTH (ADDR_WIDTH),
                 .DATA_WIDTH (DATA_WIDTH),
 

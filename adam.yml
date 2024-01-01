@@ -64,7 +64,7 @@ fsets:
       - pause/adam_pause_mux_tb.sv
       - fabric/adam_fabric_hsdom_tb.sv
       - fabric/adam_fabric_lsdom_tb.sv
-      - fabric/adam_fabric_lsxp_tb.sv
+      - fabric/adam_fabric_lspx_tb.sv
       - fabric/adam_fabric_tb.sv
       - periph/gpio/adam_periph_gpio_tb.sv
       - periph/spi/adam_periph_spi_phy_tb.sv
@@ -120,7 +120,7 @@ fsets:
 
       - fabric/adam_fabric_hsdom.sv
       - fabric/adam_fabric_lsdom.sv
-      - fabric/adam_fabric_lsxp.sv
+      - fabric/adam_fabric_lspx.sv
       - fabric/adam_fabric.sv
 
       #- adam_syscfg.sv

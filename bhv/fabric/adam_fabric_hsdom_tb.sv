@@ -9,7 +9,7 @@ module adam_fabric_hsdom_tb;
 
     `ADAM_BHV_CFG_LOCALPARAMS;
 
-    localparam MAX_TRANS = 7;
+    localparam MAX_TRANS = FAB_MAX_TRANS;
 
     localparam NO_MSTS = 2*NO_CPUS + NO_DMAS + EN_DEBUG + 1;
     localparam NO_SLVS = NO_MEMS + NO_HSPS + EN_DEBUG + 1;
