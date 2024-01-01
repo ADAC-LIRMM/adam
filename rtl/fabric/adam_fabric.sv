@@ -1,35 +1,8 @@
 `include "adam/macros.svh"
 `include "axi/assign.svh"
 
-`define AXIL_I AXI_LITE #( \
-    .AXI_ADDR_WIDTH (ADDR_WIDTH), \
-    .AXI_DATA_WIDTH (DATA_WIDTH) \
-)
-
 module adam_fabric #(
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32,
-
-    parameter MAX_TRANS = 7,
-
-    parameter NO_CPUS = 2,
-    parameter NO_DMAS = 2,
-    parameter NO_MEMS = 2,
-    parameter NO_HSP = 2,
-    parameter NO_LSPA = 2,
-    parameter NO_LSPB = 2,
-
-    parameter EN_LPCPU = 1,
-    parameter EN_LPMEM = 1,
-    parameter EN_DEBUG = 1,
-
-    // Dependent parameters bellow, do not override.
-
-    parameter STRB_WIDTH  = DATA_WIDTH/8,
-
-    parameter type addr_t = logic [ADDR_WIDTH-1:0],
-    parameter type data_t = logic [DATA_WIDTH-1:0],
-    parameter type strb_t = logic [STRB_WIDTH-1:0]
+    `ADAM_CFG_PARAMS
 ) (
     // lsdom ==================================================================
     
@@ -42,41 +15,33 @@ module adam_fabric #(
 
     AXI_LITE.Master lsdom_lpmem,
     AXI_LITE.Master lsdom_syscfg,
-    AXI_LITE.Master lsdom_lspa [NO_LSPA],
-    AXI_LITE.Master lsdom_lspb [NO_LSPB],
+    AXI_LITE.Master lsdom_lspa [NO_LSPAS+1],
+    AXI_LITE.Master lsdom_lspb [NO_LSPBS+1],
 
     // hsdom ==================================================================
     
     ADAM_SEQ.Slave   hsdom_seq,
     ADAM_PAUSE.Slave hsdom_pause,
 
-    AXI_LITE.Slave hsdom_cpus [2*NO_CPUS],
-    AXI_LITE.Slave hsdom_dmas [NO_DMAS],
+    AXI_LITE.Slave hsdom_cpu [2*NO_CPUS+1],
+    AXI_LITE.Slave hsdom_dma [NO_DMAS+1],
     AXI_LITE.Slave hsdom_debug_slv,
 
-    AXI_LITE.Master hsdom_mems [NO_MEMS],
-    AXI_LITE.Master hsdom_hsp [NO_HSP],
+    AXI_LITE.Master hsdom_mem [NO_MEMS+1],
+    AXI_LITE.Master hsdom_hsp [NO_HSPS+1],
     AXI_LITE.Master hsdom_debug_mst
 );
 
     // lsdom ==================================================================
 
-    `AXIL_I lsdom_from_hsdom ();
-    `AXIL_I lsdom_to_hsdom ();
+    `ADAM_AXIL_I lsdom_from_hsdom ();
+    `ADAM_AXIL_I lsdom_to_hsdom ();
 
-    `AXIL_I lsdom_to_lspa ();
-    `AXIL_I lsdom_to_lspb ();
+    `ADAM_AXIL_I lsdom_to_lspa ();
+    `ADAM_AXIL_I lsdom_to_lspb ();
     
     adam_fabric_lsdom #(
-        .ADDR_WIDTH (ADDR_WIDTH),
-        .DATA_WIDTH (DATA_WIDTH),
-
-        .MAX_TRANS  (MAX_TRANS),
-
-        .EN_LPCPU (EN_LPCPU),
-        .EN_LPMEM (EN_LPMEM),
-        .EN_LSPA  (NO_LSPA > 0),
-        .EN_LSPB  (NO_LSPB > 0)
+        `ADAM_CFG_PARAMS_MAP
     ) adam_fabric_lsdom (
         .seq   (lsdom_seq),
         .pause (lsdom_pause),
@@ -92,18 +57,18 @@ module adam_fabric #(
     );
 
     generate
-        if (NO_LSPA > 0) begin
+        if (EN_LSPA) begin
             adam_fabric_lspx #(
-                .ADDR_WIDTH (ADDR_WIDTH),
-                .DATA_WIDTH (DATA_WIDTH),
+                `ADAM_CFG_PARAMS_MAP,
 
-                .NO_MSTS (NO_LSPA)
+                .NO_MSTS (NO_LSPAS),
+                .INC     (MMAP_LSPA.inc)
             ) adam_fabric_lspa (
                 .seq   (lsdom_seq),
                 .pause (lsdom_pause_lspa),
 
-                .slv  (lsdom_to_lspa),
-                .msts (lsdom_lspa)
+                .slv (lsdom_to_lspa),
+                .mst (lsdom_lspa)
             );
         end
         else begin
@@ -111,18 +76,18 @@ module adam_fabric #(
             `ADAM_AXIL_SLV_TIE_OFF(lsdom_to_lspa);
         end
 
-        if (NO_LSPB > 0) begin
+        if (EN_LSPB) begin
             adam_fabric_lspx #(
-                .ADDR_WIDTH (ADDR_WIDTH),
-                .DATA_WIDTH (DATA_WIDTH),
+                `ADAM_CFG_PARAMS_MAP,
 
-                .NO_MSTS (NO_LSPB)
+                .NO_MSTS (NO_LSPBS),
+                .INC     (MMAP_LSPB.inc)
             ) adam_fabric_lspb (
                 .seq   (lsdom_seq),
                 .pause (lsdom_pause_lspb),
 
-                .slv  (lsdom_to_lspb),
-                .msts (lsdom_lspb)
+                .slv (lsdom_to_lspb),
+                .mst (lsdom_lspb)
             );
         end
         else begin
@@ -133,32 +98,22 @@ module adam_fabric #(
 
     // hsdom ==================================================================
 
-    `AXIL_I hsdom_from_lsdom ();
-    `AXIL_I hsdom_to_lsdom ();
+    `ADAM_AXIL_I hsdom_from_lsdom ();
+    `ADAM_AXIL_I hsdom_to_lsdom ();
 
     adam_fabric_hsdom #(
-        .ADDR_WIDTH (ADDR_WIDTH),
-        .DATA_WIDTH (DATA_WIDTH),
-        
-        .MAX_TRANS (MAX_TRANS),
-
-        .NO_CPUS (NO_CPUS),
-        .NO_DMAS (NO_DMAS),
-        .NO_MEMS (NO_MEMS),
-        .NO_HSP (NO_HSP),
-
-        .EN_DEBUG (EN_DEBUG)
+        `ADAM_CFG_PARAMS_MAP
     ) adam_fabric_hsdom (
         .seq   (hsdom_seq),
         .pause (hsdom_pause),
 
-        .cpus       (hsdom_cpus),
-        .dmas       (hsdom_dmas),
+        .cpu        (hsdom_cpu),
+        .dma        (hsdom_dma),
         .debug_slv  (hsdom_debug_slv),
         .from_lsdom (hsdom_from_lsdom),
 
-        .mems      (hsdom_mems),
-        .hsp      (hsdom_hsp),
+        .mem       (hsdom_mem),
+        .hsp       (hsdom_hsp),
         .debug_mst (hsdom_debug_mst),
         .to_lsdom  (hsdom_to_lsdom)
     );

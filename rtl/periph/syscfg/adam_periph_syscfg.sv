@@ -101,20 +101,17 @@ module adam_periph_syscfg #(
     
     // Interconnect ===========================================================
     
-    typedef struct packed {
-        ADDR_T start_addr;
-        ADDR_T end_addr;
-    } rule_t;
+    localparam type RULE_T = adam_cfg_pkg::MMAP_T;
 
     `ADAM_APB_I tgt_apb [NO_TGTS+1] ();
     
-    rule_t tgt_addr_map [NO_TGTS+1];
+    RULE_T tgt_addr_map [NO_TGTS+1];
 
     generate
         for (genvar i = 0; i < NO_TGTS; i++) begin
             assign tgt_addr_map[i] = '{
-                start_addr: 4*i,
-                end_addr: 4*(i+1)
+                start : 4*i,
+                end_  : 4*(i+1)
             };
         end
     endgenerate
@@ -124,7 +121,7 @@ module adam_periph_syscfg #(
 
         .NO_MSTS (NO_TGTS),
     
-        .RULE_T (rule_t)
+        .RULE_T (RULE_T)
     ) adam_axil_apb_bridge (
         .seq   (seq),
         .pause (apb_pause),
