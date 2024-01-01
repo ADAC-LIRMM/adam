@@ -51,7 +51,7 @@ module adam_axil_slv_simple_bhv #(
             join
             if (
                 (addr >= ADDR_S) &&
-                (addr <  ADDR_E) &&
+                (addr < ADDR_E || ADDR_E == '0) &&
                 (data == DATA)
             ) begin
                 $display("%x %x %x", addr, ADDR_S, ADDR_E);

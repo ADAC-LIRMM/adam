@@ -199,7 +199,9 @@ module adam_fabric_hsdom_tb;
         .debug_mst (debug_slv),
         .to_lsdom  (to_lsdom)
     );
-
+    
+    // Test ===================================================================
+      
     `TEST_SUITE begin
         `TEST_CASE("test") begin
             ADDR_T addr;

@@ -1,142 +1,199 @@
 `timescale 1ns/1ps
+`include "adam/macros_bhv.svh"
 `include "axi/assign.svh"
 `include "vunit_defines.svh"
-
-`define AXIL_I AXI_LITE #( \
-    .AXI_ADDR_WIDTH (ADDR_WIDTH), \
-    .AXI_DATA_WIDTH (DATA_WIDTH) \
-)
-
-`define MST_FACTORY(MST) \
-    `AXIL_I MST (); \
-    AXI_LITE_DV #( \
-        .AXI_ADDR_WIDTH(ADDR_WIDTH), \
-        .AXI_DATA_WIDTH(DATA_WIDTH) \
-    ) ``MST``_dv (seq.clk); \
-    `AXI_LITE_ASSIGN(MST, ``MST``_dv); \
-    adam_axil_mst_bhv #( \
-        .ADDR_WIDTH (ADDR_WIDTH), \
-        .DATA_WIDTH (DATA_WIDTH), \
-        .TA (TA), \
-        .TT (TT), \
-        .MAX_TRANS (MAX_TRANS) \
-    ) ``MST``_bhv; \
-    initial begin \
-        ``MST``_bhv = new(``MST``_dv); \
-        ``MST``_bhv.loop(); \
-    end
-
-`define MST_TEST(MST) begin \
-    addr_t addr; \
-    data_t data_w; \
-    data_t data_r; \
-    resp_t resp_b; \
-    resp_t resp_d; \
-    for (int i = 0; i < 5; i++) begin \
-        for (int j = 0; j < 2; j++) begin \
-            if (j == 0) begin \
-                addr = map[i].start_addr; \
-            end \
-            else begin \
-                addr = map[i].end_addr - 1; \
-            end \
-            data_w = map[i].idx; \
-            fork \
-                ``MST``_bhv.send_aw(addr, 3'b000); \
-                ``MST``_bhv.send_w(data_w, 4'b1111); \
-                ``MST``_bhv.recv_b(resp_b); \
-                ``MST``_bhv.send_ar(addr, 3'b000); \
-                ``MST``_bhv.recv_r(data_r, resp_d); \
-            join \
-            assert (resp_b == axi_pkg::RESP_OKAY); \
-            assert (resp_d == axi_pkg::RESP_OKAY); \
-            assert (data_r == data_w); \
-        end \
-    end \
-end
-
-`define SLV_FACTORY(SLV, ID, _ADDR_S, _ADDR_E) \
-    `AXIL_I SLV (); \
-    adam_axil_slv_simple_bhv #( \
-        .ADDR_WIDTH (ADDR_WIDTH), \
-        .DATA_WIDTH (DATA_WIDTH), \
-        .ADDR_S (_ADDR_S), \
-        .ADDR_E (_ADDR_E), \
-        .DATA (ID), \
-        .TA (TA), \
-        .TT (TT), \
-        .MAX_TRANS (MAX_TRANS) \
-    ) ``SLV``_bhv ( \
-        .seq (seq), \
-        .slv (SLV) \
-    );
 
 module adam_fabric_lsdom_tb;
     import adam_axil_mst_bhv::*;
     import adam_axil_slv_bhv::*;
 
-    localparam ADDR_WIDTH = 32;
-    localparam DATA_WIDTH = 32;
+    `ADAM_BHV_CFG_LOCALPARAMS;
 
     localparam MAX_TRANS = 7;
 
-    localparam CLK_PERIOD = 20ns;
-    localparam RST_CYCLES = 5;
+    localparam NO_MSTS = 2*EN_LPCPU + 1;
+    localparam NO_SLVS = EN_LPMEM + EN_LSPA + EN_LSPB + 2;
 
-    localparam TA = 2ns;
-    localparam TT = CLK_PERIOD - TA;
-
-    localparam STRB_WIDTH = DATA_WIDTH/8;
-
-    typedef logic [ADDR_WIDTH-1:0] addr_t;
-    typedef logic [2:0]            prot_t;       
-    typedef logic [DATA_WIDTH-1:0] data_t;
-    typedef logic [STRB_WIDTH-1:0] strb_t;
-    typedef logic [1:0]            resp_t;
-
-    typedef struct packed {
-        int unsigned idx;
-        addr_t start_addr;
-        addr_t end_addr;
-    } rule_t;
+    // seq and pause ==========================================================
 
     ADAM_SEQ   seq   ();
     ADAM_PAUSE pause ();
-        
-    rule_t [4:0] map;
-    assign map = '{
-        '{ idx: 4, start_addr: 32'h0008_0000, end_addr: 32'hFFFF_FFFF},
-        '{ idx: 3, start_addr: 32'h0001_8000, end_addr: 32'h0002_0000},
-        '{ idx: 2, start_addr: 32'h0001_0000, end_addr: 32'h0001_8000},
-        '{ idx: 1, start_addr: 32'h0000_8000, end_addr: 32'h0000_8400},
-        '{ idx: 0, start_addr: 32'h0000_0000, end_addr: 32'h0000_8000} 
-    };
-
-    `MST_FACTORY(lpcpu0);
-    `MST_FACTORY(lpcpu1);
-    `MST_FACTORY(from_hsdom);
     
-    `SLV_FACTORY(lpmem   , 0, 32'h0000_0000, 32'h0000_8000);
-    `SLV_FACTORY(syscfg  , 1, 32'h0000_0000, 32'h0000_0400);
-    `SLV_FACTORY(lspa    , 2, 32'h0000_0000, 32'h0001_8000);
-    `SLV_FACTORY(lspb    , 3, 32'h0000_0000, 32'h0000_8000);
-    `SLV_FACTORY(to_hsdom, 4, 32'h0008_0000, 32'hFFFF_FFFF);
+    adam_seq_bhv #(
+        `ADAM_BHV_CFG_PARAMS_MAP
+    ) adam_seq_bhv (
+        .seq (seq)
+    );
 
+    adam_pause_bhv #(
+        `ADAM_BHV_CFG_PARAMS_MAP,
+
+        .DELAY    (10us),
+        .DURATION (10us)
+    ) adam_pause_bhv (
+        .seq   (seq),
+        .pause (pause)
+    );
+
+    // Masters ===============================================================
+
+    `ADAM_AXIL_I lpcpu [2] ();
+    `ADAM_AXIL_I from_hsdom ();
+
+    `ADAM_AXIL_BHV_MST_ARRAY_FACTORY(MAX_TRANS, mst, NO_MSTS, seq.clk);
+
+    generate
+        localparam LPCPU_S = 0;
+        localparam LPCPU_E = LPCPU_S + 2*EN_LPCPU;
+
+        localparam FROM_HSDOM_S = LPCPU_E;
+        localparam FROM_HSDOM_E = FROM_HSDOM_S + 1;
+
+        for (genvar i = LPCPU_S; i < LPCPU_E; i++) begin
+            `AXI_LITE_ASSIGN(lpcpu[i-LPCPU_S], mst[i]);
+        end
+
+        for (genvar i = FROM_HSDOM_S; i < FROM_HSDOM_E; i++) begin
+            `AXI_LITE_ASSIGN(from_hsdom, mst[i]);
+        end
+    endgenerate
+
+    // Slaves =================================================================
+    
+    `ADAM_AXIL_I lpmem ();
+    `ADAM_AXIL_I syscfg ();
+    `ADAM_AXIL_I lspa ();
+    `ADAM_AXIL_I lspb ();
+    `ADAM_AXIL_I to_hsdom ();
+
+    MMAP_T addr_map [NO_SLVS+1];
+
+    generate
+        localparam LPMEM_S = 0;
+        localparam LPMEM_E = LPMEM_S + EN_LPMEM;
+
+        localparam SYSCFG_S = LPMEM_E;
+        localparam SYSCFG_E = SYSCFG_S + 1;
+
+        localparam LSPA_S = SYSCFG_E;
+        localparam LSPA_E = LSPA_S + EN_LSPA;
+
+        localparam LSPB_S = LSPA_E;
+        localparam LSPB_E = LSPB_S + EN_LSPB;
+
+        localparam TO_HSDOM_S = LSPB_E;
+        localparam TO_HSDOM_E = TO_HSDOM_S + 1;
+
+        for (genvar i = LPMEM_S; i < LPMEM_E; i++) begin
+            assign addr_map[i] = '{
+                start : MMAP_LPMEM.start,
+                end_  : MMAP_LPMEM.end_
+            };
+
+            adam_axil_slv_simple_bhv #(
+                `ADAM_BHV_CFG_PARAMS_MAP,
+
+                .ADDR_S ('0),
+                .ADDR_E (MMAP_LPMEM.end_ - MMAP_LPMEM.start),
+                .DATA   (i),
+
+                .MAX_TRANS (MAX_TRANS)
+            ) lpmem_bhv (
+                .seq (seq),
+                .slv (lpmem)
+            );
+        end
+
+        for (genvar i = SYSCFG_S; i < SYSCFG_E; i++) begin
+            assign addr_map[i] = '{
+                start : MMAP_SYSCFG.start,
+                end_  : MMAP_SYSCFG.end_
+            };
+
+            adam_axil_slv_simple_bhv #(
+                `ADAM_BHV_CFG_PARAMS_MAP,
+
+                .ADDR_S ('0),
+                .ADDR_E (MMAP_SYSCFG.end_ - MMAP_SYSCFG.start),
+                .DATA   (i),
+
+                .MAX_TRANS (MAX_TRANS)
+            ) syscfg_bhv (
+                .seq (seq),
+                .slv (syscfg)
+            );
+        end
+
+        for (genvar i = LSPA_S; i < LSPA_E; i++) begin
+            assign addr_map[i] = '{
+                start : MMAP_LSPA.start,
+                end_  : MMAP_LSPA.end_
+            };
+
+            adam_axil_slv_simple_bhv #(
+                `ADAM_BHV_CFG_PARAMS_MAP,
+
+                .ADDR_S ('0),
+                .ADDR_E (MMAP_LSPA.end_ - MMAP_LSPA.start),
+                .DATA   (i),
+
+                .MAX_TRANS (MAX_TRANS)
+            ) lspa_bhv (
+                .seq (seq),
+                .slv (lspa)
+            );
+        end
+
+        for (genvar i = LSPB_S; i < LSPB_E; i++) begin
+            assign addr_map[i] = '{
+                start : MMAP_LSPB.start,
+                end_  : MMAP_LSPB.end_
+            };
+
+            adam_axil_slv_simple_bhv #(
+                `ADAM_BHV_CFG_PARAMS_MAP,
+
+                .ADDR_S ('0),
+                .ADDR_E (MMAP_LSPB.end_ - MMAP_LSPB.start),
+                .DATA   (i),
+
+                .MAX_TRANS (MAX_TRANS)
+            ) lspb_bhv (
+                .seq (seq),
+                .slv (lspb)
+            );
+        end
+
+        for (genvar i = TO_HSDOM_S; i < TO_HSDOM_E; i++) begin
+            assign addr_map[i] = '{
+                start : MMAP_BOUNDRY,
+                end_  : {ADDR_WIDTH{1'b1}}
+            };
+
+            adam_axil_slv_simple_bhv #(
+                `ADAM_BHV_CFG_PARAMS_MAP,
+
+                .ADDR_S (MMAP_BOUNDRY),
+                .ADDR_E ({ADDR_WIDTH{1'b1}}),
+                .DATA   (i),
+
+                .MAX_TRANS (MAX_TRANS)
+            ) lspb_bhv (
+                .seq (seq),
+                .slv (to_hsdom)
+            );
+        end
+    endgenerate
+
+    // DUT ====================================================================
+    
     adam_fabric_lsdom #(
-        .ADDR_WIDTH (ADDR_WIDTH),
-        .DATA_WIDTH (DATA_WIDTH),
-        
-        .MAX_TRANS (MAX_TRANS),
-
-        .EN_LPCPU (1),
-        .EN_LPMEM (1),
-        .EN_LSPA  (1),
-        .EN_LSPB  (1)
+        `ADAM_CFG_PARAMS_MAP
     ) dut (
         .seq   (seq),
         .pause (pause),
         
-        .lpcpu        ('{lpcpu0, lpcpu1}),
+        .lpcpu      (lpcpu),
         .from_hsdom (from_hsdom),
 
         .lpmem    (lpmem),
@@ -146,40 +203,50 @@ module adam_fabric_lsdom_tb;
         .to_hsdom (to_hsdom)
     );
 
-    adam_seq_bhv #(
-        .CLK_PERIOD (CLK_PERIOD),
-        .RST_CYCLES (RST_CYCLES),
+    // Test ===================================================================
 
-        .TA (TA),
-        .TT (TT)
-    ) adam_seq_bhv (
-        .seq (seq)
-    );
-
-    adam_pause_bhv #(
-        .DELAY    (10us),
-        .DURATION (10us),
-
-        .TA (TA),
-        .TT (TT)
-    ) adam_pause_bhv (
-        .seq   (seq),
-        .pause (pause)
-    );
-    
     `TEST_SUITE begin
         `TEST_CASE("test") begin
-            @(negedge seq.rst);
-            @(posedge seq.clk);
+            ADDR_T addr;
+            DATA_T data_w;
+            DATA_T data_r;
+            RESP_T resp_b;
+            RESP_T resp_r;
+
+            `ADAM_UNTIL(!seq.rst);
             
-            `MST_TEST(lpcpu0);
-            `MST_TEST(lpcpu1);
-            `MST_TEST(from_hsdom);
+            for (int i = 0; i < NO_MSTS; i++) begin
+                for (int j = 0; j < NO_SLVS; j++) begin
+                    for (int k = 0; k < 2; k++) begin
+                        $display("i: %d; j: %d; k: %d", i, j, k);
+                        addr = (k == 0) ? (addr_map[j].start) : (addr_map[j].end_ - 1);
+                        data_w = DATA_T'(j);
+                        fork
+                            mst_bhv[i].send_aw(addr, 3'b000);
+                            mst_bhv[i].send_w(data_w, 4'b1111);
+                            mst_bhv[i].recv_b(resp_b);
+                            mst_bhv[i].send_ar(addr, 3'b000);
+                            mst_bhv[i].recv_r(data_r, resp_r);
+                        join
+                        assert (resp_b == axi_pkg::RESP_OKAY);
+                        assert (resp_r == axi_pkg::RESP_OKAY);
+                        assert (data_r == data_w);
+                    end
+                end
+            end
         end
     end
 
     initial begin
-        #10us $error("timeout");
+        #1000us $error("timeout");
     end
+
+    task cycle_start();
+        #TT;
+    endtask
+
+    task cycle_end();
+        @(posedge seq.clk);
+    endtask
     
 endmodule

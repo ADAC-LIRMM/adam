@@ -17,6 +17,7 @@ module adam_fabric_hsdom #(
     AXI_LITE.Master debug_mst,
     AXI_LITE.Master to_lsdom
 );
+
     localparam NO_SLVS = 2*NO_CPUS + NO_DMAS + EN_DEBUG + 1;
     localparam NO_MSTS = NO_MEMS + NO_HSPS + EN_DEBUG + 1;
 
