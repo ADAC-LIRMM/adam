@@ -66,16 +66,16 @@ module adam_periph_uart_rx #(
         else begin
             if (clk_count == 0 && bit_count == 0) begin
                 // idle
-                if (!pause.req && s_srx == 0) begin
-                    start @(negedge s_srx)
+                if (pause.req || pause.ack) begin
+                    // pause / resume
+                    pause.ack <= pause.req;
+                end
+                else if (s_srx == 0) begin
+                    // start @(negedge s_srx)
                     clk_count <= baud_rate/2;
                     bit_count <= 0;
                     parity    <= 0;
                     mst.data  <= 0;
-                end
-                else begin
-                    // able to pause
-                    pause.ack <= pause.req;
                 end
             end
             else if (bit_count >= frame_size) begin

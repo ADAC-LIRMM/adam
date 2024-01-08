@@ -6,20 +6,12 @@ module adam_periph_spi_phy_tb;
     import adam_stream_mst_bhv::*;
     import adam_stream_slv_bhv::*;
 
-    localparam DATA_WIDTH = 32;
-
-    localparam CLK_PERIOD = 20ns;
-    localparam RST_CYCLES = 5;
-
-    localparam TA = 2ns;
-    localparam TT = CLK_PERIOD - TA;
+    `ADAM_BHV_CFG_LOCALPARAMS;
     
     localparam NO_TESTS  = 100;
     localparam NO_FRAMES = 10; 
     localparam BAUD_RATE = 1000000;
     localparam BASE      = 8'hAA;
-
-    typedef logic [DATA_WIDTH-1:0] data_t;
 
     ADAM_SEQ   seq   ();
     ADAM_PAUSE pause ();
@@ -31,10 +23,10 @@ module adam_periph_spi_phy_tb;
     logic       clock_polarity;
     logic       data_order;
     logic [3:0] data_length;
-    data_t      baud_rate;
+    DATA_T      baud_rate;
 
-    `ADAM_STREAM_BHV_MST_FACTORY(data_t, TA, TT, tx, seq.clk);
-    `ADAM_STREAM_BHV_SLV_FACTORY(data_t, TA, TT, 1, rx, seq.clk);
+    `ADAM_STREAM_BHV_MST_FACTORY(DATA_T, TA, TT, tx, seq.clk);
+    `ADAM_STREAM_BHV_SLV_FACTORY(DATA_T, TA, TT, 1, rx, seq.clk);
 
     ADAM_IO sclk();
     ADAM_IO mosi();
@@ -44,17 +36,13 @@ module adam_periph_spi_phy_tb;
     logic slave_trigger;
     
     adam_seq_bhv #(
-        .CLK_PERIOD (CLK_PERIOD),
-        .RST_CYCLES (RST_CYCLES),
-
-        .TA (TA),
-        .TT (TT)
+        `ADAM_BHV_CFG_PARAMS_MAP
     ) adam_seq_bhv (
         .seq (seq)
     );
 
     adam_periph_spi_phy #(
-        .DATA_WIDTH (DATA_WIDTH)
+        `ADAM_CFG_PARAMS_MAP
     ) dut (
         .seq   (seq),
         .pause (pause),
@@ -151,10 +139,10 @@ module adam_periph_spi_phy_tb;
     endtask
 
     task emulate_top();
-        data_t data_tx;
-        data_t data_rx;
+        DATA_T data_tx;
+        DATA_T data_rx;
 
-        for (data_t i = 0; i < NO_FRAMES; i++) begin
+        for (DATA_T i = 0; i < NO_FRAMES; i++) begin
             
             data_tx = BASE + i;
 

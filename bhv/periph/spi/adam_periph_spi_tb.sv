@@ -1,26 +1,15 @@
 
 `timescale 1ns/1ps
+`include "adam/macros_bhv.svh"
 `include "apb/assign.svh"
 `include "vunit_defines.svh"
 
 module adam_periph_spi_tb;
 
-    localparam ADDR_WIDTH = 32;
-    localparam DATA_WIDTH = 32;
-    localparam STRB_WIDTH = DATA_WIDTH/8;
+    `ADAM_BHV_CFG_LOCALPARAMS;
 
-    localparam CLK_PERIOD = 20ns;
-    localparam RST_CYCLES = 5;
-
-    localparam TA = 2ns;
-    localparam TT = CLK_PERIOD - TA;
-    
     localparam NO_TESTS  = 100;
     localparam BAUD_RATE = 1000000;
-
-    typedef logic [ADDR_WIDTH-1:0] addr_t;
-    typedef logic [DATA_WIDTH-1:0] data_t;
-    typedef logic [STRB_WIDTH-1:0] strb_t;
 
     ADAM_SEQ   seq   ();
     ADAM_PAUSE pause ();
@@ -35,34 +24,22 @@ module adam_periph_spi_tb;
     ADAM_PAUSE pause_auto ();
     logic critical;
 
-    APB_DV #(
-        .ADDR_WIDTH(ADDR_WIDTH),
-        .DATA_WIDTH(DATA_WIDTH)
-    ) slave_dv(seq.clk);
-
-    APB #(
-        .ADDR_WIDTH(ADDR_WIDTH),
-        .DATA_WIDTH(DATA_WIDTH)
-    ) slave();
+    `ADAM_APB_DV_I slv_dv(seq.clk);
+    `ADAM_APB_I slv ();
     
-    `APB_ASSIGN(slave, slave_dv)
+    `APB_ASSIGN(slv, slv_dv)
 
     adam_seq_bhv #(
-        .CLK_PERIOD (CLK_PERIOD),
-        .RST_CYCLES (RST_CYCLES),
-
-        .TA (TA),
-        .TT (TT)
+        `ADAM_BHV_CFG_PARAMS_MAP
     ) adam_seq_bhv (
         .seq (seq)
     );
 
     adam_pause_bhv #(
-        .DELAY    (1ms),
-        .DURATION (1ms),
+        `ADAM_BHV_CFG_PARAMS_MAP,
 
-        .TA (TA),
-        .TT (TT)
+        .DELAY    (1ms),
+        .DURATION (1ms)
     ) adam_pause_bhv (
         .seq   (seq),
         .pause (pause_auto)
@@ -73,16 +50,15 @@ module adam_periph_spi_tb;
         .DATA_WIDTH (DATA_WIDTH),
         .TA         (TA),
         .TT         (TT)
-    ) master = new(slave_dv);
+    ) master = new(slv_dv);
 
     adam_periph_spi #(
-        .ADDR_WIDTH(ADDR_WIDTH),
-        .DATA_WIDTH(DATA_WIDTH)
+        `ADAM_CFG_PARAMS_MAP
     ) dut (
         .seq   (seq),
         .pause (pause),
 
-        .apb (slave),
+        .slv (slv),
         
         .irq (irq),
 
@@ -102,12 +78,12 @@ module adam_periph_spi_tb;
 
     `TEST_SUITE begin
         `TEST_CASE("test") begin
-            automatic addr_t addr;
-            automatic data_t data;
-            automatic strb_t strb;
+            automatic ADDR_T addr;
+            automatic DATA_T data;
+            automatic STRB_T strb;
             automatic logic  resp;
             
-            automatic data_t check;
+            automatic DATA_T check;
 
             strb = 4'b1111;
 
@@ -192,7 +168,7 @@ module adam_periph_spi_tb;
                 end while (data[0] == 0); // Transmit Buffer Empty (TBE)
 
                 addr = 32'h0000; // Data Register (DR)
-                data = data_t'(i);
+                data = DATA_T'(i);
                 master.write(addr, data, strb, resp);
                 $display("tx: %02h", data);
                 assert (resp == apb_pkg::RESP_OKAY);
@@ -204,7 +180,7 @@ module adam_periph_spi_tb;
                 end while (data[1] == 0); // Receive Buffer Full (RBF)
 
                 addr = 32'h0000; // Data Register (DR)
-                data = data_t'(i);
+                data = DATA_T'(i);
                 master.read(addr, check, resp);
                 $display("rx: %02h", check);
                 assert (resp == apb_pkg::RESP_OKAY);

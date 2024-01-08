@@ -6,7 +6,7 @@ module adam_periph_spi #(
     ADAM_SEQ.Slave   seq,
     ADAM_PAUSE.Slave pause,
 
-    APB.Slave apb,
+    APB.Slave slv,
 
     output logic irq,
 
@@ -17,7 +17,7 @@ module adam_periph_spi #(
 );
     
     ADAM_PAUSE phy_pause ();
-    ADAM_PAUSE apb_pause ();
+    ADAM_PAUSE slv_pause ();
 
     // Data (TX)
     DATA_T tx_buf;
@@ -96,24 +96,24 @@ module adam_periph_spi #(
     always_comb begin
 
         // APB inputs
-        paddr   = apb.paddr;
-        psel    = apb.psel;
-        penable = apb.penable;
-        pwrite  = apb.pwrite;
-        pwdata  = apb.pwdata;
-        pstrb   = apb.pstrb;
+        paddr   = slv.paddr;
+        psel    = slv.psel;
+        penable = slv.penable;
+        pwrite  = slv.pwrite;
+        pwdata  = slv.pwdata;
+        pstrb   = slv.pstrb;
         
         // APB outputs
-        apb.pready  = pready;
-        apb.prdata  = prdata;
-        apb.pslverr = pslverr;
+        slv.pready  = pready;
+        slv.prdata  = prdata;
+        slv.pslverr = pslverr;
 
         // APB address
         index = paddr[ADDR_WIDTH-1:$clog2(STRB_WIDTH)];
 
         // APB strobe
         for (int i = 0; i < DATA_WIDTH/8; i++) begin
-            mask[i*8 +: 8] = (apb.pstrb[i]) ? 8'hFF : 8'h00; 
+            mask[i*8 +: 8] = (slv.pstrb[i]) ? 8'hFF : 8'h00; 
         end
         
         // Control Register (CR)
@@ -141,14 +141,14 @@ module adam_periph_spi #(
             (rx_buf_full  && rx_buf_full_ie  && rx_enable)
         );
 
-        apb_pause.req = pause.req;
+        slv_pause.req = pause.req;
 
         // pause.ack
         if (pause.req) begin
-            pause.ack = apb_pause.ack && phy_pause.ack;
+            pause.ack = slv_pause.ack && phy_pause.ack;
         end
         else begin
-            pause.ack = apb_pause.ack || phy_pause.ack;
+            pause.ack = slv_pause.ack || phy_pause.ack;
         end
 
         // Submodule transfers
@@ -177,14 +177,14 @@ module adam_periph_spi #(
 
             phy_pause.req <= 1;
 
-            apb_pause.ack <= 1;
+            slv_pause.ack <= 1;
         end
-        else if (apb_pause.req && apb_pause.ack) begin
+        else if (slv_pause.req && slv_pause.ack) begin
             // PAUSED
         end
         else begin
             if (
-                (!apb_pause.req) &&   // no pause request
+                (!slv_pause.req) &&   // no pause request
                 (psel && !pready) // pending APB transaction
             ) case (index)
 
@@ -287,7 +287,7 @@ module adam_periph_spi #(
                 end
             endcase
             else if (
-                (!apb_pause.ack) &&         // not paused
+                (!slv_pause.ack) &&         // not paused
                 (psel && penable && pready) // transaction completed
             ) begin
                 // reset APB outputs.
@@ -296,12 +296,12 @@ module adam_periph_spi #(
                 pslverr <= 0;
             end
             else if (
-                (pause.req && !apb_pause.ack) &&   // apb pause init
+                (pause.req && !slv_pause.ack) &&   // slv pause init
                 (!phy_pause.req && !phy_pause.ack) // no phy pause
             ) begin
                 // pause
                 phy_pause.req <= 1;
-                apb_pause.ack <= 1;
+                slv_pause.ack <= 1;
 
                 // tie APB interface off
                 prdata  <= 0;
@@ -309,12 +309,12 @@ module adam_periph_spi #(
                 pslverr <= 1;
             end
             else if (
-                (!apb_pause.req && apb_pause.ack) && // apb pause end
+                (!slv_pause.req && slv_pause.ack) && // slv pause end
                 (phy_pause.req && phy_pause.ack)     // phy pause
             ) begin
                 // resume
                 phy_pause.req <= 0;
-                apb_pause.ack <= 0;
+                slv_pause.ack <= 0;
 
                 // reset APB outputs
                 prdata  <= 0;

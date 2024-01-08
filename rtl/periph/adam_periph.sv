@@ -10,13 +10,13 @@ module adam_periph #(
 
     // Dependent parameters, DO NOT OVERRIDE!
 
-    parameter NO_SLVS = NO_GPIOS + NO_SPIS + NO_TIMERS + NO_UARTS;
+    parameter NO_SLVS = NO_GPIOS + NO_SPIS + NO_TIMERS + NO_UARTS
 ) (
     ADAM_SEQ.Slave   seq,
     ADAM_PAUSE.Slave pause,
 
-    ADAM_APB.Slave slv [NO_SLVS+1],
-    output logic   irq [NO_SLVS+1],
+    APB.Slave    slv [NO_SLVS+1],
+    output logic irq [NO_SLVS+1],
 
     // IO =====================================================================
 
@@ -32,6 +32,24 @@ module adam_periph #(
     ADAM_IO.Master uart_rx [NO_UARTS+1]
 );
 
+    // pause ==================================================================
+
+    ADAM_PAUSE pause_demuxed [NO_SLVS+1] ();
+
+    adam_pause_demux #(
+        `ADAM_CFG_PARAMS_MAP,
+        
+        .NO_MSTS  (NO_SLVS),
+        .PARALLEL (1)
+    ) adam_pause_demux (
+        .seq (seq),
+    
+        .slv (pause),
+        .mst (pause_demuxed)
+    );
+
+    // instatiation ===========================================================
+
     generate
         localparam GPIOS_S = 0;
         localparam GPIOS_E = GPIOS_S + NO_GPIOS;
@@ -45,8 +63,8 @@ module adam_periph #(
         localparam UARTS_S = TIMERS_E;
         localparam UARTS_E = UARTS_S + NO_UARTS;
 
-        for (genvar i = GPIOS_S; i < GPIOS_S; i++) begin
-            genvar offset = GPIO_WIDTH*(i-GPIOS_S);
+        for (genvar i = GPIOS_S; i < GPIOS_E; i++) begin
+            localparam offset = GPIO_WIDTH*(i-GPIOS_S);
 
             ADAM_IO     io   [GPIO_WIDTH] ();
             logic [1:0] func [GPIO_WIDTH];
@@ -58,11 +76,11 @@ module adam_periph #(
 
             adam_periph_gpio #(
                 `ADAM_CFG_PARAMS_MAP
-            ) lspa_gpio (
-                .seq   (seq[i]),
-                .pause (pause[i]),
+            ) adam_periph_gpio (
+                .seq   (seq),
+                .pause (pause_demuxed[i]),
                 
-                .apb (apb[i]),
+                .slv (slv[i]),
 
                 .irq (irq[i]),
 
@@ -74,11 +92,11 @@ module adam_periph #(
         for (genvar i = SPIS_S; i < SPIS_E; i++) begin
             adam_periph_spi #(
                 `ADAM_CFG_PARAMS_MAP
-            ) lspa_spi (
-                .seq   (seq[i]),
-                .pause (pause[i]),
+            ) adam_periph_spi (
+                .seq   (seq),
+                .pause (pause_demuxed[i]),
                 
-                .apb (apb[i]),
+                .slv (slv[i]),
 
                 .irq (irq[i]),
 
@@ -92,11 +110,11 @@ module adam_periph #(
         for (genvar i = TIMERS_S; i < TIMERS_E; i++) begin
             adam_periph_timer #(
                 `ADAM_CFG_PARAMS_MAP
-            ) lspa_timer (
-                .seq   (seq[i]),
-                .pause (pause[i]),
+            ) adam_periph_timer (
+                .seq   (seq),
+                .pause (pause_demuxed[i]),
                 
-                .apb   (apb[i]),
+                .slv   (slv[i]),
 
                 .irq (irq[i])
             );
@@ -105,10 +123,10 @@ module adam_periph #(
         for (genvar i = UARTS_S; i < UARTS_E; i++) begin
             adam_periph_uart #(
                 `ADAM_CFG_PARAMS_MAP
-            ) lspa_uart (
-                .seq   (seq[i]),
-                .pause (pause[i]),
-                .apb   (apb[i]),
+            ) adam_periph_uart (
+                .seq   (seq),
+                .pause (pause_demuxed[i]),
+                .slv   (slv[i]),
 
                 .irq (irq[i]),
 

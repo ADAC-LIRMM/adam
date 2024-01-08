@@ -180,7 +180,15 @@
     assign mst.i = slv.i; \
     assign slv.o = mst.o; \
     assign slv.mode = mst.mode; \
-    assign slv.otype = mst.otype; 
+    assign slv.otype = mst.otype;
+
+`define ADAM_IO_MST_TIE_OFF(mst) \
+    assign mst.o = '0; \
+    assign mst.mode = '0; \
+    assign mst.otype = '0;
+
+`define ADAM_IO_SLV_TIE_OFF(slv) \
+    assign slv.i = '0;
 
 // ADAM_PAUSE =================================================================
 
