@@ -8,8 +8,6 @@ module adam_periph_syscfg #(
 
     AXI_LITE.Master slv,
 
-    output logic  irq,
-
     output logic      lsdom_rst,
     ADAM_PAUSE.Master lsdom_pause,
     
@@ -47,9 +45,9 @@ module adam_periph_syscfg #(
     output ADDR_T     cpu_boot_addr [NO_CPUS+1],
     output logic      cpu_irq       [NO_CPUS+1],
 
-    output logic      dma_rst       [NO_DMAS+1],
-    ADAM_PAUSE.Master dma_pause     [NO_DMAS+1],
-    output logic      dma_irq       [NO_DMAS+1],
+    output logic      dma_rst   [NO_DMAS+1],
+    ADAM_PAUSE.Master dma_pause [NO_DMAS+1],
+    output logic      dma_irq   [NO_DMAS+1],
 
     output logic      mem_rst   [NO_MEMS+1],
     ADAM_PAUSE.Master mem_pause [NO_MEMS+1],

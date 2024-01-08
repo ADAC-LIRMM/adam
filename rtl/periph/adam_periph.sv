@@ -10,13 +10,14 @@ module adam_periph #(
 
     // Dependent parameters, DO NOT OVERRIDE!
 
-    parameter NO_SLVS = NO_GPIOS + NO_SPIS + NO_TIMERS + NO_UARTS
+    parameter NO_PERIPHS = NO_GPIOS + NO_SPIS + NO_TIMERS + NO_UARTS
 ) (
     ADAM_SEQ.Slave   seq,
-    ADAM_PAUSE.Slave pause,
 
-    APB.Slave    slv [NO_SLVS+1],
-    output logic irq [NO_SLVS+1],
+    logic            periph_rst   [NO_PERIPHS+1],
+    ADAM_PAUSE.Slave periph_pause [NO_PERIPHS+1],
+    APB.Slave        periph_apb   [NO_PERIPHS+1],
+    output logic     periph_irq   [NO_PERIPHS+1],
 
     // IO =====================================================================
 
@@ -31,22 +32,6 @@ module adam_periph #(
     ADAM_IO.Master uart_tx [NO_UARTS+1],
     ADAM_IO.Master uart_rx [NO_UARTS+1]
 );
-
-    // pause ==================================================================
-
-    ADAM_PAUSE pause_demuxed [NO_SLVS+1] ();
-
-    adam_pause_demux #(
-        `ADAM_CFG_PARAMS_MAP,
-        
-        .NO_MSTS  (NO_SLVS),
-        .PARALLEL (1)
-    ) adam_pause_demux (
-        .seq (seq),
-    
-        .slv (pause),
-        .mst (pause_demuxed)
-    );
 
     // instatiation ===========================================================
 
@@ -78,11 +63,11 @@ module adam_periph #(
                 `ADAM_CFG_PARAMS_MAP
             ) adam_periph_gpio (
                 .seq   (seq),
-                .pause (pause_demuxed[i]),
+                .pause (periph_pause[i]),
                 
-                .slv (slv[i]),
+                .slv (periph_apb[i]),
 
-                .irq (irq[i]),
+                .irq (periph_irq[i]),
 
                 .io   (io),
                 .func (func)
@@ -94,11 +79,11 @@ module adam_periph #(
                 `ADAM_CFG_PARAMS_MAP
             ) adam_periph_spi (
                 .seq   (seq),
-                .pause (pause_demuxed[i]),
+                .pause (periph_pause[i]),
                 
-                .slv (slv[i]),
+                .slv (periph_apb[i]),
 
-                .irq (irq[i]),
+                .irq (periph_irq[i]),
 
                 .sclk (spi_sclk[i-SPIS_S]),
                 .mosi (spi_mosi[i-SPIS_S]),
@@ -112,11 +97,11 @@ module adam_periph #(
                 `ADAM_CFG_PARAMS_MAP
             ) adam_periph_timer (
                 .seq   (seq),
-                .pause (pause_demuxed[i]),
+                .pause (periph_pause[i]),
                 
-                .slv   (slv[i]),
+                .slv   (periph_apb[i]),
 
-                .irq (irq[i])
+                .irq (periph_irq[i])
             );
         end
 
@@ -125,10 +110,11 @@ module adam_periph #(
                 `ADAM_CFG_PARAMS_MAP
             ) adam_periph_uart (
                 .seq   (seq),
-                .pause (pause_demuxed[i]),
-                .slv   (slv[i]),
+                .pause (periph_pause[i]),
 
-                .irq (irq[i]),
+                .slv   (periph_apb[i]),
+
+                .irq (periph_irq[i]),
 
                 .tx (uart_tx[i-UARTS_S]),
                 .rx (uart_rx[i-UARTS_S])

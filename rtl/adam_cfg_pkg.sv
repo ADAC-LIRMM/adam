@@ -76,10 +76,10 @@ package adam_cfg_pkg;
         NO_LSPA_TIMERS : 1,
         NO_LSPA_UARTS  : 1,
 
-        NO_LSPB_GPIOS  : 1,
-        NO_LSPB_SPIS   : 1,
-        NO_LSPB_TIMERS : 1,
-        NO_LSPB_UARTS  : 1,
+        NO_LSPB_GPIOS  : 0,
+        NO_LSPB_SPIS   : 0,
+        NO_LSPB_TIMERS : 0,
+        NO_LSPB_UARTS  : 0,
 
         EN_BOOTSTRAP_CPU0  : 1,
         EN_BOOTSTRAP_MEM0  : 1,
