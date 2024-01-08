@@ -124,7 +124,7 @@ module adam_periph_syscfg #(
         .addr_map (tgt_addr_map)
     );
     
-    // Mapping ================================================================
+    // tgt mapping ============================================================
 
     generate
         localparam LSDOM_S = 0;
@@ -493,6 +493,36 @@ module adam_periph_syscfg #(
             );
         end
 
+    endgenerate
+
+    // irq mapping ============================================================
+
+    localparam NO_IRQ = NO_LSPAS + NO_LSPBS + NO_HSPS; 
+
+    localparam IRQ_LSPA_S = 0;
+    localparam IRQ_LSPA_E = IRQ_LSPA_S + NO_LSPAS;
+
+    localparam IRQ_LSPB_S = IRQ_LSPA_E;
+    localparam IRQ_LSPB_E = IRQ_LSPB_S + NO_LSPBS;
+
+    localparam IRQ_HSP_S = IRQ_LSPB_S;
+    localparam IRQ_HSP_E = IRQ_HSP_S + NO_HSPS;
+
+    generate
+        for (genvar i = 0; i < DATA_WIDTH; i++) begin
+            if (i >= IRQ_LSPA_S && i < IRQ_LSPA_E) begin
+                assign irq_vec[i] = lspa_irq[i-IRQ_LSPA_S];
+            end
+            else if (i >= IRQ_LSPB_S && i < IRQ_LSPB_E) begin
+                assign irq_vec[i] = lspb_irq[i-IRQ_LSPB_S];
+            end
+            else if (i >= IRQ_HSP_S && i < IRQ_HSP_E) begin
+                assign irq_vec[i] = hsp_irq[i-IRQ_HSP_S];
+            end
+            else begin
+                assign irq_vec[i] = '0;
+            end
+        end
     endgenerate
 
 endmodule

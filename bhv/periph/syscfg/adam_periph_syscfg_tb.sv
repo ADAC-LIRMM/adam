@@ -40,8 +40,6 @@ module adam_periph_syscfg_tb;
 
     // dut ====================================================================
 
-    DATA_T irq_vec;
-
     logic      lsdom_rst;
     ADAM_PAUSE lsdom_pause ();
 
