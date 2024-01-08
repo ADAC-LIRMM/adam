@@ -196,6 +196,7 @@ module adam #(
 
     // hsdom - hsp ===========================================================
 
+    logic        hsdom_hsp_rst  [NO_HSPS+1];
     `ADAM_AXIL_I hsdom_hsp_axil [NO_HSPS+1] ();
 
     for (genvar i = 0; i < NO_HSPS; i++) begin
@@ -225,9 +226,12 @@ module adam #(
     
         .hsdom_rst   (hsdom_rst), //!
         .hsdom_pause (hsdom_pause), //!
-    
-        .fab_hsdom_rst   (lsdom_fab_rst),
-        .fab_hsdom_pause (lsdom_fab_pause),
+
+        .fab_lsdom_rst   (lsdom_fab_rst),
+        .fab_lsdom_pause (lsdom_fab_pause),
+
+        .fab_hsdom_rst   (hsdom_fab_rst),
+        .fab_hsdom_pause (hsdom_fab_pause),
     
         .fab_lspa_rst   (lsdom_fab_lspa_rst),
         .fab_lspa_pause (lsdom_fab_lspa_pause),
@@ -273,7 +277,7 @@ module adam #(
     adam_fabric #(
         `ADAM_CFG_PARAMS_MAP
     ) adam_fabric (
-        .lsdom_seq        (lsdom_seq),
+        .lsdom_seq        (lsdom_fab_seq),
         .lsdom_pause      (lsdom_fab_pause),
 
         .lsdom_lspa_rst   (lsdom_fab_lspa_rst),
@@ -289,8 +293,7 @@ module adam #(
         .lsdom_lspa   (lsdom_lspa_apb),
         .lsdom_lspb   (lsdom_lspb_apb),
 
-        .hsdom_seq   (hsdom_seq),
-        .hsdom_rst   (hsdom_fab_rst),
+        .hsdom_seq   (hsdom_fab_seq),
         .hsdom_pause (hsdom_fab_pause),
 
         .hsdom_cpu       (hsdom_cpu_axil),

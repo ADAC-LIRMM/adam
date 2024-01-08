@@ -72,12 +72,14 @@ Maestro register values and their associated actions:
 Registers Table
 ===============
 
+TODO: update indexes
+
 +------------+--------------+---------------------------------+
 | Index      | Name         | Description                     |
 +============+==============+=================================+
-| 0x000      | LSDOM_SR     | LSDOM Status Register           |
+| 0x000      | LSDOM_SR     | Reserved                        |
 +------------+--------------+---------------------------------+
-| 0x001      | LSDOM_MR     | LSDOM Maestro Register          |
+| 0x001      | LSDOM_MR     | Reserved                        |
 +------------+--------------+---------------------------------+
 | 0x002      | HSDOM_SR     | HSDOM Status Register           |
 +------------+--------------+---------------------------------+
@@ -98,14 +100,6 @@ Registers Table
 | 0x00A      | FAB_LSPB_SR  | Fabric LSPB Status Register     |
 +------------+--------------+---------------------------------+
 | 0x00B      | FAB_LSPB_MR  | Fabric LSPB Maestro Register    |
-+------------+--------------+---------------------------------+
-| 0x00C      | FAB_HSBP_SR  | Fabric HSBP Status Register     |
-+------------+--------------+---------------------------------+
-| 0x00D      | FAB_HSBP_MR  | Fabric HSBP Maestro Register    |
-+------------+--------------+---------------------------------+
-| 0x00E      | FAB_HSP_SR  | Fabric HSP Status Register     |
-+------------+--------------+---------------------------------+
-| 0x00F      | FAB_HSP_MR  | Fabric HSP Maestro Register    |
 +------------+--------------+---------------------------------+
 | 0x010      | LPCPU_SR     | LPCPU Status Register           |
 +------------+--------------+---------------------------------+
@@ -157,9 +151,9 @@ Registers Table
 +------------+--------------+---------------------------------+
 | ...        | ...          |                                 |
 +------------+--------------+---------------------------------+
-| 0x600 + 2x | HSPx_SR     | HSP x Status Register          |
+| 0x600 + 2x | HSPx_SR     | HSP x Status Register            |
 +------------+--------------+---------------------------------+
-| 0x601 + 2x | HSPx_MR     | HSP x Maestro Register         |
+| 0x601 + 2x | HSPx_MR     | HSP x Maestro Register           |
 +------------+--------------+---------------------------------+
 | ...        | ...          |                                 |
 +------------+--------------+---------------------------------+
