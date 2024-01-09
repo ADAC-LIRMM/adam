@@ -4,64 +4,71 @@
 
 module adam_pause_mux_tb;
 
+    `ADAM_BHV_CFG_LOCALPARAMS;
+
     parameter NO_MSTS  = 2;
 
-    parameter CLK_PERIOD = 20ns;
-    parameter RST_CYCLES = 5;
-
-    localparam TA = 2ns;
-    localparam TT = CLK_PERIOD - TA;
-
-    ADAM_SEQ seq ();
-
-    ADAM_PAUSE deferred ();
-    ADAM_PAUSE msts [NO_MSTS] ();
-    ADAM_PAUSE slv ();
-
-    logic common_req;
+    // seq ====================================================================
+    
+    ADAM_SEQ   seq   ();
+    ADAM_PAUSE pause ();
     
     adam_seq_bhv #(
-        .CLK_PERIOD (CLK_PERIOD),
-        .RST_CYCLES (RST_CYCLES),
-
-        .TA (TA),
-        .TT (TT)
+        `ADAM_BHV_CFG_PARAMS_MAP
     ) adam_seq_bhv (
         .seq (seq)
     );
 
-    adam_pause_bhv #(
-        .DELAY    (40us),
-        .DURATION (100us),
+    // pause mst bhv ==========================================================
 
-        .TA (TA),
-        .TT (TT)
-    ) deferred_bhv (
-        .seq   (seq),
-        .pause (deferred)
-    );
+    ADAM_PAUSE deferred ();
+    ADAM_PAUSE mst [NO_MSTS+1] ();
+    
+    generate
+        adam_pause_bhv #(
+            `ADAM_BHV_CFG_PARAMS_MAP,
 
-    adam_pause_bhv #(
-        .DELAY    (45us),
-        .DURATION (50us),
+            .DELAY    (40us),
+            .DURATION (100us)
+        ) deferred_bhv (
+            .seq   (seq),
+            .pause (deferred)
+        );
 
-        .TA (TA),
-        .TT (TT)
-    ) mst0_bhv (
-        .seq   (seq),
-        .pause (msts[0])
-    );
+        for (genvar i = 0; i < NO_MSTS; i++) begin
+            adam_pause_bhv #(
+                `ADAM_BHV_CFG_PARAMS_MAP,
 
-    adam_pause_bhv #(
-        .DELAY    (50us),
-        .DURATION (50us),
+                .DELAY    (45us),
+                .DURATION (50us)
+            ) mst_bhv (
+                .seq   (seq),
+                .pause (mst[i])
+            );
+        end
+    endgenerate
 
-        .TA (TA),
-        .TT (TT)
-    ) mst1_bhv (
-        .seq   (seq),
-        .pause (msts[1])
-    );
+    // any_req ================================================================
+
+    logic any_req;
+    logic mst_req [NO_MSTS+1];
+
+    generate
+        for (genvar i = 0; i < NO_MSTS; i++) begin
+            assign mst_req[i] = mst[i].req;
+        end
+    endgenerate
+
+    always_comb begin
+        any_req = 0; //deferred.req;
+        for (int i = 0; i < NO_MSTS; i++) begin
+            any_req |= mst_req[i];
+        end
+    end
+    
+    // dut ====================================================================
+
+    ADAM_PAUSE slv ();
 
     adam_pause_mux #(
         .NO_SLVS (NO_MSTS)
@@ -69,11 +76,11 @@ module adam_pause_mux_tb;
         .seq      (seq),
 
         .deferred (deferred),
-        .slvs     (msts),
+        .slv      (mst),
         .mst      (slv)
     );
 
-    assign common_req = msts[0].req || msts[1].req;
+    // test ===================================================================
 
     `TEST_SUITE begin
         `TEST_CASE("test") begin
@@ -88,19 +95,19 @@ module adam_pause_mux_tb;
 
             // + deffered.req
             `ADAM_UNTIL_DO_FINNALY(deferred.req, begin
-                assert(!common_req);
+                assert(!any_req);
                 assert(!deferred.ack);
             end, begin
-                assert(!common_req);
+                assert(!any_req);
                 assert(!deferred.ack);
             end);
 
-            // + common_req
-            `ADAM_UNTIL_FINNALY(deferred.req && common_req, assert(slv.req));
+            // + any_req
+            `ADAM_UNTIL_FINNALY(deferred.req && any_req, assert(slv.req));
             slv.ack <= #TA 1;
 
             // - deffered.req
-            `ADAM_UNTIL_FINNALY(!deferred.req && !common_req, assert(!slv.req));
+            `ADAM_UNTIL_FINNALY(!deferred.req && !any_req, assert(!slv.req));
             slv.ack <= #TA 0;
 
             // idle
@@ -109,7 +116,6 @@ module adam_pause_mux_tb;
     end
 
     initial begin
-        //$display(seq.rst);
         #250us $error("timeout");
     end
 

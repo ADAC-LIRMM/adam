@@ -10,7 +10,8 @@ module adam #(
     // lsdom ==================================================================
 
     ADAM_SEQ.Slave   lsdom_seq,
-    ADAM_PAUSE.Slave lsdom_pause,
+
+    ADAM_PAUSE.Slave lsdom_global_pause,
 
     output logic      lsdom_lpmem_rst,
     ADAM_PAUSE.Master lsdom_lpmem_pause,
@@ -88,32 +89,34 @@ module adam #(
     `ADAM_APB_I lsdom_lspa_apb   [NO_LSPAS+1] ();
     logic       lsdom_lspa_irq   [NO_LSPAS+1];
 
-    adam_periph #(
-        `ADAM_CFG_PARAMS_MAP,
+    if (EN_LSPA) begin
+        adam_periph #(
+            `ADAM_CFG_PARAMS_MAP,
 
-        .NO_GPIOS  (NO_LSPA_GPIOS),
-        .NO_SPIS   (NO_LSPA_SPIS),
-        .NO_TIMERS (NO_LSPA_TIMERS),
-        .NO_UARTS  (NO_LSPA_UARTS)
-    ) adam_periph_lspa (
-        .seq   (lsdom_seq),
-        
-        .periph_rst   (lsdom_lspa_rst),
-        .periph_pause (lsdom_lspa_pause),
-        .periph_apb   (lsdom_lspa_apb),
-        .periph_irq   (lsdom_lspa_irq),
-        
-        .gpio_io   (lspa_gpio_io),
-        .gpio_func (lspa_gpio_func),
+            .NO_GPIOS  (NO_LSPA_GPIOS),
+            .NO_SPIS   (NO_LSPA_SPIS),
+            .NO_TIMERS (NO_LSPA_TIMERS),
+            .NO_UARTS  (NO_LSPA_UARTS)
+        ) adam_periph_lspa (
+            .seq   (lsdom_seq),
+            
+            .periph_rst   (lsdom_lspa_rst),
+            .periph_pause (lsdom_lspa_pause),
+            .periph_apb   (lsdom_lspa_apb),
+            .periph_irq   (lsdom_lspa_irq),
+            
+            .gpio_io   (lspa_gpio_io),
+            .gpio_func (lspa_gpio_func),
 
-        .spi_sclk (lspa_spi_sclk),
-        .spi_mosi (lspa_spi_mosi),
-        .spi_miso (lspa_spi_miso),
-        .spi_ss_n (lspa_spi_ss_n),
+            .spi_sclk (lspa_spi_sclk),
+            .spi_mosi (lspa_spi_mosi),
+            .spi_miso (lspa_spi_miso),
+            .spi_ss_n (lspa_spi_ss_n),
 
-        .uart_tx (lspa_uart_tx),
-        .uart_rx (lspa_uart_rx)
-    );
+            .uart_tx (lspa_uart_tx),
+            .uart_rx (lspa_uart_rx)
+        );
+    end
 
     // lsdom - lspb ===========================================================
 
@@ -122,33 +125,35 @@ module adam #(
     `ADAM_APB_I lsdom_lspb_apb   [NO_LSPBS+1] ();
     logic       lsdom_lspb_irq   [NO_LSPBS+1];
 
-    adam_periph #(
-        `ADAM_CFG_PARAMS_MAP,
+    if (EN_LSPB) begin
+        adam_periph #(
+            `ADAM_CFG_PARAMS_MAP,
 
-        .NO_GPIOS  (NO_LSPB_GPIOS),
-        .NO_SPIS   (NO_LSPB_SPIS),
-        .NO_TIMERS (NO_LSPB_TIMERS),
-        .NO_UARTS  (NO_LSPB_UARTS)
-    ) adam_periph_lspb (
-        .seq   (lsdom_seq),
-        .pause (lsdom_lspb_pause),
-        
-        .periph_rst   (lsdom_lspb_rst),
-        .periph_pause (lsdom_lspb_pause),
-        .periph_apb   (lsdom_lspb_apb),
-        .periph_irq   (lsdom_lspb_irq),
+            .NO_GPIOS  (NO_LSPB_GPIOS),
+            .NO_SPIS   (NO_LSPB_SPIS),
+            .NO_TIMERS (NO_LSPB_TIMERS),
+            .NO_UARTS  (NO_LSPB_UARTS)
+        ) adam_periph_lspb (
+            .seq   (lsdom_seq),
+            .pause (lsdom_lspb_pause),
+            
+            .periph_rst   (lsdom_lspb_rst),
+            .periph_pause (lsdom_lspb_pause),
+            .periph_apb   (lsdom_lspb_apb),
+            .periph_irq   (lsdom_lspb_irq),
 
-        .gpio_io   (lspb_gpio_io),
-        .gpio_func (lspb_gpio_func),
+            .gpio_io   (lspb_gpio_io),
+            .gpio_func (lspb_gpio_func),
 
-        .spi_sclk (lspb_spi_sclk),
-        .spi_mosi (lspb_spi_mosi),
-        .spi_miso (lspb_spi_miso),
-        .spi_ss_n (lspb_spi_ss_n),
+            .spi_sclk (lspb_spi_sclk),
+            .spi_mosi (lspb_spi_mosi),
+            .spi_miso (lspb_spi_miso),
+            .spi_ss_n (lspb_spi_ss_n),
 
-        .uart_tx (lspb_uart_tx),
-        .uart_rx (lspb_uart_rx)
-    );
+            .uart_tx (lspb_uart_tx),
+            .uart_rx (lspb_uart_rx)
+        );
+    end
 
     // hsdom - cpu ============================================================
 
@@ -223,7 +228,10 @@ module adam #(
         .pause (lsdom_syscfg_pause),
 
         .slv (lsdom_syscfg_axil),
-    
+
+        .lsdom_rst   (lsdom_rst),
+        .lsdom_pause (lsdom_pause),
+
         .hsdom_rst   (hsdom_rst), //!
         .hsdom_pause (hsdom_pause), //!
 
@@ -284,7 +292,7 @@ module adam #(
         .lsdom_lspa_pause (lsdom_fab_lspa_pause),
 
         .lsdom_lspb_rst   (lsdom_fab_lspb_rst),
-        .lsdom_pause_lspb (lsdom_fab_lspb_pause),
+        .lsdom_lspb_pause (lsdom_fab_lspb_pause),
     
         .lsdom_lpcpu (lsdom_lpcpu_axil),
 
@@ -306,6 +314,38 @@ module adam #(
     );
 
     // pause logic ============================================================
+
+    localparam NO_PAUSES = EN_LPCPU + 2*NO_LSPAS + 2*NO_LSPBS + NO_CPUS +
+        NO_DMAS + NO_HSPS + EN_DEBUG + 3;
+
+    ADAM_PAUSE lsdom_global_pause_demux [NO_PAUSES+1] ();
+    ADAM_PAUSE lsdom_global_pause_mux   [NO_PAUSES+1] ();
+    
+    adam_pause_demux #(
+        `ADAM_CFG_PARAMS_MAP,
+
+        .NO_MSTS  (NO_PAUSES),
+        .PARALLEL (0)
+    ) global_pause_demux (
+        .seq (lsdom_seq),
+
+        .slv (lsdom_global_pause),
+        .mst (lsdom_global_pause_demux)
+    );
+
+    // generate
+    //     for (genvar i = 0; i < NO_PAUSES; i++) begin
+    //         module adam_pause_mux #(
+    //             .NO_SLVS = 1
+    //         ) (
+    //             ADAM_SEQ.Slave   seq,
+
+    //             ADAM_PAUSE.Slave  deferred,
+    //             ADAM_PAUSE.Slave  slvs [NO_SLVS],
+    //             ADAM_PAUSE.Master mst
+    //         );
+    //     end
+    // endgenerate
 
     // ADAM_PAUSE lsdom_pause_lspa_bus ();
     // ADAM_PAUSE lsdom_pause_lspb_bus ();

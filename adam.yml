@@ -75,7 +75,6 @@ fsets:
       - periph/uart/adam_periph_uart_rx_tb.sv
       - periph/uart/adam_periph_uart_tx_tb.sv
       - periph/uart/adam_periph_uart_tb.sv
-      - periph/adam_periph_tb.sv
       - adam_clk_div_tb.sv
       - adam_tb.sv
 
