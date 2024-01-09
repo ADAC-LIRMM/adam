@@ -14,7 +14,7 @@ module adam_periph #(
 ) (
     ADAM_SEQ.Slave   seq,
 
-    logic            periph_rst   [NO_PERIPHS+1],
+    input logic      periph_rst   [NO_PERIPHS+1],
     ADAM_PAUSE.Slave periph_pause [NO_PERIPHS+1],
     APB.Slave        periph_apb   [NO_PERIPHS+1],
     output logic     periph_irq   [NO_PERIPHS+1],

@@ -4,114 +4,198 @@
 
 module adam_tb;
 
-    // `ADAM_BHV_CFG_LOCALPARAMS;
+    `ADAM_BHV_CFG_LOCALPARAMS;
     
-    // localparam integer MEM_SIZE [NO_MEMS] = 
-    //     '{32768, 32768, 32768};
+    localparam integer LPMEM_SIZE = 1024;
 
-    // ADAM_SEQ   lsdom_seq ();
-    // ADAM_PAUSE lsdom_pause ();
+    localparam integer MEM_SIZE [NO_MEMS+1] = 
+        '{32768, 32768, 32768, 0};
 
-    // ADAM_SEQ   lsdom_lpmem_seq ();
-    // ADAM_PAUSE lsdom_lpmem_pause ();
-    // AXI_LITE   lsdom_lpmem_axil ();
+    // seq and pause ==========================================================
 
-    // ADAM_SEQ hsdom_seq ();
+    ADAM_SEQ lsdom_seq ();
+    ADAM_SEQ hsdom_seq ();
 
-    // ADAM_SEQ   hsdom_mem_seq   [NO_MEMS+1] ();
-    // ADAM_PAUSE hsdom_mem_pause [NO_MEMS+1] ();
-    // AXI_LITE   hsdom_mem_axil  [NO_MEMS+1] ();
+    ADAM_PAUSE lsdom_pause_ext ();
 
-    // ADAM_IO     lspa_gpio_io   [NO_GPIOS*GPIO_WIDTH+1] ();
-    // logic [1:0] lspa_gpio_func [NO_GPIOS*GPIO_WIDTH+1];
+    adam_seq_bhv #(
+        `ADAM_BHV_CFG_PARAMS_MAP
+    ) lsdom_adam_seq_bhv (
+        .seq (lsdom_seq)
+    );
 
-    // ADAM_IO lspa_spi_sclk [NO_SPIS] ();
-    // ADAM_IO lspa_spi_mosi [NO_SPIS] ();
-    // ADAM_IO lspa_spi_miso [NO_SPIS] ();
-    // ADAM_IO lspa_spi_ss_n [NO_SPIS] ();
+    adam_seq_bhv #(
+        `ADAM_BHV_CFG_PARAMS_MAP
+    ) hsdom_adam_seq_bhv (
+        .seq (hsdom_seq)
+    );
 
-    // ADAM_IO lspa_uart_tx [NO_UARTS] ();
-    // ADAM_IO lspa_uart_rx [NO_UARTS] ();
+    `ADAM_PAUSE_MST_TIE_ON(lsdom_pause_ext);
 
-    // // TODO: implement pause
-    // assign lsdom_pause.req = 0;
+    // lpmem ==================================================================
 
-    // assign uart_rx[0].i = uart_tx[0].o; // loopback
+    logic        lsdom_lpmem_rst;
+    ADAM_SEQ     lsdom_lpmem_seq ();
+    ADAM_PAUSE   lsdom_lpmem_pause ();
+    `ADAM_AXIL_I lsdom_lpmem_axil ();
 
-    // adam_seq_bhv #(
-    //     .CLK_PERIOD (CLK_PERIOD),
-    //     .RST_CYCLES (RST_CYCLES),
+    assign lsdom_lpmem_seq.clk = lsdom_seq.clk;
+    assign lsdom_lpmem_seq.rst = lsdom_seq.rst || lsdom_lpmem_rst;
 
-    //     .TA (TA),
-    //     .TT (TT)
-    // ) lsdom_seq_bhv (
-    //     .seq (lsdom_seq)
-    // );
+    adam_axil_ram #(
+        `ADAM_CFG_PARAMS_MAP,
 
-    // adam_seq_bhv #(
-    //     .CLK_PERIOD (CLK_PERIOD),
-    //     .RST_CYCLES (RST_CYCLES),
+        .SIZE (LPMEM_SIZE)
+    ) adam_axil_ram (
+        .seq   (lsdom_lpmem_seq),
+        .pause (lsdom_lpmem_pause),
 
-    //     .TA (TA),
-    //     .TT (TT)
-    // ) hsdom_seq_bhv (
-    //     .seq (hsdom_seq)
-    // );
+        .slv (lsdom_lpmem_axil)
+    );
 
-    // adam #(
+    // mem ====================================================================
+    
+    logic        hsdom_mem_rst   [NO_MEMS+1];
+    ADAM_SEQ     hsdom_mem_seq   [NO_MEMS+1] ();
+    ADAM_PAUSE   hsdom_mem_pause [NO_MEMS+1] ();
+    `ADAM_AXIL_I hsdom_mem_axil  [NO_MEMS+1] ();
 
-    // ) dut (
-    //     .lsdom_seq       (lsdom_seq),
-    //     .lsdom_pause     (lsdom_pause),
-    //     .lsdom_lpmem_seq   (lsdom_lpmem_seq),
-    //     .lsdom_lpmem_pause (lsdom_lpmem_pause),
-    //     .lsdom_lpmem_axil  (lsdom_lpmem_axil),
+    generate
+        for (genvar i = 0; i < NO_MEMS; i++) begin
+            assign hsdom_mem_seq[i].clk = lsdom_seq.clk;
+            assign hsdom_mem_seq[i].rst = lsdom_seq.rst || hsdom_mem_rst[i];
+        end
+    endgenerate
 
-    //     .hsdom_seq       (hsdom_seq),
-    //     .hsdom_mem_seq   (hsdom_mem_seq),
-    //     .hsdom_mem_pause (hsdom_mem_pause),
-    //     .hsdom_mem_axil  (hsdom_mem_axil),
-
-    //     .gpio_io   (gpio_io),
-    //     .gpio_func (gpio_func),
-
-    //     .spi_sclk (spi_sclk),
-    //     .spi_mosi (spi_mosi),
-    //     .spi_miso (spi_miso),
-    //     .spi_ss_n (spi_ss_n),
-
-    //     .uart_tx (uart_tx),
-    //     .uart_rx (uart_rx)
-    // );
-
-    // generate
-    //     bootloader bootloader (
-    //         .clk   (hsdom_mem_seq[0].clk),
-    //         .rst   (hsdom_mem_seq[0].rst),
+    generate
+        bootloader bootloader (
+            .clk   (hsdom_mem_seq[0].clk),
+            .rst   (lsdom_seq.rst),
             
-    //         .pause_req (hsdom_mem_pause[0].req),
-    //         .pause_ack (hsdom_mem_pause[0].ack),
+            .pause_req (hsdom_mem_pause[0].req),
+            .pause_ack (hsdom_mem_pause[0].ack),
 
-    //         .slv (hsdom_mem_axil[0])
-    //     );
+            .slv (hsdom_mem_axil[0])
+        );
 
-    //     for (genvar i = 1; i < NO_MEMS; i++) begin
-    //         adam_axil_ram #(
-    //             `ADAM_CFG_PARAMS_MAP,
+        for (genvar i = 1; i < NO_MEMS; i++) begin
+            adam_axil_ram #(
+                `ADAM_CFG_PARAMS_MAP,
 
-    //             .SIZE (MEM_SIZE[i])
-    //         ) adam_axil_ram (
-    //             .seq   (hsdom_mem_seq[i]),
-    //             .pause (hsdom_mem_pause[i]),
+                .SIZE (MEM_SIZE[i])
+            ) adam_axil_ram (
+                .seq   (hsdom_mem_seq[i]),
+                .pause (hsdom_mem_pause[i]),
 
-    //             .slv (hsdom_mem_axil[i])
-    //         );
-    //     end
-    // endgenerate
+                .slv (hsdom_mem_axil[i])
+            );
+        end
+    endgenerate
     
+    // lspa io ================================================================
+
+    ADAM_IO     lspa_gpio_io   [NO_LSPA_GPIOS*GPIO_WIDTH+1] ();
+    logic [1:0] lspa_gpio_func [NO_LSPA_GPIOS*GPIO_WIDTH+1];
+
+    ADAM_IO lspa_spi_sclk [NO_LSPA_SPIS+1] ();
+    ADAM_IO lspa_spi_mosi [NO_LSPA_SPIS+1] ();
+    ADAM_IO lspa_spi_miso [NO_LSPA_SPIS+1] ();
+    ADAM_IO lspa_spi_ss_n [NO_LSPA_SPIS+1] ();
+
+    ADAM_IO lspa_uart_tx [NO_LSPA_UARTS+1] ();
+    ADAM_IO lspa_uart_rx [NO_LSPA_UARTS+1] ();
+
+    generate
+        for (genvar i = 0; i < NO_LSPA_GPIOS; i++) begin
+            `ADAM_IO_SLV_TIE_OFF(lspa_gpio_io[i]);
+        end
+        for (genvar i = 0; i < NO_LSPA_SPIS; i++) begin
+            `ADAM_IO_SLV_TIE_OFF(lspa_spi_sclk[i]);
+            `ADAM_IO_SLV_TIE_OFF(lspa_spi_mosi[i]);
+            `ADAM_IO_SLV_TIE_OFF(lspa_spi_miso[i]);
+            `ADAM_IO_SLV_TIE_OFF(lspa_spi_ss_n[i]);
+        end
+        for (genvar i = 0; i < NO_LSPA_UARTS; i++) begin
+            `ADAM_IO_SLV_TIE_OFF(lspa_uart_tx[i]);
+            `ADAM_IO_SLV_TIE_OFF(lspa_uart_rx[i]);
+        end
+    endgenerate
+
+    // lspb io ================================================================
+
+    ADAM_IO     lspb_gpio_io   [NO_LSPB_GPIOS*GPIO_WIDTH+1] ();
+    logic [1:0] lspb_gpio_func [NO_LSPB_GPIOS*GPIO_WIDTH+1];
+
+    ADAM_IO lspb_spi_sclk [NO_LSPB_SPIS+1] ();
+    ADAM_IO lspb_spi_mosi [NO_LSPB_SPIS+1] ();
+    ADAM_IO lspb_spi_miso [NO_LSPB_SPIS+1] ();
+    ADAM_IO lspb_spi_ss_n [NO_LSPB_SPIS+1] ();
+
+    ADAM_IO lspb_uart_tx [NO_LSPB_UARTS+1] ();
+    ADAM_IO lspb_uart_rx [NO_LSPB_UARTS+1] ();
+
+    generate
+        for (genvar i = 0; i < NO_LSPB_GPIOS; i++) begin
+            `ADAM_IO_SLV_TIE_OFF(lspb_gpio_io[i]);
+        end
+        for (genvar i = 0; i < NO_LSPB_SPIS; i++) begin
+            `ADAM_IO_SLV_TIE_OFF(lspb_spi_sclk[i]);
+            `ADAM_IO_SLV_TIE_OFF(lspb_spi_mosi[i]);
+            `ADAM_IO_SLV_TIE_OFF(lspb_spi_miso[i]);
+            `ADAM_IO_SLV_TIE_OFF(lspb_spi_ss_n[i]);
+        end
+        for (genvar i = 0; i < NO_LSPB_UARTS; i++) begin
+            `ADAM_IO_SLV_TIE_OFF(lspb_uart_tx[i]);
+            `ADAM_IO_SLV_TIE_OFF(lspb_uart_rx[i]);
+        end
+    endgenerate
+
+    // dut ====================================================================
+
+    adam #(
+        `ADAM_CFG_PARAMS_MAP
+    ) dut (
+        .lsdom_seq (lsdom_seq),
+
+        .lsdom_pause_ext  (lsdom_pause_ext),
+
+        .lsdom_lpmem_rst   (lsdom_lpmem_rst),
+        .lsdom_lpmem_pause (lsdom_lpmem_pause),
+        .lsdom_lpmem_axil  (lsdom_lpmem_axil),
+
+        .hsdom_seq       (hsdom_seq),
+
+        .hsdom_mem_rst   (hsdom_mem_rst),
+        .hsdom_mem_pause (hsdom_mem_pause),
+        .hsdom_mem_axil  (hsdom_mem_axil),
+
+        .lspa_gpio_io   (lspa_gpio_io),
+        .lspa_gpio_func (lspa_gpio_func),
+
+        .lspa_spi_sclk (lspa_spi_sclk),
+        .lspa_spi_mosi (lspa_spi_mosi),
+        .lspa_spi_miso (lspa_spi_miso),
+        .lspa_spi_ss_n (lspa_spi_ss_n),
+
+        .lspa_uart_tx (lspa_uart_tx),
+        .lspa_uart_rx (lspa_uart_rx),
+        
+        .lspb_gpio_io   (lspb_gpio_io),
+        .lspb_gpio_func (lspb_gpio_func),
+
+        .lspb_spi_sclk (lspb_spi_sclk),
+        .lspb_spi_mosi (lspb_spi_mosi),
+        .lspb_spi_miso (lspb_spi_miso),
+        .lspb_spi_ss_n (lspb_spi_ss_n),
+
+        .lspb_uart_tx (lspb_uart_tx),
+        .lspb_uart_rx (lspb_uart_rx)
+    );
+
     `TEST_SUITE begin
         `TEST_CASE("test") begin
             #10us;
+            assert (0);
         end
     end
 

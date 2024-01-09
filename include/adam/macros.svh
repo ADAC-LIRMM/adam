@@ -192,6 +192,10 @@
 
 // ADAM_PAUSE =================================================================
 
+`define ADAM_PAUSE_ASSIGN(slv, mst) \
+    assign slv.req = mst.req; \
+    assign mst.ack = slv.ack;
+    
 `define ADAM_PAUSE_MST_TIE_OFF(mst) \
     assign mst.req = '1;
 

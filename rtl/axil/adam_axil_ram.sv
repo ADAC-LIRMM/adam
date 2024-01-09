@@ -1,26 +1,16 @@
-`define AXIL_I AXI_LITE #( \
-    .AXI_ADDR_WIDTH (ADDR_WIDTH), \
-    .AXI_DATA_WIDTH (DATA_WIDTH) \
-)
+`include "adam/macros.svh"
 
 module adam_axil_ram #(
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32,
+    `ADAM_CFG_PARAMS,
 
     parameter SIZE = 4096,
 
     // Dependent parameters bellow, do not override.
 
-    parameter STRB_WIDTH      = DATA_WIDTH/8,
     parameter UNALIGNED_WIDTH = $clog2(STRB_WIDTH),         
     parameter ALIGNED_WIDTH   = ADDR_WIDTH - UNALIGNED_WIDTH,
     parameter ALIGNED_SIZE    = SIZE / STRB_WIDTH,
 
-    parameter type ADDR_T    = logic [ADDR_WIDTH-1:0],
-    parameter type PROT_T    = logic [1:0],
-    parameter type DATA_T    = logic [DATA_WIDTH-1:0],
-    parameter type STRB_T    = logic [STRB_WIDTH-1:0],
-    parameter type RESP_T    = logic [1:0],
     parameter type ALIGNED_T = logic [ALIGNED_WIDTH-1:0]
 ) (
     ADAM_SEQ.Slave   seq,
@@ -62,12 +52,11 @@ module adam_axil_ram #(
 
     // axil pause and skid ====================================================
     
-    `AXIL_I axil_pause ();
-    `AXIL_I skid ();
+    `ADAM_AXIL_I axil_pause ();
+    `ADAM_AXIL_I skid ();
 
     adam_axil_pause #(
-        .ADDR_WIDTH (ADDR_WIDTH),
-        .DATA_WIDTH (DATA_WIDTH),
+        `ADAM_CFG_PARAMS_MAP,
 
         .MAX_TRANS  (3)
     ) adam_axil_pause (
@@ -79,8 +68,7 @@ module adam_axil_ram #(
     );
 
     adam_axil_skid #(
-        .ADDR_WIDTH(ADDR_WIDTH),
-        .DATA_WIDTH(DATA_WIDTH),
+        `ADAM_CFG_PARAMS_MAP,
 
         .BYPASS_B  (1),
         .BYPASS_R  (1)

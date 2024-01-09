@@ -365,9 +365,9 @@ module adam_periph_syscfg #(
             adam_periph_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
-                .EN_BOOTSTRAP ((i == 0) ? EN_BOOTSTRAP_CPU0 : 0),
-                .EN_BOOT_ADDR (0),
-                .EN_IRQ       (0)
+                .EN_BOOTSTRAP ((i == CPU_S) ? EN_BOOTSTRAP_CPU0 : 0),
+                .EN_BOOT_ADDR (1),
+                .EN_IRQ       (1)
             ) tgt_cpu (
                 .seq   (seq),
                 .pause (tgt_pause[i]),

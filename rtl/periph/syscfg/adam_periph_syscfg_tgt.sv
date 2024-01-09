@@ -117,7 +117,7 @@ module adam_periph_syscfg_tgt #(
 
             action <= IDLE;
 
-            if (EN_BOOT_ADDR) bar <= '0;
+            if (EN_BOOT_ADDR) bar <= RST_BOOT_ADDR;
             if (EN_IRQ)       ier <= '0;
 
             prdata  <= '0;

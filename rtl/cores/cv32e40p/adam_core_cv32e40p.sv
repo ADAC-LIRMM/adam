@@ -1,20 +1,13 @@
+`include "adam/macros.svh"
+
 module adam_core_cv32e40p #(
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32,
-
-    // Dependent parameters bellow, do not override.
-    
-    parameter STRB_WIDTH = DATA_WIDTH/8,
-
-    parameter type addr_t = logic [ADDR_WIDTH-1:0],
-    parameter type data_t = logic [DATA_WIDTH-1:0],
-    parameter type strb_t = logic [STRB_WIDTH-1:0]
+    `ADAM_CFG_PARAMS
 ) (
     ADAM_SEQ.Slave   seq,
     ADAM_PAUSE.Slave pause,
 
-    input addr_t boot_addr,
-    input data_t hart_id,
+    input ADDR_T boot_addr,
+    input DATA_T hart_id,
 
     AXI_LITE.Master inst_axil,
     AXI_LITE.Master data_axil,
@@ -29,21 +22,21 @@ module adam_core_cv32e40p #(
     logic  inst_gnt_i;
     logic  inst_rvalid_i;
     logic  inst_rready_o;
-    addr_t inst_addr_o;
-    strb_t inst_be_o;
-    data_t inst_wdata_o;
+    ADDR_T inst_addr_o;
+    STRB_T inst_be_o;
+    DATA_T inst_wdata_o;
     logic  inst_we_o;
-    data_t inst_rdata_i;
+    DATA_T inst_rdata_i;
 
     logic  data_req_o;
     logic  data_gnt_i;
     logic  data_rvalid_i;
     logic  data_rready_o;
-    addr_t data_addr_o;
-    strb_t data_be_o;
-    data_t data_wdata_o;
+    ADDR_T data_addr_o;
+    STRB_T data_be_o;
+    DATA_T data_wdata_o;
     logic  data_we_o;
-    data_t data_rdata_i;
+    DATA_T data_rdata_i;
     
     assign inst_rready_o = 1;
     assign inst_be_o     = 0;
@@ -130,7 +123,7 @@ module adam_core_cv32e40p #(
         .gnt    (inst_gnt_i),
         .addr   (inst_addr_o),
         .we     ('0),
-        .be     (strb_t'(0)),
+        .be     (STRB_T'(0)),
         .wdata  ('0),
         .rvalid (inst_rvalid_i),
         .rready (inst_rready_o),

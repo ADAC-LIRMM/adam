@@ -61,7 +61,7 @@ package adam_cfg_pkg;
         DATA_WIDTH : 32,
         GPIO_WIDTH : 16,
 
-        RST_BOOT_ADDR : 32'h0000_0000,
+        RST_BOOT_ADDR : 32'h0100_0000,
 
         NO_CPUS : 1,
         NO_DMAS : 1,
