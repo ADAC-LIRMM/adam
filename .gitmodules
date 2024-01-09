@@ -16,3 +16,6 @@
 [submodule "libs/ibex"]
 	path = libs/ibex
 	url = https://github.com/lowRISC/ibex.git
+[submodule "libs/riscv-dbg"]
+	path = libs/riscv-dbg
+	url = https://github.com/pulp-platform/riscv-dbg.git
