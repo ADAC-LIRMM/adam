@@ -33,8 +33,8 @@ class adam_stream_mst_bhv #(
         logic  end_transfer;
         T data;
 
-        dv.data  = 0;
-        dv.valid = 0;
+        dv.data  = '{default:0};
+        dv.valid = '0;
 
         forever begin
             cycle_start();
@@ -51,7 +51,7 @@ class adam_stream_mst_bhv #(
                 dv.data  <= #TA data;
                 dv.valid <= #TA '1;
             end else if (end_transfer) begin
-                dv.data  <= #TA '0;
+                dv.data  <= #TA '{default:0};
                 dv.valid <= #TA '0;
             end
         end

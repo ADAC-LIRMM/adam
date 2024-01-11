@@ -1,27 +1,26 @@
-module adam_obi_axil_bridge #(
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32,
+`include "adam/macros.svh"
 
-    parameter MAX_TRANS = 10,
+module adam_obi_to_axil #(
+    `ADAM_CFG_PARAMS,
 
-    // Dependent parameters, do not override.
-    parameter STRB_WIDTH = (DATA_WIDTH/8)
+    parameter MAX_TRANS = FAB_MAX_TRANS
 ) (
     ADAM_SEQ.Slave   seq,
     ADAM_PAUSE.Slave pause,
 
-    input  logic                  req,
-    output logic                  gnt,
-    input  logic [ADDR_WIDTH-1:0] addr,
-    input  logic                  we,
-    input  logic [STRB_WIDTH-1:0] be,
-    input  logic [DATA_WIDTH-1:0] wdata,
-    output logic                  rvalid,
-    input  logic                  rready,
-    output logic [DATA_WIDTH-1:0] rdata,
+    input  logic  req,
+    output logic  gnt,
+    input  ADDR_T addr,
+    input  logic  we,
+    input  STRB_T be,
+    input  DATA_T wdata,
+    output logic  rvalid,
+    input  logic  rready,
+    output DATA_T rdata,
 
     AXI_LITE.Master axil 
-);   
+);
+
     logic [$clog2(MAX_TRANS):0] transfers;
     logic [MAX_TRANS-1:0] is_write;
 
@@ -30,13 +29,13 @@ module adam_obi_axil_bridge #(
 
     always_ff @(posedge seq.clk) begin
         if (seq.rst) begin
-            transfers = 0;
-            is_write  = 0;
+            transfers = '0;
+            is_write  = '0;
 
-            aw_ok = 0;
-            w_ok  = 0;
+            aw_ok = '0;
+            w_ok  = '0;
 
-            pause.ack = 0;
+            pause.ack = '1;
         end
         else if (pause.req && pause.ack) begin
             // PAUSED

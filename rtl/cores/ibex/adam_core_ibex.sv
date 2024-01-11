@@ -131,10 +131,10 @@ module adam_core_ibex #(
         // .core_sleep_o           ()
     );
 
-    adam_obi_axil_bridge #(
+    adam_obi_to_axil #(
         .ADDR_WIDTH(ADDR_WIDTH),
         .DATA_WIDTH(DATA_WIDTH)
-    ) instr_adam_obi_axil_bridge (
+    ) instr_adam_obi_to_axil (
         .seq   (seq),
         .pause (inst_seq),
 
@@ -151,10 +151,10 @@ module adam_core_ibex #(
         .rdata  (inst_rdata_i) 
     );
 
-    adam_obi_axil_bridge #(
+    adam_obi_to_axil #(
         .ADDR_WIDTH (ADDR_WIDTH),
         .DATA_WIDTH (DATA_WIDTH)
-    ) data_adam_obi_axil_bridge (
+    ) data_adam_obi_to_axil (
         .seq   (seq),
         .pause (data_pause),
 

@@ -40,7 +40,7 @@ class adam_stream_slv_bhv #(
         logic  end_transfer;
 
         // init value
-        dv.ready = 0;
+        dv.ready = '0;
 
         forever begin
             cycle_start();

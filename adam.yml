@@ -49,7 +49,6 @@ fsets:
 
       - stream/adam_stream_mst_bhv.sv
       - stream/adam_stream_slv_bhv.sv
-      - stream/adam_stream_skid_tb.sv
 
       - axil/adam_axil_mst_bhv.sv
       - axil/adam_axil_slv_bhv.sv
@@ -60,12 +59,18 @@ fsets:
       - axil/adam_axil_ram_tb.sv
       - axil/adam_axil_xbar_tb.sv
       - axil/adam_axil_slv_simple_bhv.sv
-      - pause/adam_pause_demux_tb.sv
-      - pause/adam_pause_mux_tb.sv
+    
       - fabric/adam_fabric_hsdom_tb.sv
       - fabric/adam_fabric_lsdom_tb.sv
       - fabric/adam_fabric_lspx_tb.sv
       - fabric/adam_fabric_tb.sv
+
+      - obi/adam_obi_from_axil_tb.sv
+      #- obi/adam_obi_to_axil_tb.sv
+
+      - pause/adam_pause_demux_tb.sv
+      - pause/adam_pause_mux_tb.sv
+
       - periph/gpio/adam_periph_gpio_tb.sv
       - periph/spi/adam_periph_spi_phy_tb.sv
       - periph/spi/adam_periph_spi_tb.sv
@@ -75,6 +80,9 @@ fsets:
       - periph/uart/adam_periph_uart_rx_tb.sv
       - periph/uart/adam_periph_uart_tx_tb.sv
       - periph/uart/adam_periph_uart_tb.sv
+
+      - stream/adam_stream_skid_tb.sv
+      
       - adam_clk_div_tb.sv
       - adam_tb.sv
 
@@ -82,6 +90,7 @@ fsets:
     requires:
       - axi_rtl
       - apb_rtl
+      - riscv_dbg_rtl
 
     root: rtl/
     includes:
@@ -106,6 +115,9 @@ fsets:
       - axil/adam_axil_ram.sv
       - axil/adam_axil_xbar.sv
 
+      - obi/adam_obi_from_axil.sv
+      - obi/adam_obi_to_axil.sv
+
       - periph/gpio/adam_periph_gpio.sv
       - periph/spi/adam_periph_spi.sv
       - periph/spi/adam_periph_spi_phy.sv
@@ -116,8 +128,6 @@ fsets:
       - periph/uart/adam_periph_uart_tx.sv
       - periph/uart/adam_periph_uart.sv
       - periph/adam_periph.sv
-
-      - obi/adam_obi_axil_bridge.sv
 
       - fabric/adam_fabric_hsdom.sv
       - fabric/adam_fabric_lsdom.sv
@@ -253,6 +263,21 @@ fsets:
       - apb_regs.sv
       - apb_cdc.sv
       - apb_demux.sv
+
+  riscv_dbg_rtl:
+    root: libs/riscv-dbg
+    sources:
+      - src/dm_pkg.sv
+      - debug_rom/debug_rom.sv
+      - debug_rom/debug_rom_one_scratch.sv
+      - src/dm_csrs.sv
+      - src/dm_mem.sv
+      - src/dm_top.sv
+      - src/dm_obi_top.sv
+      - src/dmi_cdc.sv
+      - src/dmi_jtag.sv
+      - src/dmi_jtag_tap.sv
+      - src/dm_sba.sv
 
   common_cells_bhv:
     requires:

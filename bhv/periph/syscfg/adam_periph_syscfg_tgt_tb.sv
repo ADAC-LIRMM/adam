@@ -149,7 +149,7 @@ module adam_periph_syscfg_tgt_tb;
             `ADAM_UNTIL(!seq.rst);
 
             if (EN_BOOT_ADDR) begin
-                assert (tgt_boot_addr == '0);
+                assert (tgt_boot_addr == RST_BOOT_ADDR);
             end
 
             if (EN_BOOTSTRAP) complete_action(RESUME);
