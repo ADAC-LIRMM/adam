@@ -1,25 +1,28 @@
 `include "adam/macros.svh"
 
 module adam_debug #(
-    `ADAM_CFG_PARAMS
+    `ADAM_CFG_PARAMS,
+
+    // Dependent parameters, DO NOT OVERRIDE!
+
+    parameter NO_HARTS = NO_CPUS + 1
 ) (
     ADAM_SEQ.Slave   seq,
     ADAM_PAUSE.Slave pause,
 
+    output logic req     [NO_HARTS+1],
+    input  logic unavail [NO_HARTS+1],
+
     AXI_LITE.Slave  axil_slv,
     AXI_LITE.Master axil_mst,
 
-    input  logic trst_n,
-    input  logic tck,
-    input  logic tms,
-    input  logic tdi,
-    output logic tdo
+    input  logic jtag_trst_n,
+    input  logic jtag_tck,
+    input  logic jtag_tms,
+    input  logic jtag_tdi,
+    output logic jtag_tdo
 );
-    localparam XLEN = DATA_WIDTH;
-    localparam type XLEN_T = logic [XLEN-1:0];
-
-    localparam NO_HARTS = NO_CPUS + 1;
-
+    
     // dmi_jtag ===============================================================
     
     dm::dmi_req_t dmi_req;
@@ -56,21 +59,29 @@ module adam_debug #(
 
     // dm_top =================================================================
 
-    logic [NO_HARTS-1:0] debug_req;
-    
-    generate
-        dm::hartinfo_t [NO_HARTS-1:0] hartinfo;
+    logic          [NO_HARTS-1:0] req_pack;
+    logic          [NO_HARTS-1:0] unavail_pack;
+    dm::hartinfo_t [NO_HARTS-1:0] hartinfo;
 
-        for (genvar i = 0; i < NO_HARTS; i++) {
+    generate
+        for (genvar i = 0; i < NO_HARTS; i++) begin
+            assign req[i] = req_pack[i];
+        end
+
+        for (genvar i = 0; i < NO_HARTS; i++) begin
+            assign unavail_pack[i] = unavail[i];
+        end
+
+        for (genvar i = 0; i < NO_HARTS; i++) begin
             assign hartinfo[i] = '{
                 zero1:      '0,
-                nscratch:   '2, // debug module needs at least two scratch regs
+                nscratch:   'h2,
                 zero0:      '0,
-                dataaccess: '1, // registers are memory mapped in the debugger
+                dataaccess: '1,
                 datasize:   'h2,
                 dataaddr:   'h380
             };
-        }
+        end
     endgenerate
 
     logic  dm_slv_req;
@@ -90,10 +101,10 @@ module adam_debug #(
     DATA_T dm_mst_rdata;
 
     dm_top #(
-        .NrHarts         (NO_CPUS+1),
-        .BusWidth        (XLEN),
-        .DmBaseAddress   ('h1000),
-        .SelectableHarts ({{NO_CPUS{1'b1}}, 1'b0}),
+        .NrHarts         (NO_HARTS),
+        .BusWidth        (DATA_WIDTH),
+        .DmBaseAddress   (ADDR_DEBUG_BASE),
+        .SelectableHarts ({NO_HARTS{1'b1}}),
         .ReadByteEnable  ('1)
     ) dm_top (
         .clk_i         (seq.clk),
@@ -101,8 +112,8 @@ module adam_debug #(
         .testmode_i    ('0),
         .ndmreset_o    (),
         .dmactive_o    (),
-        .debug_req_o   (debug_req),
-        .unavailable_i ('0),
+        .debug_req_o   (req_pack),
+        .unavailable_i (unavail_pack),
         .hartinfo_i    (hartinfo),
 
         .slave_req_i      (dm_slv_req),
@@ -118,7 +129,7 @@ module adam_debug #(
         .master_wdata_o   (dm_mst_wdata),
         .master_be_o      (dm_mst_be),
         .master_gnt_i     (dm_mst_gnt),
-        .master_r_valid_i (dm_mst_valid),
+        .master_r_valid_i (dm_mst_rvalid),
         .master_r_rdata_i (dm_mst_rdata),
 
         .dmi_rst_ni       (!seq.rst),
@@ -134,13 +145,16 @@ module adam_debug #(
 
     // obi <-> axil ===========================================================
 
+    ADAM_PAUSE pause_obi_from_axil ();
+    ADAM_PAUSE pause_obi_to_axil ();
+
     adam_obi_from_axil #(
-        `ADAM_CFG_PARAMS,
+        `ADAM_CFG_PARAMS_MAP,
 
         .MAX_TRANS (FAB_MAX_TRANS)
     ) adam_obi_from_axil (
         .seq   (seq),
-        .pause (pause),
+        .pause (pause_obi_from_axil),
 
         .axil (axil_slv),
 
@@ -150,28 +164,46 @@ module adam_debug #(
         .we     (dm_slv_we),
         .be     (dm_slv_be),
         .wdata  (dm_slv_wdata),
-        .rvalid ('1),
+        .rvalid ('1), // TODO:
         .rready (),
         .rdata  (dm_slv_rdata)
     );
 
     adam_obi_to_axil #(
-        `ADAM_CFG_PARAMS,
+        `ADAM_CFG_PARAMS_MAP,
 
         .MAX_TRANS (FAB_MAX_TRANS)
     ) adam_obi_to_axil (
         .seq   (seq),
-        .pause (),
+        .pause (pause_obi_to_axil),
 
         .req    (dm_mst_req),
         .gnt    (dm_mst_gnt),
         .we     (dm_mst_we),
+        .addr   (dm_mst_addr),
         .be     (dm_mst_be),
         .wdata  (dm_mst_wdata),
         .rvalid (dm_mst_rvalid),
-        .rdata  (dm_mst_rdata)
+        .rready ('1),
+        .rdata  (dm_mst_rdata),
 
         .axil (axil_mst) 
+    );
+
+    // pause ==================================================================
+
+    ADAM_PAUSE pause_null ();
+
+    adam_pause_demux #(
+        `ADAM_CFG_PARAMS_MAP,
+
+        .NO_MSTS  (2),
+        .PARALLEL (1)
+    ) adam_pause_demux (
+        .seq (seq),
+
+        .slv (pause),
+        .mst ('{pause_obi_from_axil, pause_obi_to_axil, pause_null})
     );
 
 endmodule

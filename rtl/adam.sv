@@ -1,5 +1,3 @@
-//! => // TODO: Clock Domain Crossing
-
 `include "adam/macros.svh"
 `include "apb/assign.svh"
 `include "axi/assign.svh"
@@ -9,7 +7,7 @@ module adam #(
 ) (
     // lsdom ==================================================================
 
-    ADAM_SEQ.Slave   lsdom_seq,
+    ADAM_SEQ.Slave lsdom_seq,
 
     ADAM_PAUSE.Slave lsdom_pause_ext,
 
@@ -24,6 +22,14 @@ module adam #(
     output logic      hsdom_mem_rst   [NO_MEMS+1],
     ADAM_PAUSE.Master hsdom_mem_pause [NO_MEMS+1],
     AXI_LITE.Master   hsdom_mem_axil  [NO_MEMS+1],
+
+    // jtag ===================================================================
+
+    input  logic jtag_trst_n,
+    input  logic jtag_tck,
+    input  logic jtag_tms,
+    input  logic jtag_tdi,
+    output logic jtag_tdo,
 
     // async - lspa ===========================================================
     
@@ -54,6 +60,18 @@ module adam #(
 
     // signals ================================================================
     
+    ADAM_PAUSE lsdom_pause ();
+    ADAM_PAUSE hsdom_pause ();
+
+    // ADAM_PAUSE lsdom_fab_pause ();
+    // ADAM_PAUSE hsdom_fab_pause ();
+
+    ADAM_PAUSE fab_lsdom_pause ();
+    ADAM_PAUSE fab_hsdom_pause ();
+
+    ADAM_PAUSE fab_lspa_pause ();
+    ADAM_PAUSE fab_lspb_pause ();
+
     ADAM_SEQ    lsdom_lpcpu_seq ();
     logic       lsdom_lpcpu_rst;
     ADAM_PAUSE  lsdom_lpcpu_pause ();
@@ -91,17 +109,11 @@ module adam #(
     ADAM_PAUSE   lsdom_syscfg_pause ();
     `ADAM_AXIL_I lsdom_syscfg_axil ();
 
-    ADAM_PAUSE fab_lsdom_pause ();
-    ADAM_PAUSE fab_hsdom_pause ();
-
-    ADAM_PAUSE lsdom_pause ();
-    ADAM_PAUSE hsdom_pause ();
-
-    ADAM_PAUSE lsdom_fab_pause ();
-    ADAM_PAUSE hsdom_fab_pause ();
-
-    ADAM_PAUSE fab_lspa_pause ();
-    ADAM_PAUSE fab_lspb_pause ();
+    ADAM_PAUSE   hsdom_debug_pause ();
+    `ADAM_AXIL_I hsdom_debug_mst_axil ();
+    `ADAM_AXIL_I hsdom_debug_slv_axil ();
+    logic        hsdom_debug_req     [NO_CPUS+2];
+    logic        hsdom_debug_unavail [NO_CPUS+2];
 
     // lsdom - lpcpu ==========================================================
 
@@ -119,12 +131,18 @@ module adam #(
                 .boot_addr (lsdom_lpcpu_boot_addr),
                 .hart_id   ('0),
 
-                .inst_axil (lsdom_lpcpu_axil[0]),
-                .data_axil (lsdom_lpcpu_axil[1]),
+                .axil_inst (lsdom_lpcpu_axil[0]),
+                .axil_data (lsdom_lpcpu_axil[1]),
 
-                .irq (lsdom_lpcpu_irq)
+                .irq (lsdom_lpcpu_irq),
+
+                .debug_req     ('0),
+                .debug_unavail ()
             );
         end
+
+        assign hsdom_debug_unavail[0] = '1; // LPCPU doesn't support debug
+
     endgenerate
 
     // lsdom - lspa ===========================================================
@@ -217,10 +235,13 @@ module adam #(
                 .boot_addr (hsdom_cpu_boot_addr[i]),
                 .hart_id   (i+1), // +1 because LPCPU is 0
 
-                .inst_axil (hsdom_cpu_axil[2*i + 0]),
-                .data_axil (hsdom_cpu_axil[2*i + 1]),
+                .axil_inst (hsdom_cpu_axil[2*i + 0]),
+                .axil_data (hsdom_cpu_axil[2*i + 1]),
 
-                .irq (hsdom_cpu_irq[i])
+                .irq       (hsdom_cpu_irq[i]),
+                
+                .debug_req     (hsdom_debug_req[i+1]),
+                .debug_unavail (hsdom_debug_unavail[i+1])
             );
         end
     endgenerate
@@ -243,11 +264,34 @@ module adam #(
 
     // hsdom - debug ==========================================================
 
-    `ADAM_AXIL_I hsdom_debug_slv_axil ();
-    `ADAM_AXIL_I hsdom_debug_mst_axil ();
+    `ADAM_PAUSE_MST_TIE_ON(hsdom_debug_pause);
 
-    `ADAM_AXIL_MST_TIE_OFF(hsdom_debug_slv_axil);
-    `ADAM_AXIL_SLV_TIE_OFF(hsdom_debug_mst_axil);
+    generate
+        if (EN_DEBUG) begin
+            adam_debug #(
+                `ADAM_CFG_PARAMS_MAP
+            ) adam_debug (
+                .seq   (hsdom_seq),
+                .pause (hsdom_debug_pause),
+
+                .req     (hsdom_debug_req),
+                .unavail (hsdom_debug_unavail),
+
+                .axil_slv (hsdom_debug_mst_axil),
+                .axil_mst (hsdom_debug_slv_axil),
+
+                .jtag_trst_n (jtag_trst_n),
+                .jtag_tck    (jtag_tck),
+                .jtag_tms    (jtag_tms),
+                .jtag_tdi    (jtag_tdi),
+                .jtag_tdo    (jtag_tdo)
+            );
+        end
+        else begin
+            `ADAM_AXIL_SLV_TIE_OFF(hsdom_debug_mst_axil);
+            `ADAM_AXIL_MST_TIE_OFF(hsdom_debug_slv_axil);
+        end
+    endgenerate
 
     // lsdom - syscfg =========================================================
 
@@ -264,8 +308,8 @@ module adam #(
         .lsdom_rst   (lsdom_rst),
         .lsdom_pause (lsdom_pause),
 
-        .hsdom_rst   (hsdom_rst), //!
-        .hsdom_pause (hsdom_pause), //!
+        .hsdom_rst   (hsdom_rst), 
+        .hsdom_pause (hsdom_pause), 
 
         .fab_lsdom_rst   (fab_lsdom_rst),
         .fab_lsdom_pause (fab_lsdom_pause),
@@ -287,17 +331,17 @@ module adam #(
         .lpmem_rst   (lsdom_lpmem_rst),
         .lpmem_pause (lsdom_lpmem_pause),
 
-        .cpu_rst       (hsdom_cpu_rst), //!
-        .cpu_pause     (hsdom_cpu_pause), //!
-        .cpu_boot_addr (hsdom_cpu_boot_addr), //!
-        .cpu_irq       (hsdom_cpu_irq), //!
+        .cpu_rst       (hsdom_cpu_rst), 
+        .cpu_pause     (hsdom_cpu_pause), 
+        .cpu_boot_addr (hsdom_cpu_boot_addr), 
+        .cpu_irq       (hsdom_cpu_irq), 
 
-        .dma_rst   (hsdom_dma_rst), //!
-        .dma_pause (hsdom_dma_pause), //!
-        .dma_irq   (hsdom_dma_irq), //!
+        .dma_rst   (hsdom_dma_rst), 
+        .dma_pause (hsdom_dma_pause), 
+        .dma_irq   (hsdom_dma_irq), 
 
-        .mem_rst   (hsdom_mem_rst), //!
-        .mem_pause (hsdom_mem_pause), //!
+        .mem_rst   (hsdom_mem_rst), 
+        .mem_pause (hsdom_mem_pause), 
 
         .lspa_rst   (lsdom_lspa_rst), 
         .lspa_pause (lsdom_lspa_pause),
@@ -307,9 +351,9 @@ module adam #(
         .lspb_pause (lsdom_lspb_pause),
         .lspb_irq   (lsdom_lspb_irq),
 
-        .hsp_rst   (hsdom_hsp_rst), //!
-        .hsp_pause (hsdom_hsp_pause), //!
-        .hsp_irq   (hsdom_hsp_irq) //!
+        .hsp_rst   (hsdom_hsp_rst), 
+        .hsp_pause (hsdom_hsp_pause), 
+        .hsp_irq   (hsdom_hsp_irq) 
     );
 
     // adam_fabric ============================================================

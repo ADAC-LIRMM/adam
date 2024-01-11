@@ -115,7 +115,7 @@ module adam_fabric_lsdom #(
         // To High Speed Domain (HSDOM)
         for (genvar i = TO_HSDOM_S; i < TO_HSDOM_E; i++) begin
             assign addr_map[i] = '{
-                start : MMAP_BOUNDRY,
+                start : ADDR_BOUNDRY,
                 end_  : '0 // unbounded
             };
             `AXI_LITE_ASSIGN(to_hsdom, mst[i]);

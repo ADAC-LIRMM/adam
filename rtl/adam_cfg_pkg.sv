@@ -49,11 +49,16 @@ package adam_cfg_pkg;
         MMAP_T MMAP_LSPA;
         MMAP_T MMAP_LSPB;
 
-        ADDR_T MMAP_BOUNDRY;
+        ADDR_T ADDR_BOUNDRY;
 
         MMAP_T MMAP_DEBUG;
         MMAP_T MMAP_HSP;
         MMAP_T MMAP_MEM;
+        
+        ADDR_T ADDR_DEBUG_BASE;
+        ADDR_T ADDR_DEBUG_HALT;
+        ADDR_T ADDR_DEBUG_RESUME;
+        ADDR_T ADDR_DEBUG_EXCEPTION;
     } CFG_T;
 
     localparam CFG_T CFG = '{
@@ -69,7 +74,7 @@ package adam_cfg_pkg;
         
         EN_LPCPU : 1,
         EN_LPMEM : 1,
-        EN_DEBUG : 1,
+        EN_DEBUG : 0,
         
         NO_LSPA_GPIOS  : 1,
         NO_LSPA_SPIS   : 1,
@@ -93,11 +98,16 @@ package adam_cfg_pkg;
         MMAP_LSPA   : '{32'h0001_0000, 32'h0001_8000, 32'h0000_0400},
         MMAP_LSPB   : '{32'h0001_8000, 32'h0002_0000, 32'h0000_0400},
 
-        MMAP_BOUNDRY : 32'h0008_0000,
+        ADDR_BOUNDRY : 32'h0000_0000,
 
-        MMAP_DEBUG : '{32'h0008_0000, 32'h0008_4000, '0},
+        MMAP_DEBUG : '{32'h0000_0000, 32'h0000_8000, '0},
         MMAP_HSP   : '{32'h0009_0000, 32'h0009_8000, 32'h0000_0400},
-        MMAP_MEM   : '{32'h0100_0000, 32'hFFFF_FFFF, 32'h0100_0000}
+        MMAP_MEM   : '{32'h0100_0000, 32'hFFFF_FFFF, 32'h0100_0000},
+
+        ADDR_DEBUG_BASE      : 32'h0000_1000,
+        ADDR_DEBUG_HALT      : 32'h0000_0800,
+        ADDR_DEBUG_RESUME    : 32'h0000_0804,
+        ADDR_DEBUG_EXCEPTION : 32'h0000_0808
     };
 
 `ifndef SYNTHESIS    

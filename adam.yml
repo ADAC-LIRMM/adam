@@ -53,6 +53,8 @@ fsets:
       - axil/adam_axil_mst_bhv.sv
       - axil/adam_axil_slv_bhv.sv
       
+      - debug/adam_debug_jtag_bhv.sv
+      
       - axil/adam_axil_apb_bridge_tb.sv
       - axil/adam_axil_skid_tb.sv
       - axil/adam_axil_pause_tb.sv
@@ -82,7 +84,7 @@ fsets:
       - periph/uart/adam_periph_uart_tb.sv
 
       - stream/adam_stream_skid_tb.sv
-      
+
       - adam_clk_div_tb.sv
       - adam_tb.sv
 
@@ -115,6 +117,8 @@ fsets:
       - axil/adam_axil_ram.sv
       - axil/adam_axil_xbar.sv
 
+      - debug/adam_debug.sv
+
       - obi/adam_obi_from_axil.sv
       - obi/adam_obi_to_axil.sv
 
@@ -138,7 +142,6 @@ fsets:
       - adam.sv
       
       - adam_clk_div.sv
-
       #- adam_synth.sv
       #- adam_synth_intf.sv
 
@@ -265,6 +268,9 @@ fsets:
       - apb_demux.sv
 
   riscv_dbg_rtl:
+    requires:
+      - tech_cells_generic_rtl
+
     root: libs/riscv-dbg
     sources:
       - src/dm_pkg.sv
@@ -405,6 +411,13 @@ fsets:
       - rand_synch_driver.sv
       # Level 2
       - rand_stream_slv.sv
+
+  tech_cells_generic_rtl:
+    root: libs/tech_cells_generic/src
+    sources:
+      - rtl/tc_clk.sv
+      - deprecated/cluster_clk_cells.sv
+      - deprecated/pulp_clk_cells.sv
 
   cv32e40p_rtl:
     root: libs/cv32e40p/rtl/

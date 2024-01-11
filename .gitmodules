@@ -19,3 +19,6 @@
 [submodule "libs/riscv-dbg"]
 	path = libs/riscv-dbg
 	url = https://github.com/pulp-platform/riscv-dbg.git
+[submodule "libs/tech_cells_generic"]
+	path = libs/tech_cells_generic
+	url = https://github.com/pulp-platform/tech_cells_generic

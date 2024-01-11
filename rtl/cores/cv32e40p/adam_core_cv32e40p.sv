@@ -9,51 +9,47 @@ module adam_core_cv32e40p #(
     input ADDR_T boot_addr,
     input DATA_T hart_id,
 
-    AXI_LITE.Master inst_axil,
-    AXI_LITE.Master data_axil,
+    AXI_LITE.Master axil_inst,
+    AXI_LITE.Master axil_data,
 
-    input logic irq
+    input logic irq,
+    
+    input  logic debug_req,
+    output logic debug_unavail
 );
 
-    ADAM_PAUSE inst_pause ();
-    ADAM_PAUSE data_pause ();
+    ADAM_PAUSE pause_inst ();
+    ADAM_PAUSE pause_data ();
 
-    logic  inst_req_o;
-    logic  inst_gnt_i;
-    logic  inst_rvalid_i;
-    logic  inst_rready_o;
-    ADDR_T inst_addr_o;
-    STRB_T inst_be_o;
-    DATA_T inst_wdata_o;
-    logic  inst_we_o;
-    DATA_T inst_rdata_i;
+    logic  inst_req;
+    logic  inst_gnt;
+    logic  inst_rvalid;
+    logic  inst_rready;
+    ADDR_T inst_addr;
+    STRB_T inst_be;
+    DATA_T inst_wdata;
+    logic  inst_we;
+    DATA_T inst_rdata;
 
-    logic  data_req_o;
-    logic  data_gnt_i;
-    logic  data_rvalid_i;
-    logic  data_rready_o;
-    ADDR_T data_addr_o;
-    STRB_T data_be_o;
-    DATA_T data_wdata_o;
-    logic  data_we_o;
-    DATA_T data_rdata_i;
+    logic  data_req;
+    logic  data_gnt;
+    logic  data_rvalid;
+    logic  data_rready;
+    ADDR_T data_addr;
+    STRB_T data_be;
+    DATA_T data_wdata;
+    logic  data_we;
+    DATA_T data_rdata;
     
-    assign inst_rready_o = 1;
-    assign inst_be_o     = 0;
-    assign inst_wdata_o  = 0;
-    assign inst_we_o     = 0;
+    assign inst_rready = 1;
+    assign inst_be     = 0;
+    assign inst_wdata  = 0;
+    assign inst_we_o   = 0;
 
     assign data_rready_o = 1;
 
-    // unused
-    logic core_sleep_o;
-    
-    logic       irq_ack_o;
-    logic [4:0] irq_id_o;
-
-    logic debug_havereset_o;
-    logic debug_running_o;
-    logic debug_halted_o;
+    logic       irq_ack;
+    logic [4:0] irq_id;
 
     cv32e40p_top #(
         .FPU              (1),
@@ -71,95 +67,97 @@ module adam_core_cv32e40p #(
 
         // Special control signals
         .fetch_enable_i  ('1),
-        .core_sleep_o    (core_sleep_o),
+        .core_sleep_o    (),
         .pulp_clock_en_i ('0),
 
         // Configuration
         .boot_addr_i         (boot_addr),
         .mtvec_addr_i        (boot_addr),
-        .dm_halt_addr_i      (32'hFFFF_FFFF),
-        .dm_exception_addr_i (32'hFFFF_FFFF),
+        .dm_halt_addr_i      (ADDR_DEBUG_HALT),
+        .dm_exception_addr_i (ADDR_DEBUG_EXCEPTION),
         .hart_id_i           (hart_id),
 
         // Instruction memory interface
-        .instr_req_o    (inst_req_o),
-        .instr_gnt_i    (inst_gnt_i),
-        .instr_rvalid_i (inst_rvalid_i),
-        .instr_addr_o   (inst_addr_o),
-        .instr_rdata_i  (inst_rdata_i),
+        .instr_req_o    (inst_req),
+        .instr_gnt_i    (inst_gnt),
+        .instr_rvalid_i (inst_rvalid),
+        .instr_addr_o   (inst_addr),
+        .instr_rdata_i  (inst_rdata),
 
         // Data memory interface
-        .data_req_o    (data_req_o),
-        .data_gnt_i    (data_gnt_i),
-        .data_rvalid_i (data_rvalid_i),
-        .data_addr_o   (data_addr_o),
-        .data_be_o     (data_be_o),
-        .data_wdata_o  (data_wdata_o),
-        .data_we_o     (data_we_o),
-        .data_rdata_i  (data_rdata_i),
+        .data_req_o    (data_req),
+        .data_gnt_i    (data_gnt),
+        .data_rvalid_i (data_rvalid),
+        .data_addr_o   (data_addr),
+        .data_be_o     (data_be),
+        .data_wdata_o  (data_wdata),
+        .data_we_o     (data_we),
+        .data_rdata_i  (data_rdata),
 
         // Interrupt interface
         .irq_i     ({20'b0, irq, 11'b0}),
-        .irq_ack_o (irq_ack_o),
-        .irq_id_o  (irq_id_o),
+        .irq_ack_o (irq_ack),
+        .irq_id_o  (irq_id),
 
         // Debug interface
-        .debug_req_i       ('0),
-        .debug_havereset_o (debug_havereset_o),
-        .debug_running_o   (debug_running_o),
-        .debug_halted_o    (debug_halted_o)
+        .debug_req_i       (debug_req),
+        .debug_havereset_o (),
+        .debug_running_o   (),
+        .debug_halted_o    ()
     );
 
     adam_obi_to_axil #(
-        .ADDR_WIDTH(ADDR_WIDTH),
-        .DATA_WIDTH(DATA_WIDTH)
+        `ADAM_CFG_PARAMS_MAP
     ) instr_adam_obi_to_axil (
         .seq   (seq),
-        .pause (inst_pause),
+        .pause (pause_inst),
 
-        .axil (inst_axil),
+        .axil (axil_inst),
 
-        .req    (inst_req_o),
-        .gnt    (inst_gnt_i),
-        .addr   (inst_addr_o),
+        .req    (inst_req),
+        .gnt    (inst_gnt),
+        .addr   (inst_addr),
         .we     ('0),
-        .be     (STRB_T'(0)),
+        .be     ('0),
         .wdata  ('0),
-        .rvalid (inst_rvalid_i),
-        .rready (inst_rready_o),
-        .rdata  (inst_rdata_i) 
+        .rvalid (inst_rvalid),
+        .rready (inst_rready),
+        .rdata  (inst_rdata) 
     );
 
     adam_obi_to_axil #(
-        .ADDR_WIDTH (ADDR_WIDTH),
-        .DATA_WIDTH (DATA_WIDTH)
+        `ADAM_CFG_PARAMS_MAP
     ) data_adam_obi_to_axil (
         .seq   (seq),
-        .pause (data_pause),
+        .pause (pause_data),
 
-        .axil (data_axil),
+        .axil (axil_data),
 
-        .req    (data_req_o),
-        .gnt    (data_gnt_i),
-        .addr   (data_addr_o),
-        .we     (data_we_o),
-        .be     (data_be_o),
-        .wdata  (data_wdata_o),
-        .rvalid (data_rvalid_i),
-        .rready (data_rready_o),
-        .rdata  (data_rdata_i) 
+        .req    (data_req),
+        .gnt    (data_gnt),
+        .addr   (data_addr),
+        .we     (data_we),
+        .be     (data_be),
+        .wdata  (data_wdata),
+        .rvalid (data_rvalid),
+        .rready (data_rready),
+        .rdata  (data_rdata) 
     );
 
-    always_comb begin
-        inst_pause.req = pause.req;
-        data_pause.req = pause.req;
+    // pause ==================================================================
 
-        if (pause.req) begin
-            pause.ack = inst_pause.ack && data_pause.ack;
-        end
-        else begin
-            pause.ack = inst_pause.ack || data_pause.ack;
-        end
-    end
+    ADAM_PAUSE pause_null ();
+
+    adam_pause_demux #(
+        `ADAM_CFG_PARAMS_MAP,
+
+        .NO_MSTS  (2),
+        .PARALLEL (1)
+    ) adam_pause_demux (
+        .seq (seq),
+
+        .slv (pause),
+        .mst ('{pause_inst, pause_data, pause_null})
+    );
 
 endmodule

@@ -12,11 +12,18 @@
     __opt type CFG_T  = adam_cfg_pkg::CFG_T __sep \
     __opt CFG_T CFG   = adam_cfg_pkg::CFG __sep \
     \
-    __opt type MMAP_T = adam_cfg_pkg::MMAP_T __sep \
-    \
     __opt ADDR_WIDTH = CFG.ADDR_WIDTH __sep \
     __opt DATA_WIDTH = CFG.DATA_WIDTH __sep \
     __opt GPIO_WIDTH = CFG.GPIO_WIDTH __sep \
+    __opt STRB_WIDTH  = DATA_WIDTH/8 __sep \
+    \
+    __opt type ADDR_T = logic [ADDR_WIDTH-1:0] __sep \
+    __opt type PROT_T = logic [2:0] __sep \
+    __opt type DATA_T = logic [DATA_WIDTH-1:0] __sep \
+    __opt type STRB_T = logic [STRB_WIDTH-1:0] __sep \
+    __opt type RESP_T = logic [1:0] __sep \
+    __opt type GPIO_T = logic [GPIO_WIDTH-1:0] __sep \
+    __opt type MMAP_T = adam_cfg_pkg::MMAP_T __sep \
     \
     __opt RST_BOOT_ADDR = CFG.RST_BOOT_ADDR __sep \
     \
@@ -50,11 +57,16 @@
     __opt MMAP_T MMAP_LSPA   = CFG.MMAP_LSPA __sep \
     __opt MMAP_T MMAP_LSPB   = CFG.MMAP_LSPB __sep \
     \
-    __opt MMAP_BOUNDRY = CFG.MMAP_BOUNDRY __sep \
+    __opt ADDR_T ADDR_BOUNDRY = CFG.ADDR_BOUNDRY __sep \
     \
     __opt MMAP_T MMAP_DEBUG = CFG.MMAP_DEBUG __sep \
-    __opt adam_cfg_pkg::MMAP_T MMAP_HSP   = CFG.MMAP_HSP __sep \
-    __opt adam_cfg_pkg::MMAP_T MMAP_MEM   = CFG.MMAP_MEM __sep \
+    __opt MMAP_T MMAP_HSP   = CFG.MMAP_HSP __sep \
+    __opt MMAP_T MMAP_MEM   = CFG.MMAP_MEM __sep \
+    \
+    __opt ADDR_T ADDR_DEBUG_BASE      = CFG.ADDR_DEBUG_BASE __sep \
+    __opt ADDR_T ADDR_DEBUG_HALT      = CFG.ADDR_DEBUG_HALT __sep \
+    __opt ADDR_T ADDR_DEBUG_RESUME    = CFG.ADDR_DEBUG_RESUME __sep \
+    __opt ADDR_T ADDR_DEBUG_EXCEPTION = CFG.ADDR_DEBUG_EXCEPTION __sep \
     \
     __opt NO_LSPAS = NO_LSPA_GPIOS + NO_LSPA_SPIS + NO_LSPA_TIMERS + \
         NO_LSPA_UARTS __sep \
@@ -67,16 +79,7 @@
     __opt EN_LSPB = (NO_LSPBS > 0) __sep \
     \
     __opt NO_HSPS = 0 __sep \
-    __opt EN_HSP  = 0 __sep \
-    \
-    __opt STRB_WIDTH  = DATA_WIDTH/8 __sep \
-    \
-    __opt type ADDR_T = logic [ADDR_WIDTH-1:0] __sep \
-    __opt type PROT_T = logic [2:0] __sep \
-    __opt type DATA_T = logic [DATA_WIDTH-1:0] __sep \
-    __opt type STRB_T = logic [STRB_WIDTH-1:0] __sep \
-    __opt type RESP_T = logic [1:0] __sep \
-    __opt type GPIO_T = logic [GPIO_WIDTH-1:0]
+    __opt EN_HSP  = 0
 
 `define ADAM_CFG_PARAMS \
     `ADAM_CFG_PARAMS_GENERIC(parameter, `ADAM_COMMA)
@@ -195,7 +198,7 @@
 `define ADAM_PAUSE_ASSIGN(slv, mst) \
     assign slv.req = mst.req; \
     assign mst.ack = slv.ack;
-    
+
 `define ADAM_PAUSE_MST_TIE_OFF(mst) \
     assign mst.req = '1;
 

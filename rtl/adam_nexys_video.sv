@@ -1,3 +1,5 @@
+`include "adam/macros.svh"
+
 module adam_nexys_video (
     input  logic clk,
 
@@ -22,23 +24,56 @@ module adam_nexys_video (
     output logic [7:0] jc,
 
     output logic uart_rx_out,
-    input  logic uart_tx_in
+    input  logic uart_tx_in,
+
+    input  logic jtag_trst_n,
+    input  logic jtag_tck,
+    input  logic jtag_tms,
+    input  logic jtag_tdi,
+    output logic jtag_tdo
 );
-    localparam ADDR_WIDTH = 32;
-    localparam DATA_WIDTH = 32;
-    localparam GPIO_WIDTH = 16;
-
-    localparam NO_MEMS   = 3;
-    localparam NO_GPIOS  = 4;
-    localparam NO_SPIS   = 1;
-    localparam NO_TIMERS = 1;
-    localparam NO_UARTS  = 1;
-    localparam NO_CPUS   = 1;
-    localparam NO_LPUS   = 1;
-
-    localparam integer MEM_SIZE [NO_MEMS] =
-        '{32768, 524288, 524288};
     
+    `ADAM_CFG_LOCALPARAMS;
+    
+    localparam integer LPMEM_SIZE = 1024;
+
+    localparam integer MEM_SIZE [NO_MEMS+1] = 
+        '{32768, 524288, 524288, 0};
+
+    // seq ====================================================================
+
+    logic clk50;
+    logic rst;
+
+    ADAM_SEQ src_seq   ();
+    ADAM_SEQ lsdom_seq ();
+    ADAM_SEQ hsdom_seq ();
+
+    assign src_seq.clk = clk;
+    assert src_seq.rst = btnc;
+
+    adam_clk_div #(
+        .WIDTH (1)
+    ) adam_clk_div (
+        .slv (src_seq),
+        .mst (lsdom_seq)
+    );
+
+    adam_clk_div #(
+        .WIDTH (1)
+    ) adam_clk_div (
+        .slv (src_seq),
+        .mst (hsdom_seq)
+    );
+
+    lsdom_seq.
+
+
+
+    ADAM_PAUSE lsdom_pause_ext ();
+
+    `ADAM_PAUSE_MST_TIE_ON(lsdom_pause_ext);
+
     logic clk50;
     logic rst;
     
@@ -69,12 +104,7 @@ module adam_nexys_video (
 
     assign pause.req = 0;
 
-    adam_clk_div #(
-        .WIDTH (1)
-    ) adam_clk_div (
-        .in  (seq.clk),
-        .out (clk50)
-    );
+    
 
     adam #(
         .ADDR_WIDTH (ADDR_WIDTH),

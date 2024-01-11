@@ -111,7 +111,7 @@ module adam_fabric_hsdom #(
         for (genvar i = TO_LSDOM_S; i < TO_LSDOM_E; i++) begin
             assign addr_map[i] = '{
                 start: '0,
-                end_:  MMAP_BOUNDRY
+                end_:  ADDR_BOUNDRY
             };
             `AXI_LITE_ASSIGN(to_lsdom, msts[i]);
         end

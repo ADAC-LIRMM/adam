@@ -78,7 +78,7 @@ module adam_tb;
             .slv (hsdom_mem_axil[0])
         );
 
-        for (genvar i = 1; i < NO_MEMS; i++) begin
+        for (genvar i = 0; i < NO_MEMS; i++) begin
             adam_axil_ram #(
                 `ADAM_CFG_PARAMS_MAP,
 
@@ -150,6 +150,19 @@ module adam_tb;
         end
     endgenerate
 
+    // debug ==================================================================
+
+    logic jtag_trst_n;
+    logic jtag_tck;
+    logic jtag_tms;
+    logic jtag_tdi;
+    logic jtag_tdo;
+
+    assign jtag_trst_n = '0;
+    assign jtag_tck    = '0;
+    assign jtag_tms    = '0;
+    assign jtag_tdi    = '0;
+
     // dut ====================================================================
 
     adam #(
@@ -168,6 +181,12 @@ module adam_tb;
         .hsdom_mem_rst   (hsdom_mem_rst),
         .hsdom_mem_pause (hsdom_mem_pause),
         .hsdom_mem_axil  (hsdom_mem_axil),
+        
+        .jtag_trst_n (jtag_trst_n),
+        .jtag_tck    (jtag_tck),
+        .jtag_tms    (jtag_tms),
+        .jtag_tdi    (jtag_tdi),
+        .jtag_tdo    (jtag_tdo),
 
         .lspa_gpio_io   (lspa_gpio_io),
         .lspa_gpio_func (lspa_gpio_func),

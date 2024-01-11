@@ -162,7 +162,7 @@ module adam_fabric_hsdom_tb;
         for (genvar i = TO_LSDOM_S; i < TO_LSDOM_E; i++) begin
             assign addr_map[i] = '{
                 start : '0,
-                end_  : MMAP_BOUNDRY,
+                end_  : ADDR_BOUNDRY,
                 inc   : '0
             };
 
@@ -170,7 +170,7 @@ module adam_fabric_hsdom_tb;
                 `ADAM_BHV_CFG_PARAMS_MAP,
 
                 .ADDR_S ('0),
-                .ADDR_E (MMAP_BOUNDRY),
+                .ADDR_E (ADDR_BOUNDRY),
                 .DATA   (DATA_T'(i)),
 
                 .MAX_TRANS (MAX_TRANS)

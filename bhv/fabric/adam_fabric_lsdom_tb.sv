@@ -166,14 +166,14 @@ module adam_fabric_lsdom_tb;
 
         for (genvar i = TO_HSDOM_S; i < TO_HSDOM_E; i++) begin
             assign addr_map[i] = '{
-                start : MMAP_BOUNDRY,
+                start : ADDR_BOUNDRY,
                 end_  : {ADDR_WIDTH{1'b1}}
             };
 
             adam_axil_slv_simple_bhv #(
                 `ADAM_BHV_CFG_PARAMS_MAP,
 
-                .ADDR_S (MMAP_BOUNDRY),
+                .ADDR_S (ADDR_BOUNDRY),
                 .ADDR_E ({ADDR_WIDTH{1'b1}}),
                 .DATA   (i),
 
