@@ -16,11 +16,7 @@ module adam_debug #(
     AXI_LITE.Slave  axil_slv,
     AXI_LITE.Master axil_mst,
 
-    input  logic jtag_trst_n,
-    input  logic jtag_tck,
-    input  logic jtag_tms,
-    input  logic jtag_tdi,
-    output logic jtag_tdo
+    ADAM_JTAG.Slave jtag
 );
     
     // dmi_jtag ===============================================================
@@ -34,7 +30,7 @@ module adam_debug #(
     logic          dmi_resp_valid;
 
     dmi_jtag #(
-        .IdcodeValue (32'h249511C3)
+        .IdcodeValue (DEBUG_IDCODE)
     ) dmi_jtag (
         .clk_i      (seq.clk),
         .rst_ni     (!seq.rst),
@@ -49,11 +45,11 @@ module adam_debug #(
         .dmi_resp_valid_i (dmi_resp_valid),
         .dmi_resp_ready_o (dmi_resp_ready),
         
-        .tck_i    (tck),
-        .tms_i    (tms),
-        .trst_ni  (trst_n),
-        .td_i     (tdi),
-        .td_o     (tdo),
+        .tck_i    (jtag.tck),
+        .tms_i    (jtag.tms),
+        .trst_ni  (jtag.trst_n),
+        .td_i     (jtag.tdi),
+        .td_o     (jtag.tdo),
         .tdo_oe_o ()
     );
 
@@ -103,7 +99,7 @@ module adam_debug #(
     dm_top #(
         .NrHarts         (NO_HARTS),
         .BusWidth        (DATA_WIDTH),
-        .DmBaseAddress   (ADDR_DEBUG_BASE),
+        .DmBaseAddress   ('h1000),
         .SelectableHarts ({NO_HARTS{1'b1}}),
         .ReadByteEnable  ('1)
     ) dm_top (

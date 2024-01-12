@@ -52,9 +52,7 @@ fsets:
 
       - axil/adam_axil_mst_bhv.sv
       - axil/adam_axil_slv_bhv.sv
-      
-      - debug/adam_debug_jtag_bhv.sv
-      
+
       - axil/adam_axil_apb_bridge_tb.sv
       - axil/adam_axil_skid_tb.sv
       - axil/adam_axil_pause_tb.sv
@@ -66,6 +64,8 @@ fsets:
       - fabric/adam_fabric_lsdom_tb.sv
       - fabric/adam_fabric_lspx_tb.sv
       - fabric/adam_fabric_tb.sv
+
+      - jtag/adam_jtag_mst_bhv.sv
 
       - obi/adam_obi_from_axil_tb.sv
       #- obi/adam_obi_to_axil_tb.sv
@@ -102,6 +102,7 @@ fsets:
       - adam_cfg_pkg.sv
 
       - intf/adam_intf_io.sv
+      - intf/adam_intf_jtag.sv
       - intf/adam_intf_pause.sv
       - intf/adam_intf_seq.sv
       - intf/adam_intf_stream.sv

@@ -48,8 +48,7 @@ module adam_core_cv32e40p #(
 
     assign data_rready_o = 1;
 
-    logic       irq_ack;
-    logic [4:0] irq_id;
+    assign debug_unavail = 0;
 
     cv32e40p_top #(
         .FPU              (1),
@@ -96,8 +95,8 @@ module adam_core_cv32e40p #(
 
         // Interrupt interface
         .irq_i     ({20'b0, irq, 11'b0}),
-        .irq_ack_o (irq_ack),
-        .irq_id_o  (irq_id),
+        .irq_ack_o (),
+        .irq_id_o  (),
 
         // Debug interface
         .debug_req_i       (debug_req),

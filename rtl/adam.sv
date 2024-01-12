@@ -25,11 +25,7 @@ module adam #(
 
     // jtag ===================================================================
 
-    input  logic jtag_trst_n,
-    input  logic jtag_tck,
-    input  logic jtag_tms,
-    input  logic jtag_tdi,
-    output logic jtag_tdo,
+    ADAM_JTAG.Slave jtag,
 
     // async - lspa ===========================================================
     
@@ -266,32 +262,26 @@ module adam #(
 
     `ADAM_PAUSE_MST_TIE_ON(hsdom_debug_pause);
 
-    generate
-        if (EN_DEBUG) begin
-            adam_debug #(
-                `ADAM_CFG_PARAMS_MAP
-            ) adam_debug (
-                .seq   (hsdom_seq),
-                .pause (hsdom_debug_pause),
+    if (EN_DEBUG) begin
+        adam_debug #(
+            `ADAM_CFG_PARAMS_MAP
+        ) adam_debug (
+            .seq   (hsdom_seq),
+            .pause (hsdom_debug_pause),
 
-                .req     (hsdom_debug_req),
-                .unavail (hsdom_debug_unavail),
+            .req     (hsdom_debug_req),
+            .unavail (hsdom_debug_unavail),
 
-                .axil_slv (hsdom_debug_mst_axil),
-                .axil_mst (hsdom_debug_slv_axil),
+            .axil_slv (hsdom_debug_mst_axil),
+            .axil_mst (hsdom_debug_slv_axil),
 
-                .jtag_trst_n (jtag_trst_n),
-                .jtag_tck    (jtag_tck),
-                .jtag_tms    (jtag_tms),
-                .jtag_tdi    (jtag_tdi),
-                .jtag_tdo    (jtag_tdo)
-            );
-        end
-        else begin
-            `ADAM_AXIL_SLV_TIE_OFF(hsdom_debug_mst_axil);
-            `ADAM_AXIL_MST_TIE_OFF(hsdom_debug_slv_axil);
-        end
-    endgenerate
+            .jtag (jtag)
+        );
+    end
+    else begin
+        `ADAM_AXIL_SLV_TIE_OFF(hsdom_debug_mst_axil);
+        `ADAM_AXIL_MST_TIE_OFF(hsdom_debug_slv_axil);
+    end
 
     // lsdom - syscfg =========================================================
 
