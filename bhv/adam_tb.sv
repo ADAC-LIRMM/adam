@@ -66,17 +66,17 @@ module adam_tb;
         assign hsdom_mem_seq[i].rst = lsdom_seq.rst || hsdom_mem_rst[i];
     end
 
-    bootloader bootloader (
-        .clk   (hsdom_mem_seq[0].clk),
-        .rst   (lsdom_seq.rst),
+    // bootloader bootloader (
+    //     .clk   (hsdom_mem_seq[0].clk),
+    //     .rst   (lsdom_seq.rst),
         
-        .pause_req (hsdom_mem_pause[0].req),
-        .pause_ack (hsdom_mem_pause[0].ack),
+    //     .pause_req (hsdom_mem_pause[0].req),
+    //     .pause_ack (hsdom_mem_pause[0].ack),
 
-        .slv (hsdom_mem_axil[0])
-    );
+    //     .slv (hsdom_mem_axil[0])
+    // );
 
-    for (genvar i = 1; i < NO_MEMS; i++) begin
+    for (genvar i = 0; i < NO_MEMS; i++) begin
         adam_axil_ram #(
             `ADAM_CFG_PARAMS_MAP,
 
@@ -210,21 +210,28 @@ module adam_tb;
     localparam W_DTMCS  = 32;
     localparam W_DMI    = ABITS+34;
 
-    localparam A_DMCONTROL = 'h10;
-    localparam A_DMSTATUS  = 'h11;
+    localparam A_DMCONTROL  = 'h10;
+    localparam A_DMSTATUS   = 'h11;
+    localparam A_SBCS       = 'h38;
+    localparam A_SBADDRESS0 = 'h39;
+    localparam A_SBDATA0    = 'h3C;
 
     typedef logic[ABITS-1:0] dmaddr_t;
     typedef logic[31:0]      dmdata_t;
 
     `TEST_SUITE begin
-        `TEST_CASE("test") begin
+        `TEST_CASE("minimal") begin
             jtag_bhv = new(jtag);
-
             #10us;
         end
-        `TEST_CASE("debug") begin
 
-            dmdata_t   data;
+        `TEST_CASE("debug") begin
+            ADDR_T  addr;
+            DATA_T  wdata;
+            DATA_T  rdata;
+
+            addr  = 32'h0100_0000;
+            wdata = 32'hDEAD_BEEF;
 
             jtag_bhv = new(jtag);
 
@@ -233,14 +240,20 @@ module adam_tb;
                 dm_init();          
                 dm_select('d1); // HART 1 aka CPU0
                 dm_halt();
+                
+                if (EN_BOOTSTRAP_MEM0) begin
+                    dm_sb_write(addr, wdata);
+                    dm_sb_read(addr, rdata);
+                    assert (rdata == wdata);
+                end
+
                 dm_resume();
-                $error (0);
             end
         end
     end
 
     initial begin
-        #700us $error("timeout");
+        #1000us $error("timeout");
     end
 
     task dtm_init();
@@ -318,13 +331,12 @@ module adam_tb;
 
         $display("dm_resume start");
 
-        dm_read(A_DMCONTROL, dmcontrol);
-
         // set resumereq
+        dm_read(A_DMCONTROL, dmcontrol);
         dmcontrol[30] = '1;
         dm_write(A_DMCONTROL, dmcontrol);
 
-        // wait of allresumeack
+        // wait allresumeack
         do begin
             dm_read(A_DMSTATUS, dmstatus);
         end while (!dmstatus[17]);
@@ -334,6 +346,59 @@ module adam_tb;
         dm_write(A_DMCONTROL, dmcontrol);  
 
         $display("dm_resume end");      
+    endtask
+
+    task dm_sb_write(
+        input ADDR_T addr,
+        input DATA_T data
+    );
+        dmdata_t sbcs;
+
+        dm_bus_wait();
+
+        // clear sbreadonaddr
+        dm_read(A_SBCS, sbcs);
+        sbcs[20] = '0;
+        dm_write(A_SBCS, sbcs);
+
+        // write to address0
+        dm_write(A_SBADDRESS0, addr);
+
+        // write to sbdata0
+        dm_write(A_SBDATA0, data);
+
+        dm_bus_wait();
+    endtask
+
+    task dm_sb_read(
+        input  ADDR_T addr,
+        output DATA_T data
+    );
+        dmdata_t sbcs;
+
+        dm_bus_wait();
+
+        // set sbreadonaddr
+        dm_read(A_SBCS, sbcs);
+        sbcs[20] = '1; 
+        dm_write(A_SBCS, sbcs);
+
+        // write to address0
+        dm_write(A_SBADDRESS0, addr);
+
+        dm_bus_wait();
+
+        // write to sbdata0
+        dm_read(A_SBDATA0, data);
+    endtask
+
+    task dm_bus_wait();
+        dmdata_t sbcs;
+
+        // wait sbbusy
+        do begin
+            dm_read(A_SBCS, sbcs);
+        end while (sbcs[21]);
     endtask
 
     task dm_read(
@@ -351,7 +416,7 @@ module adam_tb;
         
         jtag_bhv.tap_reg_read(A_DMI, W_IR, dmi, W_DMI);
         assert(dmi[1:0] == '0);
-        data = dmi[31:2];
+        data = dmi[33:2];
     endtask
 
     task dm_write(

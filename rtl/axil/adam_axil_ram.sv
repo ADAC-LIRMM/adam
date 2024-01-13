@@ -32,6 +32,14 @@ module adam_axil_ram #(
     ALIGNED_T aligned;
     logic     valid_addr;
 
+`ifndef SYNTHESIS
+    initial begin
+        for (int i = 0; i < ALIGNED_SIZE; i++) begin 
+            mem[i] = '0;
+        end       
+    end
+`endif
+
     assign aligned = addr[ADDR_WIDTH-1:UNALIGNED_WIDTH];
     assign valid_addr = (addr[UNALIGNED_WIDTH-1:0] == 0 || addr < SIZE);
 

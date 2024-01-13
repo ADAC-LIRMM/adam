@@ -409,7 +409,7 @@ module adam_periph_syscfg #(
             adam_periph_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
-                .EN_BOOTSTRAP ((i == 0) ? EN_BOOTSTRAP_MEM0 : 0),
+                .EN_BOOTSTRAP ((i == MEM_S) ? EN_BOOTSTRAP_MEM0 : 0),
                 .EN_BOOT_ADDR (0),
                 .EN_IRQ       (0)
             ) tgt_mem (
