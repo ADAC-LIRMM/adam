@@ -44,9 +44,9 @@ module adam_core_cv32e40p #(
     assign inst_rready = 1;
     assign inst_be     = 0;
     assign inst_wdata  = 0;
-    assign inst_we_o   = 0;
+    assign inst_we     = 0;
 
-    assign data_rready_o = 1;
+    assign data_rready = 1;
 
     assign debug_unavail = 0;
 
@@ -72,8 +72,8 @@ module adam_core_cv32e40p #(
         // Configuration
         .boot_addr_i         (boot_addr),
         .mtvec_addr_i        (boot_addr),
-        .dm_halt_addr_i      (ADDR_DEBUG_HALT),
-        .dm_exception_addr_i (ADDR_DEBUG_EXCEPTION),
+        .dm_halt_addr_i      (DEBUG_ADDR_HALT),
+        .dm_exception_addr_i (DEBUG_ADDR_EXCEPTION),
         .hart_id_i           (hart_id),
 
         // Instruction memory interface

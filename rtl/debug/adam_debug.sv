@@ -119,14 +119,14 @@ module adam_debug #(
         .slave_wdata_i    (dm_slv_wdata),
         .slave_rdata_o    (dm_slv_rdata),
 
-        .master_req_o     (dm_mst_req),
-        .master_add_o     (dm_mst_addr),
-        .master_we_o      (dm_mst_we),
-        .master_wdata_o   (dm_mst_wdata),
-        .master_be_o      (dm_mst_be),
-        .master_gnt_i     (dm_mst_gnt),
-        .master_r_valid_i (dm_mst_rvalid),
-        .master_r_rdata_i (dm_mst_rdata),
+        .master_req_o         (dm_mst_req),
+        .master_add_o         (dm_mst_addr),
+        .master_we_o          (dm_mst_we),
+        .master_wdata_o       (dm_mst_wdata),
+        .master_be_o          (dm_mst_be),
+        .master_gnt_i         (dm_mst_gnt),
+        .master_r_valid_i     (dm_mst_rvalid),
+        .master_r_rdata_i     (dm_mst_rdata),
 
         .dmi_rst_ni       (!seq.rst),
 
@@ -139,11 +139,19 @@ module adam_debug #(
         .dmi_resp_o       (dmi_resp)
     );
 
-    // obi <-> axil ===========================================================
+    // obi to mem ============================================================
 
     ADAM_PAUSE pause_obi_from_axil ();
-    ADAM_PAUSE pause_obi_to_axil ();
 
+    logic  obi_req;
+    logic  obi_gnt;
+    logic  obi_rvalid;
+    logic  obi_rready;
+    DATA_T obi_rdata;
+    
+    logic  rsave;
+    DATA_T rdata;
+    
     adam_obi_from_axil #(
         `ADAM_CFG_PARAMS_MAP,
 
@@ -154,16 +162,50 @@ module adam_debug #(
 
         .axil (axil_slv),
 
-        .req    (dm_slv_req),
-        .gnt    ('1),
+        .req    (obi_req),
+        .gnt    (obi_gnt),
         .addr   (dm_slv_addr),
         .we     (dm_slv_we),
         .be     (dm_slv_be),
         .wdata  (dm_slv_wdata),
-        .rvalid ('1), // TODO:
-        .rready (),
-        .rdata  (dm_slv_rdata)
+        .rvalid (obi_rvalid),
+        .rready (obi_rready),
+        .rdata  (obi_rdata)
     );
+
+    assign dm_slv_req = obi_req && obi_gnt;
+    assign obi_gnt = !obi_rvalid;
+    assign obi_rdata = (rsave) ? dm_slv_rdata : rdata;
+
+    always_ff @(posedge seq.clk) begin
+        if (seq.rst) begin
+            obi_rvalid <= 0;
+        end
+        else begin
+            if (obi_rvalid && obi_rready) begin
+                obi_rvalid <= 0; 
+            end
+
+            if (obi_req && obi_gnt) begin
+                obi_rvalid <= 1;
+            end
+        end
+    end
+
+    always @(posedge seq.clk) begin
+        if (seq.rst) begin
+            rsave <= '0;
+            rdata <= '0;
+        end
+        else begin
+            if (rsave) rdata <= dm_slv_rdata;
+            rsave <= dm_slv_req;
+        end
+    end
+
+    // obi to axil ============================================================
+
+    ADAM_PAUSE pause_obi_to_axil ();
 
     adam_obi_to_axil #(
         `ADAM_CFG_PARAMS_MAP,

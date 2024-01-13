@@ -1,0 +1,70 @@
+From e627740ab2bb239b5838f4d67ed8ffc76cd290f6 Mon Sep 17 00:00:00 2001
+From: alencar-felipe <alencar.felipe.paiva@gmail.com>
+Date: Sat, 13 Jan 2024 20:46:00 +0100
+Subject: [PATCH] majbthrd's PR "remedy endless feedback loop #102"
+
+---
+ src/dm_mem.sv | 16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
+
+diff --git a/src/dm_mem.sv b/src/dm_mem.sv
+index 178259f..b83de45 100755
+--- a/src/dm_mem.sv
++++ b/src/dm_mem.sv
+@@ -137,13 +137,12 @@ module dm_mem #(
+     cmderror_valid_o = 1'b0;
+     cmderror_o       = dm::CmdErrNone;
+     state_d          = state_q;
+-    go               = 1'b0;
+-    resume           = 1'b0;
+-    cmdbusy_o        = 1'b1;
+ 
+     unique case (state_q)
+       Idle: begin
+         cmdbusy_o = 1'b0;
++        go        = 1'b0;
++        resume    = 1'b0;
+         if (cmd_valid_i && halted_q_aligned[hartsel] && !unsupported_command) begin
+           // give the go signal
+           state_d = Go;
+@@ -164,6 +163,7 @@ module dm_mem #(
+         // we are already busy here since we scheduled the execution of a program
+         cmdbusy_o = 1'b1;
+         go        = 1'b1;
++        resume    = 1'b0;
+         // the thread is now executing the command, track its state
+         if (going) begin
+             state_d = CmdExecuting;
+@@ -172,7 +172,8 @@ module dm_mem #(
+ 
+       Resume: begin
+         cmdbusy_o = 1'b1;
+-        resume = 1'b1;
++        go        = 1'b0;
++        resume    = 1'b1;
+         if (resuming_q_aligned[hartsel]) begin
+           state_d = Idle;
+         end
+@@ -181,13 +182,18 @@ module dm_mem #(
+       CmdExecuting: begin
+         cmdbusy_o = 1'b1;
+         go        = 1'b0;
++        resume    = 1'b0;
+         // wait until the hart has halted again
+         if (halted_aligned[hartsel]) begin
+           state_d = Idle;
+         end
+       end
+ 
+-      default: ;
++      default: begin
++        cmdbusy_o = 1'b1;
++        go        = 1'b0;
++        resume    = 1'b0;
++      end
+     endcase
+ 
+     // only signal once that cmd is unsupported so that we can clear cmderr
+-- 
+2.30.2
+

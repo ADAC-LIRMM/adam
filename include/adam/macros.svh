@@ -53,7 +53,9 @@
     __opt EN_BOOTSTRAP_LPCPU = CFG.EN_BOOTSTRAP_LPCPU __sep \
     __opt EN_BOOTSTRAP_LPMEM = CFG.EN_BOOTSTRAP_LPMEM __sep \
     \
-    __opt logic [31:0] DEBUG_IDCODE = CFG.DEBUG_IDCODE __sep \
+    __opt logic [31:0] DEBUG_IDCODE         = CFG.DEBUG_IDCODE __sep \
+    __opt ADDR_T       DEBUG_ADDR_HALT      = CFG.DEBUG_ADDR_HALT __sep \
+    __opt ADDR_T       DEBUG_ADDR_EXCEPTION = CFG.DEBUG_ADDR_EXCEPTION __sep \
     \
     __opt FAB_MAX_TRANS = CFG.FAB_MAX_TRANS __sep \
     \

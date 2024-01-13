@@ -44,7 +44,9 @@ package adam_cfg_pkg;
         int EN_BOOTSTRAP_LPMEM;
 
         logic [31:0] DEBUG_IDCODE;
-
+        ADDR_T       DEBUG_ADDR_HALT;
+        ADDR_T       DEBUG_ADDR_EXCEPTION;
+        
         int FAB_MAX_TRANS;
 
         MMAP_T MMAP_LPMEM;
@@ -90,8 +92,10 @@ package adam_cfg_pkg;
         EN_BOOTSTRAP_LPCPU : 0,
         EN_BOOTSTRAP_LPMEM : 0,
 
-        DEBUG_IDCODE : 32'h2495_11C3,
-
+        DEBUG_IDCODE         : 32'h2495_11C3,
+        DEBUG_ADDR_HALT      : 32'h0008_0800,
+        DEBUG_ADDR_EXCEPTION : 32'h0008_0808, 
+        
         FAB_MAX_TRANS : 7,
 
         MMAP_LPMEM  : '{32'h0000_0000, 32'h0000_8000, '0},

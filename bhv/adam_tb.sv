@@ -197,16 +197,24 @@ module adam_tb;
 
     // test ===================================================================
 
-    localparam ID_WIDTH = 5;
+    localparam W_IR = 5;
     
     localparam IDLE  = 1;
     localparam ABITS = 7;
+    
+    localparam A_IDCODE = 'h01;
+    localparam A_DTMCS  = 'h10;
+    localparam A_DMI    = 'h11;
 
-    localparam type DMI_ADDR_T = logic[ABITS-1:0];
-    localparam type DMI_DATA_T = logic[31:0];
+    localparam W_IDCODE = 32;
+    localparam W_DTMCS  = 32;
+    localparam W_DMI    = ABITS+34;
 
-    localparam DMCONTROL = 'h10;
-    localparam DMSTATUS  = 'h11;
+    localparam A_DMCONTROL = 'h10;
+    localparam A_DMSTATUS  = 'h11;
+
+    typedef logic[ABITS-1:0] dmaddr_t;
+    typedef logic[31:0]      dmdata_t;
 
     `TEST_SUITE begin
         `TEST_CASE("test") begin
@@ -215,100 +223,153 @@ module adam_tb;
             #10us;
         end
         `TEST_CASE("debug") begin
-            logic [31:0] idcode;
-            logic [31:0] dtmcs;
-            DMI_DATA_T   data;
+
+            dmdata_t   data;
 
             jtag_bhv = new(jtag);
 
             if (EN_DEBUG) begin
-                jtag_bhv.reset();
-                jtag_bhv.tap_reset();
-
-                jtag_bhv.tap_reg_read('h01, 5, idcode, 32);
-                assert(idcode == DEBUG_IDCODE);
-
-                jtag_bhv.tap_reg_read('h10, 5, dtmcs, 32);
-                assert(dtmcs[9:4] == ABITS);
-                assert(dtmcs[14:12] == IDLE);
-                
-                debug_init();          
-                debug_select('b1 << 1); // HART 1 aka CPU0
-                
+                dtm_init();
+                dm_init();          
+                dm_select('d1); // HART 1 aka CPU0
+                dm_halt();
+                dm_resume();
                 $error (0);
             end
         end
     end
 
     initial begin
-        #10000us $error("timeout");
+        #700us $error("timeout");
     end
 
-    task debug_init();
-        debug_write('h10, '1); // set dmactive at dmcontrol
+    task dtm_init();
+        logic [W_IDCODE-1:0] idcode;
+        logic [W_DTMCS-1:0] dtmcs;
+
+        $display("dtm_init start");
+
+        jtag_bhv.reset();
+        jtag_bhv.tap_reset();
+
+        jtag_bhv.tap_reg_read(A_IDCODE, W_IR, idcode, W_IDCODE);
+        assert(idcode == DEBUG_IDCODE);
+
+        jtag_bhv.tap_reg_read(A_DTMCS, W_IR, dtmcs, W_DTMCS);
+        assert(dtmcs[9:4] == ABITS);
+        assert(dtmcs[14:12] == IDLE);
+
+        $display("dtm_init end");
     endtask
 
-    task debug_select(
+    task dm_init();
+        $display("dm_init start");
+        
+        dm_write(A_DMCONTROL, '1); // set dmactive
+
+        $display("dm_init end");
+    endtask
+
+    task dm_select(
         input [19:0] hartsel
     );
-        DMI_DATA_T dmcontrol;
+        dmdata_t dmcontrol;
 
-        debug_read(DMCONTROL, dmcontrol);
+        $display("dm_select start");
 
-        dmcontrol[25: 6] = hartsel;
-        debug_write(DMCONTROL, dmcontrol);
+        dm_read(A_DMCONTROL, dmcontrol);
 
-        debug_read(DMCONTROL, dmcontrol);
-        assert(dmcontrol[25:6] == hartsel);
+        dmcontrol[25:6] = {hartsel[ 9: 0], hartsel[19:10]};
+        dm_write(A_DMCONTROL, dmcontrol);
+
+        dm_read(A_DMCONTROL, dmcontrol);
+        assert(dmcontrol[25:6] == {hartsel[ 9: 0], hartsel[19:10]});
+
+        $display("dm_select end");
     endtask
 
-    task debug_halt();
-        // DMI_DATA_T dmcontrol;
+    task dm_halt();
+        dmdata_t dmcontrol;
+        dmdata_t dmstatus;
 
-        // debug_read(DMCONTROL, dmcontrol);
+        $display("dm_halt start");
 
-        // dmcontrol[31] = '1;
-        // debug_write(DMCONTROL, dmcontrol);
+        dm_read(A_DMCONTROL, dmcontrol);
 
-        // debug_read(DMCONTROL, dmcontrol);
-        // assert(dmcontrol[25:6] == hartsel);
+        // set haltreq
+        dmcontrol[31] = '1;
+        dm_write(A_DMCONTROL, dmcontrol);
+
+        // wait of allhalted
+        do begin
+            dm_read(A_DMSTATUS, dmstatus);
+        end while (!dmstatus[9]);
+
+        // clear haltreq
+        dmcontrol[31] = '0;
+        dm_write(A_DMCONTROL, dmcontrol);
+
+        $display("dm_halt end");
     endtask
 
-    task debug_read(
-        input  DMI_ADDR_T addr,
-        output DMI_DATA_T data 
+    task dm_resume();
+        dmdata_t dmcontrol;
+        dmdata_t dmstatus;
+
+        $display("dm_resume start");
+
+        dm_read(A_DMCONTROL, dmcontrol);
+
+        // set resumereq
+        dmcontrol[30] = '1;
+        dm_write(A_DMCONTROL, dmcontrol);
+
+        // wait of allresumeack
+        do begin
+            dm_read(A_DMSTATUS, dmstatus);
+        end while (!dmstatus[17]);
+
+        // clear resumereq
+        dmcontrol[30] = '0;
+        dm_write(A_DMCONTROL, dmcontrol);  
+
+        $display("dm_resume end");      
+    endtask
+
+    task dm_read(
+        input  dmaddr_t addr,
+        output dmdata_t data 
     );
-        logic [31:0] idcode;
-        logic [ABITS+33:0] dmi;
+        logic [W_DMI-1:0] dmi;
         
-        dmi[1:0] = 'd1;
-        dmi[33:2] = '0; 
         dmi[ABITS+33:34] = addr;
-        jtag_bhv.tap_reg_write('h11, 5, dmi, ABITS+34);
+        dmi[33:2] = '0; 
+        dmi[1:0] = 'd1;
+        jtag_bhv.tap_reg_write(A_DMI, W_IR, dmi, W_DMI);
         
         repeat (IDLE-1) jtag_bhv.tap_nop();
         
-        jtag_bhv.tap_reg_read('h11, 5, dmi, ABITS+34);
+        jtag_bhv.tap_reg_read(A_DMI, W_IR, dmi, W_DMI);
         assert(dmi[1:0] == '0);
         data = dmi[31:2];
     endtask
 
-    task debug_write(
-        input DMI_ADDR_T addr,
-        input DMI_DATA_T data 
+    task dm_write(
+        input dmaddr_t addr,
+        input dmdata_t data 
     );
         logic [31:0] idcode;
         logic [ABITS+33:0] dmi;
         
-        dmi[1:0] = 'd2;
-        dmi[33:2] = data; 
         dmi[ABITS+33:34] = addr;
-        jtag_bhv.tap_reg_write('h11, 5, dmi, ABITS+34);
+        dmi[33:2] = data; 
+        dmi[1:0] = 'd2;
+        jtag_bhv.tap_reg_write(A_DMI, W_IR, dmi, W_DMI);
         
         repeat (IDLE-1) jtag_bhv.tap_nop();
         
-        jtag_bhv.tap_reg_read ('h11, 5, dmi, ABITS+34);
-        assert(!dmi[1:0]);
+        jtag_bhv.tap_reg_read (A_DMI, W_IR, dmi, W_DMI);
+        assert(dmi[1:0] == 0); // check if op is 0
     endtask
 
 endmodule
