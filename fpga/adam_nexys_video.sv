@@ -164,6 +164,8 @@ module adam_nexys_video (
 
     ADAM_JTAG jtag ();
 
+    assign jtag.trst_n = !rst;
+    
     assign jtag.tck = tck;
     assign jtag.tms = tms;
     assign jtag.tdi = tdi;

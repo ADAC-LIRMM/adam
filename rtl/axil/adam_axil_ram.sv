@@ -30,7 +30,6 @@ module adam_axil_ram #(
     DATA_T rdata;
     
     ALIGNED_T aligned;
-    logic     valid_addr;
 
 `ifndef SYNTHESIS
     initial begin
@@ -41,7 +40,6 @@ module adam_axil_ram #(
 `endif
 
     assign aligned = addr[ADDR_WIDTH-1:UNALIGNED_WIDTH];
-    assign valid_addr = (addr[UNALIGNED_WIDTH-1:0] == 0 || addr < SIZE);
 
     always_ff @(posedge seq.clk) begin
         for (int i = 0; i < STRB_WIDTH; i++) begin
@@ -95,6 +93,13 @@ module adam_axil_ram #(
     assign skid.r_data = rdata;
 
     always_comb begin
+        automatic ADDR_T waddr_legal;
+        automatic ADDR_T raddr_legal;
+
+        waddr_legal = skid.aw_addr[UNALIGNED_WIDTH-1:0] == 0 ||
+            skid.aw_addr < SIZE;
+        raddr_legal = skid.ar_addr[UNALIGNED_WIDTH-1:0] == 0 ||
+            skid.ar_addr < SIZE;
 
         // First, set default values
 
@@ -115,7 +120,7 @@ module adam_axil_ram #(
             (!skid.r_valid || skid.r_ready);
 
         if (write) begin
-            if (valid_addr) begin
+            if (waddr_legal) begin
                 addr  = skid.aw_addr;
                 wstrb = skid.w_strb;
                 wdata = skid.w_data;
@@ -124,7 +129,7 @@ module adam_axil_ram #(
             skid.w_ready  = 1;
         end
         else if (read) begin
-            if (valid_addr) begin
+            if (raddr_legal) begin
                 addr = skid.ar_addr;
             end
             skid.ar_ready = 1;
@@ -132,6 +137,9 @@ module adam_axil_ram #(
     end
 
     always_ff @(posedge seq.clk) begin
+        automatic ADDR_T addr_legal;
+
+        addr_legal = addr[UNALIGNED_WIDTH-1:0] == 0 || addr < SIZE;
 
         // First, set default values
 
@@ -146,11 +154,11 @@ module adam_axil_ram #(
             // EMPTY
         end
         else if (write) begin
-            if (!valid_addr) skid.b_resp <= axi_pkg::RESP_DECERR;
+            if (!addr_legal) skid.b_resp <= axi_pkg::RESP_DECERR;
             skid.b_valid <= 1;
         end
         else if (read) begin
-            if (!valid_addr) skid.r_resp <= axi_pkg::RESP_DECERR;
+            if (!addr_legal) skid.r_resp <= axi_pkg::RESP_DECERR;
             // r_data has continuous assignment
             skid.r_valid <= 1; 
         end

@@ -10,7 +10,7 @@ module adam_periph_syscfg_tgt #(
     ADAM_SEQ.Slave   seq,
     ADAM_PAUSE.Slave pause,
 
-    APB.Master slv,
+    APB.Slave slv,
 
     input  DATA_T irq_vec,
 
