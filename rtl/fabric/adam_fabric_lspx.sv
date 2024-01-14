@@ -22,7 +22,8 @@ module adam_fabric_lspx #(
         for (int i = 0; i < NO_MSTS; i++) begin
             addr_map[i] = '{
                 start : INC*i,
-                end_  : INC*(i+1)
+                end_  : INC*(i+1),
+                inc   : '0
             };
         end
     end

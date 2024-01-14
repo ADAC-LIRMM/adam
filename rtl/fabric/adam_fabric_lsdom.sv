@@ -71,7 +71,8 @@ module adam_fabric_lsdom #(
         for (genvar i = LPMEM_S; i < LPMEM_E; i++) begin
             assign addr_map[i] = '{
                 start : MMAP_LPMEM.start,
-                end_  : MMAP_LPMEM.end_
+                end_  : MMAP_LPMEM.end_,
+                inc   : '0
             };
             `ADAM_AXIL_OFFSET(lpmem, mst[i], addr_map[i].start);
         end
@@ -83,7 +84,8 @@ module adam_fabric_lsdom #(
         for (genvar i = SYSCFG_S; i < SYSCFG_E; i++) begin
             assign addr_map[i] = '{
                 start : MMAP_SYSCFG.start,
-                end_  : MMAP_SYSCFG.end_
+                end_  : MMAP_SYSCFG.end_,
+                inc   : '0
             };
             `ADAM_AXIL_OFFSET(syscfg, mst[i], addr_map[i].start);
         end
@@ -92,7 +94,8 @@ module adam_fabric_lsdom #(
         for (genvar i = LSPA_S; i < LSPA_E; i++) begin
             assign addr_map[i] = '{
                 start : MMAP_LSPA.start,
-                end_  : MMAP_LSPA.end_
+                end_  : MMAP_LSPA.end_,
+                inc   : '0
             };
             `ADAM_AXIL_OFFSET(lspa, mst[i], addr_map[i].start);
         end
@@ -104,7 +107,8 @@ module adam_fabric_lsdom #(
         for (genvar i = LSPB_S; i < LSPB_E; i++) begin
             assign addr_map[i] = '{
                 start : MMAP_LSPB.start,
-                end_  : MMAP_LSPB.end_
+                end_  : MMAP_LSPB.end_,
+                inc   : '0
             };
             `ADAM_AXIL_OFFSET(lspb, mst[i], addr_map[i].start);
         end
@@ -116,7 +120,8 @@ module adam_fabric_lsdom #(
         for (genvar i = TO_HSDOM_S; i < TO_HSDOM_E; i++) begin
             assign addr_map[i] = '{
                 start : MMAP_BOUNDRY,
-                end_  : '0 // unbounded
+                end_  : '0, // unbounded
+                inc   : '0
             };
             `AXI_LITE_ASSIGN(to_hsdom, mst[i]);
         end

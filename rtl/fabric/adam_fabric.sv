@@ -15,8 +15,8 @@ module adam_fabric #(
 
     AXI_LITE.Master lsdom_lpmem,
     AXI_LITE.Master lsdom_syscfg,
-    AXI_LITE.Master lsdom_lspa [NO_LSPAS+1],
-    AXI_LITE.Master lsdom_lspb [NO_LSPBS+1],
+    APB.Master      lsdom_lspa [NO_LSPAS+1],
+    APB.Master      lsdom_lspb [NO_LSPBS+1],
 
     // hsdom ==================================================================
     

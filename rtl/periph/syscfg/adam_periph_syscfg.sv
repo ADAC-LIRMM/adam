@@ -103,7 +103,8 @@ module adam_periph_syscfg #(
         for (genvar i = 0; i < NO_TGTS; i++) begin
             assign tgt_addr_map[i] = '{
                 start : STRB_WIDTH * 4*i,
-                end_  : STRB_WIDTH * 4*(i+1)
+                end_  : STRB_WIDTH * 4*(i+1),
+                inc   : '0
             };
         end
     endgenerate

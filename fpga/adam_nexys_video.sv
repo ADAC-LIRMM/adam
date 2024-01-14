@@ -41,7 +41,7 @@ module adam_nexys_video (
     
     ADAM_SEQ src_seq   ();
     ADAM_SEQ lsdom_seq ();
-    ADAM_SEQ hsdom_seq ();
+    // ADAM_SEQ hsdom_seq ();
 
     assign src_seq.clk = clk;
     assign src_seq.rst = rst;
@@ -53,12 +53,12 @@ module adam_nexys_video (
         .mst (lsdom_seq)
     );
 
-    adam_clk_div #(
-        .WIDTH (1)
-    ) hsdom_clk_div (
-        .slv (src_seq),
-        .mst (hsdom_seq)
-    );
+    // adam_clk_div #(
+    //     .WIDTH (1)
+    // ) hsdom_clk_div (
+    //     .slv (src_seq),
+    //     .mst (hsdom_seq)
+    // );
 
     // lpmem ==================================================================
 
@@ -188,7 +188,7 @@ module adam_nexys_video (
         .lsdom_lpmem_pause (lsdom_lpmem_pause),
         .lsdom_lpmem_axil  (lsdom_lpmem_axil),
 
-        .hsdom_seq (hsdom_seq),
+        .hsdom_seq (lsdom_seq),
 
         .hsdom_mem_rst   (hsdom_mem_rst),
         .hsdom_mem_pause (hsdom_mem_pause),

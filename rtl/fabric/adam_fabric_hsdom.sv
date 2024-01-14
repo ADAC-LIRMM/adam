@@ -83,8 +83,9 @@ module adam_fabric_hsdom #(
         // Memories
         for (genvar i = MEMS_S; i < MEMS_E; i++) begin
             assign addr_map[i] = '{
-                start: MMAP_MEM.start + MMAP_MEM.inc*(i-MEMS_S),
-                end_:  MMAP_MEM.start + MMAP_MEM.inc*(i-MEMS_S+1)
+                start : MMAP_MEM.start + MMAP_MEM.inc*(i-MEMS_S),
+                end_  : MMAP_MEM.start + MMAP_MEM.inc*(i-MEMS_S+1),
+                inc   : '0
             };
             `ADAM_AXIL_OFFSET(mem[i-MEMS_S], msts[i], addr_map[i].start);
         end
@@ -92,8 +93,9 @@ module adam_fabric_hsdom #(
         // High Speed Intermittent Peripherals (HSP)
         for (genvar i = HSP_S; i < HSP_E; i++) begin
             assign addr_map[i] = '{
-                start: MMAP_HSP.start + MMAP_HSP.inc*(i-HSP_S),
-                end_:  MMAP_HSP.start + MMAP_HSP.inc*(i-HSP_S+1)
+                start : MMAP_HSP.start + MMAP_HSP.inc*(i-HSP_S),
+                end_  : MMAP_HSP.start + MMAP_HSP.inc*(i-HSP_S+1),
+                inc   : '0
             };
             `ADAM_AXIL_OFFSET(hsp[i-HSP_S], msts[i], addr_map[i].start);
         end
@@ -110,8 +112,9 @@ module adam_fabric_hsdom #(
         // To Low Speed Domain (LSDOM)
         for (genvar i = TO_LSDOM_S; i < TO_LSDOM_E; i++) begin
             assign addr_map[i] = '{
-                start: '0,
-                end_:  MMAP_BOUNDRY
+                start : '0,
+                end_  :  MMAP_BOUNDRY,
+                inc   : '0
             };
             `AXI_LITE_ASSIGN(to_lsdom, msts[i]);
         end
