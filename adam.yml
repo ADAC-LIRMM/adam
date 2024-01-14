@@ -7,7 +7,7 @@ targets:
       bitst:
         top: adam_nexys_video
         part: xc7a200tsbg484-1
-        xdc: xdc/adam_nexys_video.xdc
+        xdc: fpga/adam_nexys_video.xdc
 
       synth: 
         top: adam_synth
@@ -31,10 +31,9 @@ fsets:
       - adam_cv32e40p_rtl
     
     sources:
-      - bootloader/build/target/bootloader.sv
       - bhv/adam_clk_gate.sv
-#      - rtl/adam_nexys_video.sv
-
+      - fpga/adam_nexys_video.sv
+      
   adam_bhv:
     requires:
       - adam_rtl
