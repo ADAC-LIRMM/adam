@@ -118,10 +118,28 @@ module adam_fabric #(
         .to_lsdom  (hsdom_to_lsdom)
     );
 
-    // cdc ====================================================================
+    // cdc (placeholder) ======================================================
 
-    // placeholder
-    `AXI_LITE_ASSIGN (lsdom_from_hsdom, hsdom_to_lsdom);
-    `AXI_LITE_ASSIGN (hsdom_from_lsdom, lsdom_to_hsdom);
+    axi_lite_cut_intf #(
+        .BYPASS     (0),
+        .ADDR_WIDTH (ADDR_WIDTH),
+        .DATA_WIDTH (DATA_WIDTH)
+    ) cut_hsdom_to_lsdom (
+        .clk_i  (lsdom_seq.clk),
+        .rst_ni (!lsdom_seq.rst),
+        .in     (hsdom_to_lsdom),
+        .out    (lsdom_from_hsdom)
+    );
+
+    axi_lite_cut_intf #(
+        .BYPASS     (0),
+        .ADDR_WIDTH (ADDR_WIDTH),
+        .DATA_WIDTH (DATA_WIDTH)
+    ) cut_lsdom_to_hsdom (
+        .clk_i  (lsdom_seq.clk),
+        .rst_ni (!lsdom_seq.rst),
+        .in     (lsdom_to_hsdom),
+        .out    (hsdom_from_lsdom)
+    );
 
 endmodule
