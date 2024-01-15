@@ -14,27 +14,27 @@
 
 reset_handler:
 
-	/* Maestro Registers Addresses */
-	la x1, 0x20000408 /* MMR0 */
-	la x2, 0x20000414 /* MMR1 */
-	la x3, 0x20000420 /* MMR2 */
+# 	/* Maestro Registers Addresses */
+# 	la x1, 0x20000408 /* MMR0 */
+# 	la x2, 0x20000414 /* MMR1 */
+# 	la x3, 0x20000420 /* MMR2 */
 
-	/* Trigger Maestro Resume */ 
-	li x4, 1 
-	sw x4, 0(x1)
-	sw x4, 0(x2)
-	sw x4, 0(x3)
+# 	/* Trigger Maestro Resume */ 
+# 	li x4, 1 
+# 	sw x4, 0(x1)
+# 	sw x4, 0(x2)
+# 	sw x4, 0(x3)
 
-	/* Wait for completion */
-wait_mmr0:
-	lw x4, 0(x1)
-	bne x4, x0, wait_mmr0
-wait_mmr1:
-	lw x4, 0(x2)
-	bne x4, x0, wait_mmr1
-wait_mmr2:
-	lw x4, 0(x3)
-	bne x4, x0, wait_mmr2
+# 	/* Wait for completion */
+# wait_mmr0:
+# 	lw x4, 0(x1)
+# 	bne x4, x0, wait_mmr0
+# wait_mmr1:
+# 	lw x4, 0(x2)
+# 	bne x4, x0, wait_mmr1
+# wait_mmr2:
+# 	lw x4, 0(x3)
+# 	bne x4, x0, wait_mmr2
 
     /* Set up stack pointer */
 	la sp, _stack_end

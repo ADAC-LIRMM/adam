@@ -31,13 +31,11 @@ module adam_axil_ram #(
     
     ALIGNED_T aligned;
 
-`ifndef SYNTHESIS
     initial begin
         for (int i = 0; i < ALIGNED_SIZE; i++) begin 
             mem[i] = '0;
         end       
     end
-`endif
 
     assign aligned = addr[ADDR_WIDTH-1:UNALIGNED_WIDTH];
 
