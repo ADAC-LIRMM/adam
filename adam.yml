@@ -269,6 +269,7 @@ fsets:
 
   riscv_dbg_rtl:
     requires:
+      - common_cells_rtl
       - tech_cells_generic_rtl
 
     root: libs/riscv-dbg
