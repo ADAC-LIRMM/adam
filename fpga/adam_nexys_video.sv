@@ -2,7 +2,7 @@
 
 module adam_nexys_video (
     input  logic clk,
-    input  logic cpu_resetn,
+    input  logic rstn,
 
     input  logic tck,
     input  logic tms,
@@ -23,7 +23,7 @@ module adam_nexys_video (
     logic [3:0] counter;
 
     always_ff @(posedge clk) begin
-        if (!cpu_resetn) begin
+        if (!rstn) begin
             counter <= 0;
             rst <= 1;
         end

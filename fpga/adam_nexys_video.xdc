@@ -4,11 +4,11 @@ set_property CFGBVS VCCO        [current_design]
 # clock ===============================================================================================================
 
 set_property -dict {PACKAGE_PIN R4 IOSTANDARD LVCMOS33} [get_ports clk]
-create_clock -add -name sys_clk_pin -period 10.00 -waveform {0 5} [get_ports clk]
+create_clock -add -name clk -period 10.00 -waveform {0 5} [get_ports clk]
 
 # reset ===============================================================================================================
 
-set_property -dict {PACKAGE_PIN G4 IOSTANDARD LVCMOS15} [get_ports {cpu_resetn}]
+set_property -dict {PACKAGE_PIN G4 IOSTANDARD LVCMOS15} [get_ports {rstn}]
 
 # jtag ================================================================================================================
 
