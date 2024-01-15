@@ -75,14 +75,15 @@ fsets:
       - periph/gpio/adam_periph_gpio_tb.sv
       - periph/spi/adam_periph_spi_phy_tb.sv
       - periph/spi/adam_periph_spi_tb.sv
-      - periph/syscfg/adam_periph_syscfg_tgt_tb.sv
-      - periph/syscfg/adam_periph_syscfg_tb.sv
       - periph/timer/adam_periph_timer_tb.sv
       - periph/uart/adam_periph_uart_rx_tb.sv
       - periph/uart/adam_periph_uart_tx_tb.sv
       - periph/uart/adam_periph_uart_tb.sv
 
       - stream/adam_stream_skid_tb.sv
+
+      - syscfg/adam_syscfg_tgt_tb.sv
+      - syscfg/adam_syscfg_tb.sv
 
       - adam_clk_div_tb.sv
       - adam_tb.sv
@@ -125,13 +126,14 @@ fsets:
       - periph/gpio/adam_periph_gpio.sv
       - periph/spi/adam_periph_spi.sv
       - periph/spi/adam_periph_spi_phy.sv
-      - periph/syscfg/adam_periph_syscfg_tgt.sv
-      - periph/syscfg/adam_periph_syscfg.sv
       - periph/timer/adam_periph_timer.sv
       - periph/uart/adam_periph_uart_rx.sv
       - periph/uart/adam_periph_uart_tx.sv
       - periph/uart/adam_periph_uart.sv
       - periph/adam_periph.sv
+
+      - syscfg/adam_syscfg_tgt.sv
+      - syscfg/adam_syscfg.sv
 
       - fabric/adam_fabric_hsdom.sv
       - fabric/adam_fabric_lsdom.sv

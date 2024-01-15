@@ -1,6 +1,6 @@
 `include "adam/macros.svh"
 
-module adam_periph_syscfg #(
+module adam_syscfg #(
     `ADAM_CFG_PARAMS
 ) (
     ADAM_SEQ.Slave   seq,
@@ -171,7 +171,7 @@ module adam_periph_syscfg #(
         localparam HSP_E = HSP_S + NO_HSPS;
 
         for (genvar i = LSDOM_S; i < LSDOM_E; i++) begin
-            adam_periph_syscfg_tgt #(
+            adam_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
                 .EN_BOOTSTRAP (1),
@@ -193,7 +193,7 @@ module adam_periph_syscfg #(
         end
 
         for (genvar i = HSDOM_S; i < HSDOM_E; i++) begin
-            adam_periph_syscfg_tgt #(
+            adam_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
                 .EN_BOOTSTRAP (1),
@@ -215,7 +215,7 @@ module adam_periph_syscfg #(
         end
 
         for (genvar i = FAB_LSDOM_S; i < FAB_LSDOM_E; i++) begin
-            adam_periph_syscfg_tgt #(
+            adam_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
                 .EN_BOOTSTRAP (1),
@@ -237,7 +237,7 @@ module adam_periph_syscfg #(
         end
 
         for (genvar i = FAB_HSDOM_S; i < FAB_HSDOM_E; i++) begin
-            adam_periph_syscfg_tgt #(
+            adam_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
                 .EN_BOOTSTRAP (1),
@@ -259,7 +259,7 @@ module adam_periph_syscfg #(
         end
 
         for (genvar i = FAB_LSPA_S; i < FAB_LSPA_E; i++) begin
-            adam_periph_syscfg_tgt #(
+            adam_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
                 .EN_BOOTSTRAP (1),
@@ -285,7 +285,7 @@ module adam_periph_syscfg #(
         end
 
         for (genvar i = FAB_LSPB_S; i < FAB_LSPB_E; i++) begin
-            adam_periph_syscfg_tgt #(
+            adam_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
                 .EN_BOOTSTRAP (0),
@@ -311,7 +311,7 @@ module adam_periph_syscfg #(
         end
 
         for (genvar i = LPCPU_S; i < LPCPU_E; i++) begin
-            adam_periph_syscfg_tgt #(
+            adam_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
                 .EN_BOOTSTRAP (EN_BOOTSTRAP_LPCPU),
@@ -337,7 +337,7 @@ module adam_periph_syscfg #(
         end
 
         for (genvar i = LPMEM_S; i < LPMEM_E; i++) begin
-            adam_periph_syscfg_tgt #(
+            adam_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
                 .EN_BOOTSTRAP (EN_BOOTSTRAP_LPMEM),
@@ -363,7 +363,7 @@ module adam_periph_syscfg #(
         end
 
         for (genvar i = CPU_S; i < CPU_E; i++) begin
-            adam_periph_syscfg_tgt #(
+            adam_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
                 .EN_BOOTSTRAP ((i == CPU_S) ? EN_BOOTSTRAP_CPU0 : 0),
@@ -385,7 +385,7 @@ module adam_periph_syscfg #(
         end
 
         for (genvar i = DMA_S; i < DMA_E; i++) begin
-            adam_periph_syscfg_tgt #(
+            adam_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
                 .EN_BOOTSTRAP (0),
@@ -407,7 +407,7 @@ module adam_periph_syscfg #(
         end
 
         for (genvar i = MEM_S; i < MEM_E; i++) begin
-            adam_periph_syscfg_tgt #(
+            adam_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
                 .EN_BOOTSTRAP ((i == MEM_S) ? EN_BOOTSTRAP_MEM0 : 0),
@@ -429,7 +429,7 @@ module adam_periph_syscfg #(
         end
 
         for (genvar i = LSPA_S; i < LSPA_E; i++) begin
-            adam_periph_syscfg_tgt #(
+            adam_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
                 .EN_BOOTSTRAP (0),
@@ -451,7 +451,7 @@ module adam_periph_syscfg #(
         end
 
         for (genvar i = LSPB_S; i < LSPB_E; i++) begin
-            adam_periph_syscfg_tgt #(
+            adam_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
                 .EN_BOOTSTRAP (0),
@@ -473,7 +473,7 @@ module adam_periph_syscfg #(
         end
 
         for (genvar i = HSP_S; i < HSP_E; i++) begin
-            adam_periph_syscfg_tgt #(
+            adam_syscfg_tgt #(
                 `ADAM_CFG_PARAMS_MAP,
 
                 .EN_BOOTSTRAP (0),

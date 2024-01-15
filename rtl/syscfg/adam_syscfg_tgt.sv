@@ -1,6 +1,6 @@
 `include "adam/macros.svh"
 
-module adam_periph_syscfg_tgt #(
+module adam_syscfg_tgt #(
     `ADAM_CFG_PARAMS,
 
     parameter EN_BOOTSTRAP = 0,

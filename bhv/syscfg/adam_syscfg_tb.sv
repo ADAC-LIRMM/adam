@@ -3,7 +3,7 @@
 `include "axi/assign.svh"
 `include "vunit_defines.svh"
 
-module adam_periph_syscfg_tb;
+module adam_syscfg_tb;
     import adam_axil_mst_bhv::*;
 
     `ADAM_BHV_CFG_LOCALPARAMS;
@@ -90,7 +90,7 @@ module adam_periph_syscfg_tb;
     ADAM_PAUSE hsp_pause [NO_HSPS+1] ();
     logic      hsp_irq   [NO_HSPS+1];
 
-    adam_periph_syscfg #(
+    adam_syscfg #(
         `ADAM_CFG_PARAMS_MAP
     ) dut (
         .seq   (seq),

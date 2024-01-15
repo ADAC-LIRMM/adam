@@ -3,7 +3,7 @@
 `include "apb/assign.svh"
 `include "vunit_defines.svh"
 
-module adam_periph_syscfg_tgt_tb;
+module adam_syscfg_tgt_tb;
     `ADAM_BHV_CFG_LOCALPARAMS;
 
     localparam EN_BOOTSTRAP = 1;
@@ -51,7 +51,7 @@ module adam_periph_syscfg_tgt_tb;
 
     assign irq_vec = (DATA_T'('1) << 4);
 
-    adam_periph_syscfg_tgt #(
+    adam_syscfg_tgt #(
         `ADAM_CFG_PARAMS_MAP,
 
         .EN_BOOTSTRAP (EN_BOOTSTRAP),

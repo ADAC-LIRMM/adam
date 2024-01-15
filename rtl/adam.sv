@@ -287,9 +287,9 @@ module adam #(
 
     `ADAM_PAUSE_MST_TIE_ON(lsdom_syscfg_pause);
     
-    adam_periph_syscfg #(
+    adam_syscfg #(
         `ADAM_CFG_PARAMS_MAP
-    ) adam_periph_syscfg (
+    ) adam_syscfg (
         .seq   (lsdom_seq), // ok
         .pause (lsdom_syscfg_pause),
 
