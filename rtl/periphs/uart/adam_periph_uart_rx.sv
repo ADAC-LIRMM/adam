@@ -31,6 +31,26 @@ module adam_periph_uart_rx #(
 
     input  logic rx
 );
+
+    // double buffering the rx signal
+    logic s_rx;
+    logic s_srx; // Stable rx
+    
+
+    always_ff @(posedge clk) begin
+        if (rst) begin
+            s_rx <= 0;
+            s_srx <= 0;
+        end
+        else if (pause_req && pause_ack) begin
+            // PAUSED
+        end
+        else begin
+            s_rx    <= rx;
+            s_srx   <= s_rx;
+        end
+    end
+
     data_t frame_size;
 
     data_t clk_count;
@@ -54,8 +74,8 @@ module adam_periph_uart_rx #(
         else begin
             if (clk_count == 0 && bit_count == 0) begin
                 // idle
-                if (!pause_req && rx == 0) begin
-                    // start @(negedge rx)
+                if (!pause_req && s_srx == 0) begin
+                    // start @(negedge s_srx)
                     clk_count <= baud_rate/2;
                     bit_count <= 0;
                     parity    <= 0;
@@ -86,7 +106,7 @@ module adam_periph_uart_rx #(
 
                 if (bit_count < 1) begin
                     // start bit
-                    if (rx != 0) begin
+                    if (s_srx != 0) begin
                         // error
                         clk_count <= 0;
                         bit_count <= 0;
@@ -94,12 +114,12 @@ module adam_periph_uart_rx #(
                 end
                 else if (bit_count < 1 + data_length) begin
                     // data bit
-                    data[bit_count-1] <= rx;
-                    parity <= parity ^ rx;
+                    data[bit_count-1] <= s_srx;
+                    parity <= parity ^ s_srx;
                 end
                 else if (bit_count < 1 + data_length + parity_control) begin
                     // parity
-                    if (rx != parity) begin
+                    if (s_srx != parity) begin
                         // error
                         clk_count <= 0;
                         bit_count <= 0;
@@ -107,7 +127,7 @@ module adam_periph_uart_rx #(
                 end
                 else begin
                     // stop bit
-                    if (rx != 1) begin
+                    if (s_srx != 1) begin
                         // error
                         clk_count <= 0;
                         bit_count <= 0;

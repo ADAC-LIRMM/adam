@@ -1,0 +1,17 @@
+
+#ifndef __SYSCTRL_H__
+#define	__SYSCTRL_H__
+
+#include "mem_map.h"
+#include "types.h"
+
+#define SYSCTRL_SYSCTRL_INTERUPT(__MASK__)  {SYSCTRL.IER_CPU0_IE0 = (__MASK__);}
+#define SYSCTRL_GPIO0_INTERUPT(__MASK__)    {SYSCTRL.IER_CPU0_IE1 = (__MASK__);}
+#define SYSCTRL_GPIO1_INTERUPT(__MASK__)    {SYSCTRL.IER_CPU0_IE2 = (__MASK__);}
+#define SYSCTRL_GPIO2_INTERUPT(__MASK__)    {SYSCTRL.IER_CPU0_IE3 = (__MASK__);}
+#define SYSCTRL_GPIO3_INTERUPT(__MASK__)    {SYSCTRL.IER_CPU0_IE4 = (__MASK__);}
+#define SYSCTRL_SPI0_INTERUPT(__MASK__)     {SYSCTRL.IER_CPU0_IE5 = (__MASK__);}
+#define SYSCTRL_TIMER0_INTERUPT(__MASK__)   {SYSCTRL.IER_CPU0_IE6 = (__MASK__);}
+#define SYSCTRL_UART0_INTERUPT(__MASK__)    {SYSCTRL.IER_CPU0_IE7 = (__MASK__);}
+
+#endif

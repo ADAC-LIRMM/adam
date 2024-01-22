@@ -50,7 +50,7 @@ Control Register (CR)
 The Control Register allows configuration of various parameters for the
 peripheral.
 
-:CR[11:8]: 
+:CR[15:8]: 
    | Data Length (DL)
    | Controls the length of the data frame.
 

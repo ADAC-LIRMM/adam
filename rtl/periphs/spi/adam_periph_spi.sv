@@ -58,7 +58,7 @@ module adam_periph_spi #(
     logic       clock_phase;
     logic       clock_polarity;
     logic       data_order;
-    logic [3:0] data_length;
+    logic [7:0] data_length;
 
     // Status Register (SR)
     logic tx_buf_empty;   // Transmit Buffer Empty
@@ -137,7 +137,7 @@ module adam_periph_spi #(
         for (int i = 0; i < DATA_WIDTH/8; i++) begin
             mask[i*8 +: 8] = (apb.pstrb[i]) ? 8'hFF : 8'h00; 
         end
-
+        
         // Control Register (CR)
         periph_enable  = control[0];
         tx_enable      = control[1];
@@ -146,7 +146,7 @@ module adam_periph_spi #(
         clock_phase    = control[4];
         clock_polarity = control[5];
         data_order     = control[6];
-        data_length    = control[11:8];
+        data_length    = control[15:8];
 
         // Status Register (SR)
         status[0] = tx_buf_empty;

@@ -2,5 +2,7 @@
 **/work/
 **/__pycache__
 **/.*/
-
+**/main.py
+**/*.wav
+**/*.str
 venv/

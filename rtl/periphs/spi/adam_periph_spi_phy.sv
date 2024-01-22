@@ -25,7 +25,7 @@ module adam_periph_spi_phy #(
     input  logic        clock_phase,
     input  logic        clock_polarity,
     input  logic        data_order,
-    input  logic  [3:0] data_length,
+    input  logic  [7:0] data_length,
     input  data_t       baud_rate,       
     
     input  data_t tx,
@@ -48,7 +48,6 @@ module adam_periph_spi_phy #(
     data_t clk_count;
     logic  pclk_gen;
     logic  ss_n_gen; 
-
     logic sdo;
     logic sdi;
 
@@ -124,7 +123,7 @@ module adam_periph_spi_phy #(
             (rst) ||
             (!mode_select) ||
             (!tx_ok || !rx_ok) ||
-            (!tx_enable && !rx_enable)
+            (!tx_enable && !rx_enable) 
         ) begin
             // not performing SPI transfer
 
@@ -142,7 +141,7 @@ module adam_periph_spi_phy #(
                 else begin
                     pclk_gen <= 0;
                 end
-
+                
                 if (tx_ready || rx_valid) begin
                     ss_n_gen <= 1;
                 end
