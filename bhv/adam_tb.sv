@@ -10,7 +10,7 @@ module adam_tb;
     localparam integer LPMEM_SIZE = 1024;
 
     localparam integer MEM_SIZE [NO_MEMS+1] = 
-        '{32768, 32768, 32768, 0};
+        '{32768, 32768, 0};
 
     // seq and pause ==========================================================
 

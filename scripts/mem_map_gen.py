@@ -39,12 +39,12 @@ header_template = """
  */
 """
 
-class Flag:
+class BitField:
     def __init__(self, name, size=1):
         self.name = name
         self.size = size
 
-class Register:
+class Struct:
     def __init__(self, name, size=1, read_only=False):
         self.name = name
         self.size = size
@@ -73,15 +73,50 @@ class CodeWritter:
     def skip(self, num=1):
         self.content += num*'\n'
 
-def build_sysctrl(
-    no_mems=3,
-    no_gpios=4,
-    no_spis=1,
-    no_timers=1,
-    no_uarts=1,
+def build_syscfg_tgt(
+    name="",
+    en_boot_addr=False,
+    en_irq=False
+):
+    tgt = Peripheral(name)
+    tgt.add(Register('SR'))
+    tgt.add(Register('MR'))
+    tgt.add(Register('BAR' if en_boot_addr else None))
+    tgt.add(Register('IER' if en_irq else None))
+
+def build_syscfg(
     no_cpus=1,
-    no_lpus=1
-):   
+    no_dmas=0,
+    no_mems=2,
+    en_lpcpu=True,
+    en_lpmem=True,
+    no_lspa_gpios=1,
+    no_lspa_spis=1,
+    no_lspa_timers=1,
+    no_lspa_uarts=1,
+    no_lspb_gpios=0,
+    no_lspb_spis=0,
+    no_lspb_timers=0,
+    no_lspb_uarts=0
+):  
+    
+    
+
+    for i in range(no_cpus):
+        add_tgt(prefix=f'CPU{i}', en_boot_addr=True, en_irq=True)
+
+    for i in range(no_dmas):
+        add_tgt(prefix=f'DMA{i}', en_irq=True)
+
+    for i in range(no_mems):
+        add_tgt(prefix=f'MEM{i}')
+
+    if en_lpcpu:
+        add_tgt(prefix=f'LPCPU', en_boot_addr=True, en_irq=True)
+
+    if en_debug:
+        add_tgt(prefix=f'DMA{i}', en_irq=True)
+
     cpus = [f'CPU{i}' for i in range(no_cpus)]
     lpus = [f'LPU{i}' for i in range(no_lpus)]
     cores = cpus + lpus
@@ -93,7 +128,7 @@ def build_sysctrl(
     periphs = ['SYSCTRL'] + gpios + spis + timers + uarts
     no_periphs = len(periphs)
 
-    sysctrl = Peripheral('SYSCTRL')
+    
 
     sysctrl.add(Register(None, 0x100))
 

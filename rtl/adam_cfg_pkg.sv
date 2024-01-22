@@ -71,7 +71,7 @@ package adam_cfg_pkg;
 
         NO_CPUS : 1,
         NO_DMAS : 1,
-        NO_MEMS : 3,
+        NO_MEMS : 2,
         
         EN_LPCPU : 1,
         EN_LPMEM : 1,
