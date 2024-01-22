@@ -64,6 +64,18 @@ def code_loader(elf_path, serial_port, baud_rate=115200):
     print('Reseting.')
     perform_with_retry(boot_cmd, ser, boot_addr)
 
+    print('Receiving data...')
+    try:
+        while True:
+            data = ser.read(ser.in_waiting or 1)
+            if data:
+                print(data.decode(errors='replace'), end='', flush=True)
+    except KeyboardInterrupt:
+        print('\nStopped receiving data.')
+    finally:
+        ser.close()
+    ser.close()
+
 def build_blocks(elf_file):
 
     size = 256
@@ -203,3 +215,5 @@ if __name__ == '__main__':
         print('\033[92mSuccess!\033[0m')
     except (RuntimeError, SerialException) as e:
         print(f'\033[91m{str(e)}\033[0m')
+
+    

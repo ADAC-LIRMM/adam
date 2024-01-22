@@ -12,7 +12,12 @@ module adam_nexys_video (
 
     input  logic [7:0] sw,
     
-    output logic [7:0] ja,
+    output logic ja1,
+    output logic ja2,
+    input  logic ja3,
+    output logic ja4,
+    output logic [7:4] ja,
+
     output logic [7:0] jb,
     output logic [7:0] jc,
 
@@ -32,7 +37,7 @@ module adam_nexys_video (
     localparam NO_LPUS   = 1;
 
     localparam integer MEM_SIZE [NO_MEMS] =
-        '{32768, 32768, 32768};
+        '{32768, 524288, 524288};
     
     logic clk50;
     logic rst;
@@ -155,6 +160,12 @@ module adam_nexys_video (
     always_comb begin
         uart_rx_out = uart_tx[0].o;
         uart_rx[0].i = uart_tx_in;
+    end
+
+    always_comb begin
+        ja1 = spi_ss_n[0].o;
+        spi_miso[0].i = ja3;
+        ja4 = spi_sclk[0].o;
     end
 
     always_ff @(posedge clk50) begin
