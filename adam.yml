@@ -4,7 +4,7 @@ targets:
     part: xc7a200tsbg484-1
     xdc: fpga/adam_nexys_video.xdc
 
-    rst_fsets: 
+    rtl_fsets: 
       - adam_nexys_video_rtl
 
 default:
@@ -93,7 +93,7 @@ fsets:
     root: bhv/
     sources:
       - adam_clk_gate.sv
-      
+
       - adam_seq_bhv.sv
 
       - pause/adam_pause_bhv.sv

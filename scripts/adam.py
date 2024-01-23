@@ -326,7 +326,8 @@ def vunit(*args, **kargs):
     
     incs, srcs = compile_fsets(target['bhv_fsets'], fsets)
 
-    srcs = [atgen_path / 'adam_cfg_pkg.sv'] + srcs
+    adam_cfg_pkg_path = (atgen_path / 'adam_cfg_pkg.sv').relative_to(adam_path)
+    srcs = [adam_cfg_pkg_path] + srcs
 
     py_data['includes'] = incs
     py_data['sources'] = srcs
@@ -356,6 +357,7 @@ def bitst(*args, **kargs):
     default = kargs['default']
     fsets = kargs['fsets']
     adam_path = kargs['adam_path']
+    atgen_path = kargs['atgen_path']
     bitst_path = kargs['bitst_path']
     clean = kargs.get('clean', True)
 
@@ -377,7 +379,8 @@ def bitst(*args, **kargs):
     incs, srcs = compile_fsets(target['rtl_fsets'], fsets)
     cons = [target['xdc']]
 
-    srcs = [atgen_path / 'adam_cfg_pkg.sv'] + srcs
+    adam_cfg_pkg_path = (atgen_path / 'adam_cfg_pkg.sv').relative_to(adam_path)
+    srcs = [adam_cfg_pkg_path] + srcs
 
     tcl_data['includes'] = incs
     tcl_data['sources'] = srcs
@@ -401,6 +404,7 @@ def synth(*args, **kargs):
     default = kargs['default']
     fsets = kargs['fsets']
     adam_path = kargs['adam_path']
+    atgen_path = kargs['atgen_path']
     synth_path = kargs['synth_path']
     clean = kargs.get('clean', True)
 
@@ -420,7 +424,8 @@ def synth(*args, **kargs):
 
     incs, srcs = compile_fsets(target['rtl_fsets'], fsets)
 
-    srcs = [atgen_path / 'adam_cfg_pkg.sv'] + srcs
+    adam_cfg_pkg_path = (atgen_path / 'adam_cfg_pkg.sv').relative_to(adam_path)
+    srcs = [adam_cfg_pkg_path] + srcs
 
     tcl_data['includes'] = incs
     tcl_data['sources'] = srcs
@@ -434,6 +439,30 @@ def synth(*args, **kargs):
     exec_cmd(['dc_shell', '-f', tcl_path],
         synth_path, loggers['synth']) 
 
+
+def test_flow(*args, **kargs):
+    atgen_path = kargs['atgen_path']
+    vunit_path = kargs['vunit_path']
+    clean = kargs.get('clean', True)
+
+    if clean and not dirty:
+        safe_rm(atgen_path)
+        safe_rm(vunit_path)
+    
+    atgen(*args, **kargs)
+    vunit(*args, **kargs)
+
+def fpga_flow(*args, **kargs):
+    atgen_path = kargs['atgen_path']
+    bitst_path = kargs['bitst_path']
+    clean = kargs.get('clean', True)
+
+    if clean and not dirty:
+        safe_rm(atgen_path)
+        safe_rm(bitst_path)
+    
+    atgen(*args, **kargs)
+    bitst(*args, **kargs)
 
 def exec_cmd(cmd, work_path, logger):
     if dry_run:
@@ -627,6 +656,13 @@ def main():
         description='Executes power_linker.py',
         help='power_linker.py')
 
+    # Define the 'test_flow' command
+    test_flow_parser = subparsers.add_parser('test_flow',
+        description='Executes all commands for design verification.',
+        help='Test Flow')
+    test_flow_parser.add_argument('--top', type=str,
+        help='Top module')
+
     # Define the 'fpga_flow' command
     fpga_flow_parser = subparsers.add_parser('fpga_flow',
         description='Executes all commands for FPGA bitstream generation.',
@@ -692,7 +728,7 @@ def main():
 
     setup_log(log_path)
 
-    logger.info('Flow started.')
+    logger.info('Hello.')
 
     common_kargs = {
         'target_name' : target_name,
@@ -722,9 +758,9 @@ def main():
     elif command == 'plink':
         raise RuntimeError('Not yet implemented')
     elif command == 'test_flow':
-        raise RuntimeError('Not yet implemented')
+        test_flow(**common_kargs, top=args.top)
     elif command == 'fpga_flow':
-        raise RuntimeError('Not yet implemented')
+        fpga_flow(**common_kargs)
     elif command == 'power_flow':
         raise RuntimeError('Not yet implemented')
     else:
