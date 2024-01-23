@@ -22,3 +22,6 @@
 [submodule "libs/tech_cells_generic"]
 	path = libs/tech_cells_generic
 	url = https://github.com/pulp-platform/tech_cells_generic
+[submodule "hal/examples/sensemark/coremark"]
+	path = hal/examples/sensemark/coremark
+	url = https://github.com/eembc/coremark.git
