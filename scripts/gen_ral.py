@@ -40,7 +40,7 @@ class Flag(Field):
     pass
 
 class Group(Field):
-    def __init__(self, name=None, size=1):
+    def __init__(self, name=None, size=None):
         super().__init__(name, size)
         self.items = []
     
@@ -48,7 +48,7 @@ class Group(Field):
         self.items += [item]
 
 class Register(Group):
-    def __init__(self, name=None, size=1, read_only=False):
+    def __init__(self, name=None, size=None, read_only=False):
         super().__init__(name, size)
         self.read_only = read_only if name else True
 
@@ -67,7 +67,7 @@ class CodeWritter:
         self.content += num*'\n'
 
 
-def build_syscfg_tgt(name, size=1, en_bar=0, en_ier=0):
+def build_syscfg_tgt(name, size=None, en_bar=0, en_ier=0):
     syscfg_tgt = Struct(name, size)
 
     sr = Register('SR', read_only=True)
@@ -104,13 +104,14 @@ def build_syscfg(cfg):
     syscfg.add(build_syscfg_tgt('DMA', cfg['no_dmas'], en_ier=1))
     syscfg.add(build_syscfg_tgt('MEM', cfg['no_mems']))
     
-    for name in ['lspa', 'lspb']:
-        lspx = Struct(name.upper())
-        lspx.add(build_syscfg_tgt('GPIO',  cfg[f'no_{name}_gpios']))
-        lspx.add(build_syscfg_tgt('SPI',   cfg[f'no_{name}_spis']))
-        lspx.add(build_syscfg_tgt('TIMER', cfg[f'no_{name}_timers']))
-        lspx.add(build_syscfg_tgt('UART',  cfg[f'no_{name}_uarts']))
-        syscfg.add(lspx)
+    for lspx in ['lspa', 'lspb']:
+        LSPX = lspx.upper()
+        s = Struct(LSPX)
+        s.add(build_syscfg_tgt(f'GPIO', cfg[f'no_{lspx}_gpios']))
+        s.add(build_syscfg_tgt(f'SPI', cfg[f'no_{lspx}_spis']))
+        s.add(build_syscfg_tgt(f'TIMER', cfg[f'no_{lspx}_timers']))
+        s.add(build_syscfg_tgt(f'UART', cfg[f'no_{lspx}_uarts']))
+        syscfg.add(s)
     
     return syscfg
 
@@ -240,28 +241,28 @@ def build_ral_t(cfg):
     ral = Struct('RAL')
 
 
-def write_register(field, cw):
+def write_register(register, cw):
     rw_dtype = 'ral_data_t'
     ro_dtype = 'const ral_data_t'
-    dtype = ro_dtype if field.read_only else rw_dtype
+    dtype = ro_dtype if register.read_only else rw_dtype
 
-    if field.items:
+    if register.items:
         cw.put('union {')
         cw.indent += 1
         
-        if field.size == 1:
-            cw.put(f'{dtype} {field.name};')
+        if register.size == None:
+            cw.put(f'{dtype} {register.name};')
         else:
-            cw.put(f'{dtype} {field.name}[{field.size}];')
+            cw.put(f'{dtype} {register.name}[{register.size}];')
 
         cw.put('struct {')
         cw.indent += 1
 
-        for item in field.items:
-            if item.name:
-                cw.put(f'{dtype} {field.name}_{item.name} : {item.size};')
+        for flag in register.items:
+            if flag.name:
+                cw.put(f'{dtype} {flag.name} : {flag.size};')
             else:
-                cw.put(f'{dtype} : {item.size};')
+                cw.put(f'{dtype} : {flag.size};')
 
         cw.indent -= 1
         cw.put('};')
@@ -270,13 +271,16 @@ def write_register(field, cw):
         cw.put('};')
         
     else:
-        if field.size == 1:
-            cw.put(f'{dtype} {field.name};')
+        if register.size == None:
+            cw.put(f'{dtype} {register.name};')
         else:
-            cw.put(f'{dtype} {field.name}[{field.size}];')
+            cw.put(f'{dtype} {register.name}[{register.size}];')
 
 
 def write_struct(struct, cw, typedef=False):
+    if struct.size == 0:
+        return
+    
     reserved = 0
     cw.put('typedef struct {' if typedef else 'struct {')
     cw.indent += 1
@@ -299,7 +303,11 @@ def write_struct(struct, cw, typedef=False):
         
     cw.indent -= 1
     if struct.name:
-        cw.put(f'{"}"} {struct.name};')
+        if struct.size == None:
+            cw.put(f'{"}"} {struct.name};')
+        else:
+            cw.put(f'{"}"} {struct.name}[{struct.size}];')
+            
     else:
         cw.put('};')
 
