@@ -22,7 +22,7 @@ module adam_periph_spi_phy_tb;
     logic       clock_phase;
     logic       clock_polarity;
     logic       data_order;
-    logic [3:0] data_length;
+    logic [7:0] data_length;
     DATA_T      baud_rate;
 
     `ADAM_STREAM_BHV_MST_FACTORY(DATA_T, TA, TT, tx, seq.clk);

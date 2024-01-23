@@ -28,9 +28,8 @@ module adam_periph_uart_rx #(
     logic s_rx;
     logic s_srx; // Stable rx
     
-
     always_ff @(posedge seq.clk) begin
-        if (rst) begin
+        if (seq.rst) begin
             s_rx  <= 0;
             s_srx <= 0;
         end
