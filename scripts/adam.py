@@ -25,6 +25,8 @@ loggers = {
     'flow' : None,
     'vunit' : None,
     'bitst' : None,
+    'cfgpy' : None,
+    'ralpy' : None,
     'synth' : None,
     'pssim' : None,
     'prpwr' : None,

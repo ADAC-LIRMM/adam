@@ -4,6 +4,7 @@ matplotlib==3.7.2
 numpy==1.25.2
 pyelftools==0.29
 pyserial==3.5
+PyYAML==6.0.1
 tqdm==4.64.0
 vunit-hdl==4.7.0
 

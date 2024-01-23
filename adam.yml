@@ -1,31 +1,80 @@
 targets:
-  adam_cv32e40p_nexys_video:
-    override:
-      vunit:
-        fset: adam_cv32e40p_nexys_video_bhv
+  adam_nexys_video:
+    top: adam_nexys_video
+    part: xc7a200tsbg484-1
+    xdc: fpga/adam_nexys_video.xdc
 
-      bitst:
-        top: adam_nexys_video
-        part: xc7a200tsbg484-1
-        xdc: fpga/adam_nexys_video.xdc
+    fsets: 
+      - adam_nexys_video_rtl
 
-      synth: 
-        top: adam_synth
+default:
+  defines:
+    - VERILATOR
+    - ADAM_CORE_CPU=adam_core_cv32e40p
+    - ADAM_CORE_LPCPU=adam_core_cv32e40p
 
-    fset: adam_cv32e40p_nexys_video_rtl
+  rtl_fsets:
+    - adam_rtl
+    - adam_cv32e40p_rtl
 
-    defines:
-      - VERILATOR
-      - ADAM_CORE_CPU=adam_core_cv32e40p
-      - ADAM_CORE_LPCPU=adam_core_cv32e40p
-      
+  bhv_fsets:
+    - adam_bhv
+
+  addr_width: 32
+  data_width: 32
+
+  gpio_width: 16
+  
+  rst_boot_addr: 0x01000000
+  
+  no_cpus: 1
+  no_dmas: 1
+  no_mems: 2
+  
+  en_lpcpu: True
+  en_lpmem: True
+  en_debug: True
+
+  no_lspa_gpios:  1
+  no_lspa_spis:   1
+  no_lspa_timers: 1
+  no_lspa_uarts:  1
+
+  no_lspb_gpios:  0
+  no_lspb_spis:   0
+  no_lspb_timers: 0
+  no_lspb_uarts:  0
+
+  en_bootstrap_cpu0:  1
+  en_bootstrap_mem0:  1
+  en_bootstrap_lpcpu: 0
+  en_bootstrap_lpmem: 0
+
+  debug_idcode:         0x249511C3
+  debug_addr_halt:      0x00080800
+  debug_addr_exception: 0x00080808
+
+  fab_max_trans: 7
+  
+  mmap_lpmem:  [0x00000000, 0x00008000]
+  mmap_syscfg: [0x00008000, 0x00008400]
+  mmap_lspa:   [0x00010000, 0x00018000, 0x00000400]
+  mmap_lspb:   [0x00018000, 0x00020000, 0x00000400]
+  
+  mmap_boundry: 0x00080000
+  
+  mmap_debug: [0x00080000, 0x00088000]
+  mmap_hsp:   [0x00090000, 0x00098000, 0x00000400]
+  mmap_mem:   [0x01000000, 0xFFFFFFFF, 0x01000000]
+
+  clk_period: 20 #ns
+  rst_cycles: 5
+  
+  ta: 2  #ns
+  tt: 18 #ns
+    
 fsets: 
-  adam_cv32e40p_nexys_video_bhv:
-    requires:
-      - adam_cv32e40p_nexys_video_rtl
-      - adam_bhv
-
-  adam_cv32e40p_nexys_video_rtl:
+  adam_nexys_video_rtl:
     requires:
       - adam_rtl
       - adam_cv32e40p_rtl
