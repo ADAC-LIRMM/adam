@@ -127,4 +127,6 @@ fi
 PS1="(adam) \$(pwd | sed 's|^/adam|~|') \\$ "
 
 export HOME="/adam/work"
+
+git config --global --add safe.directory '*'
 EOF
