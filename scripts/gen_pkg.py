@@ -166,6 +166,9 @@ package {{name}};
 endpackage
 """)
 
+bool_fields = ['en_lpcpu', 'en_lpmem', 'en_debug', 'en_bootstrap_cpu0',
+    'en_bootstrap_mem0', 'en_bootstrap_lpcpu', 'en_bootstrap_lpmem']
+
 hex_fields = ['rst_boot_addr', 'debug_idcode', 'debug_addr_halt',
     'debug_addr_exception']
 
@@ -216,6 +219,9 @@ def gen_pkg(input_file, output_file, name='adam_cfg_pkg', target=None):
 
     width = params['addr_width']
 
+    for key in bool_fields:
+        params[key] = int(params[key])
+        
     for key in hex_fields:
         params[key] = format_hex(params[key], width)
 

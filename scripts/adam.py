@@ -306,6 +306,7 @@ def vunit(*args, **kargs):
     default = kargs['default']
     fsets = kargs['fsets']
     adam_path = kargs['adam_path']
+    atgen_path = kargs['atgen_path']
     vunit_path = kargs['vunit_path']
     clean = kargs.get('clean', True)
 
@@ -323,7 +324,9 @@ def vunit(*args, **kargs):
 
     py_data['adam'] = adam_path
     
-    incs, srcs = compile_fset(target['fset'], fsets)
+    incs, srcs = compile_fsets(target['bhv_fsets'], fsets)
+
+    srcs = [atgen_path / 'adam_cfg_pkg.sv'] + srcs
 
     py_data['includes'] = incs
     py_data['sources'] = srcs
@@ -371,8 +374,10 @@ def bitst(*args, **kargs):
     tcl_data['part'] = target['part'] 
     tcl_data['top'] = target['top']
 
-    incs, srcs = compile_fset(target['fset'], fsets)
+    incs, srcs = compile_fsets(target['rtl_fsets'], fsets)
     cons = [target['xdc']]
+
+    srcs = [atgen_path / 'adam_cfg_pkg.sv'] + srcs
 
     tcl_data['includes'] = incs
     tcl_data['sources'] = srcs
@@ -413,7 +418,9 @@ def synth(*args, **kargs):
     tcl_data['adam'] = Path(adam_path).resolve()
     tcl_data['top'] = target['top']
 
-    incs, srcs = compile_fset(target['fset'], fsets)
+    incs, srcs = compile_fsets(target['rtl_fsets'], fsets)
+
+    srcs = [atgen_path / 'adam_cfg_pkg.sv'] + srcs
 
     tcl_data['includes'] = incs
     tcl_data['sources'] = srcs
@@ -494,6 +501,16 @@ def safe_rm(path):
         else:
             raise RuntimeError('Abort.')
 
+def compile_fsets(fset_names, fsets):
+    incs = []
+    srcs = []
+
+    for name in fset_names:
+        part_incs, part_srcs = compile_fset(name, fsets)
+        incs += part_incs
+        srcs += part_srcs
+
+    return incs, srcs
 
 def compile_fset(fset_name, fsets, solved=None):
     incs = []
@@ -646,13 +663,17 @@ def main():
     dirty = args.dirty
 
     targets = adam_yaml['targets']
+    default = adam_yaml['default']
+
     if not targets:
         raise RuntimeError('No targets.')
     if not target_name:
-        target_name = list(targets.keys())[0]
-    target = targets[target_name]
+        target_name = 'default'
 
-    default = adam_yaml['default']
+    if target_name == 'default':
+        target = default
+    else:
+        target = targets[target_name]
 
     target_path = work_path / target_name
     target_path.mkdir(parents=True, exist_ok=True)

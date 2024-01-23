@@ -4,7 +4,7 @@ targets:
     part: xc7a200tsbg484-1
     xdc: fpga/adam_nexys_video.xdc
 
-    fsets: 
+    rst_fsets: 
       - adam_nexys_video_rtl
 
 default:
@@ -14,10 +14,11 @@ default:
     - ADAM_CORE_LPCPU=adam_core_cv32e40p
 
   rtl_fsets:
-    - adam_rtl
     - adam_cv32e40p_rtl
+    - adam_rtl
 
   bhv_fsets:
+    - adam_cv32e40p_rtl
     - adam_bhv
 
   addr_width: 32
@@ -91,6 +92,8 @@ fsets:
 
     root: bhv/
     sources:
+      - adam_clk_gate.sv
+      
       - adam_seq_bhv.sv
 
       - pause/adam_pause_bhv.sv
@@ -148,8 +151,6 @@ fsets:
       - ../include/
 
     sources:
-      - adam_cfg_pkg.sv
-
       - intf/adam_intf_io.sv
       - intf/adam_intf_jtag.sv
       - intf/adam_intf_pause.sv
