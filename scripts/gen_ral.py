@@ -22,8 +22,9 @@ header_template = """
  * This header was auto-generated using gen_ral.py.
  *
  * Date   : {date}
- * Commit : {commit}
  * Target : {target}
+ * Branch : {branch}
+ * Commit : {commit}
  *
  * It is not recommended to modify this this file. 
  * ============================================================================
@@ -302,13 +303,26 @@ def write_struct(struct, cw, typedef=False):
     else:
         cw.put('};')
 
-def get_commit():
+
+def get_git_info():
     cwd = os.path.dirname(os.path.abspath(__file__))
-    try:
-        out = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=cwd)
-        return out.decode('utf-8').strip()
-    except subprocess.CalledProcessError:
-        return "Not a git repository or an error occurred."
+    
+    # Get the current branch name
+    branch = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref',
+        'HEAD'], cwd=cwd)
+    branch = branch.decode('utf-8').strip()
+
+    # Get the last commit hash
+    commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=cwd)
+    commit = commit.decode('utf-8').strip()
+
+    # Check if the repository is in a dirty state, ignoring submodules
+    if subprocess.check_output(['git', 'status', '--porcelain',
+        '--ignore-submodules'], cwd=cwd):
+        commit += " (dirty)"
+
+    return branch, commit
+
 
 def clog2(x):
     if x <= 0:
@@ -320,13 +334,13 @@ def ahex(x, w):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__.strip())
-    parser.add_argument('input',
-        type=str,
-        help='Input YAML configuration file')
-    parser.add_argument('-o', '--output',
-        type=str, required=True,
-        help='Output C header file')
-    
+    parser.add_argument('input', type=str,
+        help='Input YAML configuration file.')
+    parser.add_argument('-o', '--output', type=str, required=True,
+        help='Output C header file.')
+    parser.add_argument('-t', '--target', type=str,
+        help='The ADAM target.')  
+
     args = parser.parse_args()
 
     with open(args.input, 'r') as file:
@@ -350,14 +364,13 @@ if __name__ == '__main__':
     uart = build_uart(cfg)
 
     strb_width = clog2(dw//8)
-    file_name = os.path.basename(args.output)
-    guard = file_name.upper().replace('.', '_')
     date = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
-    commit = get_commit()
-    target = 'null'
+    branch, commit = get_git_info()
+    target = args.target
 
     cw.put(header_template.strip().format(
         date=date,
+        branch=branch,
         commit=commit,
         target=target
     ))

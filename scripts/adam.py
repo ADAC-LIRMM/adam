@@ -23,16 +23,13 @@ logger = None
 
 loggers = {
     'flow' : None,
+    'atgen' : None,
     'vunit' : None,
     'bitst' : None,
-    'cfgpy' : None,
-    'ralpy' : None,
     'synth' : None,
     'pssim' : None,
     'prpwr' : None,
-    'plink' : None,
-    'fpga_flow' : None,
-    'power_flow' : None
+    'plink' : None
 }
 
 vunit_template = Template("""
@@ -118,7 +115,7 @@ add_files -norecurse -fileset $sources_1 [list \\
 
 set_property top "{{top}}" $sources_1
 
-# Add constraint files ======================================================= #
+# Add constraint files ========================================================
 
 # Create 'constrs_1' fileset (if not found)
 if {[string equal [get_filesets -quiet constrs_1] ""]} {
@@ -271,8 +268,42 @@ exit
 
 """)
 
+def atgen(*args, **kargs):
+    target_name = kargs['target_name']
+    target = kargs['target']
+    default = kargs['default']
+    adam_path = kargs['adam_path']
+    atgen_path = kargs['atgen_path']
+    clean = kargs.get('clean', True)
+
+    logger.info('Starting atgen.')
+
+    if clean and not dirty:
+        safe_rm(atgen_path)
+    
+    atgen_path.mkdir(parents=True, exist_ok=True)
+
+    target = compile_target(target, default)
+
+    gen_pkg_path = adam_path / 'scripts' / 'gen_pkg.py'
+    gen_ral_path = adam_path / 'scripts' / 'gen_ral.py'
+    
+    yml_path = atgen_path / 'target.yml'
+    pkg_path = atgen_path / 'adam_cfg_pkg.sv'
+    ral_path = atgen_path / 'adam_ral.h'
+
+    with open(yml_path, 'w') as file:
+        yaml.dump(target, file)
+
+    cmd = ['python', gen_pkg_path, yml_path, '-o', pkg_path, '-t', target_name]
+    exec_cmd(cmd, atgen_path, loggers['atgen'])
+
+    cmd = ['python', gen_ral_path, yml_path, '-o', ral_path, '-t', target_name]
+    exec_cmd(cmd, atgen_path, loggers['atgen'])
+
 def vunit(*args, **kargs):
     target = kargs['target']
+    default = kargs['default']
     fsets = kargs['fsets']
     adam_path = kargs['adam_path']
     vunit_path = kargs['vunit_path']
@@ -285,7 +316,7 @@ def vunit(*args, **kargs):
     
     vunit_path.mkdir(parents=True, exist_ok=True)
 
-    target = compile_target('vunit', target)
+    target = compile_target(target, default)
     top = kargs.get('top')
 
     py_data = {}
@@ -319,6 +350,7 @@ def vunit(*args, **kargs):
 
 def bitst(*args, **kargs):
     target = kargs['target']
+    default = kargs['default']
     fsets = kargs['fsets']
     adam_path = kargs['adam_path']
     bitst_path = kargs['bitst_path']
@@ -331,7 +363,7 @@ def bitst(*args, **kargs):
     
     bitst_path.mkdir(parents=True, exist_ok=True)
 
-    target = compile_target('bitst', target)
+    target = compile_target(target, default)
 
     tcl_data = {}
 
@@ -361,6 +393,7 @@ def bitst(*args, **kargs):
 
 def synth(*args, **kargs):
     target = kargs['target']
+    default = kargs['default']
     fsets = kargs['fsets']
     adam_path = kargs['adam_path']
     synth_path = kargs['synth_path']
@@ -373,7 +406,7 @@ def synth(*args, **kargs):
     
     synth_path.mkdir(parents=True, exist_ok=True)
 
-    target = compile_target('synth', target)
+    target = compile_target(target, default)
 
     tcl_data = {}
 
@@ -487,10 +520,9 @@ def compile_fset(fset_name, fsets, solved=None):
 
     return incs, srcs
 
-def compile_target(command_name, target):
-    res = deepcopy(target)
-    if command_name in target.get('override', {}):
-        recursive_update(res, target['override'][command_name])
+def compile_target(target, default):
+    res = deepcopy(default)
+    recursive_update(res, target)
     return res
 
 def recursive_update(d, u):
@@ -541,6 +573,11 @@ def main():
         dest='command'
     )
 
+    # Define the 'atgen' command
+    atgen_parser = subparsers.add_parser('atgen',
+        description='Generates automatically generated code',
+        help='Code generators')
+
     # Define the 'vunit' command
     vunit_parser = subparsers.add_parser('vunit',
         description='Perform VUnit tests.',
@@ -550,7 +587,7 @@ def main():
 
     # Define the 'bitst' command
     bitst_parser = subparsers.add_parser('bitst',
-        description='Perform bitstream generation using Vivado',
+        description='Perform bitstream generation using Vivado.',
         help='Bitstream')
 
     # Define the 'synth' command
@@ -615,9 +652,12 @@ def main():
         target_name = list(targets.keys())[0]
     target = targets[target_name]
 
+    default = adam_yaml['default']
+
     target_path = work_path / target_name
     target_path.mkdir(parents=True, exist_ok=True)
     
+    atgen_path = target_path / 'atgen'
     vunit_path = target_path / 'vunit'
     bitst_path = target_path / 'bitst'
     synth_path = target_path / 'synth'
@@ -636,8 +676,10 @@ def main():
     common_kargs = {
         'target_name' : target_name,
         'target' : target,
+        'default' : default,
         'fsets' : fsets,
         'adam_path' : adam_path,
+        'atgen_path' : atgen_path,
         'vunit_path' : vunit_path,
         'bitst_path' : bitst_path,
         'synth_path' : synth_path,
@@ -646,7 +688,9 @@ def main():
         'plink_path' : plink_path
     }
 
-    if command == 'vunit':
+    if command == 'atgen':
+        atgen(**common_kargs)
+    elif command == 'vunit':
         vunit(**common_kargs, top=args.top)
     elif command == 'bitst':
         bitst(**common_kargs)
@@ -655,6 +699,8 @@ def main():
     elif command == 'prpwr':
         raise RuntimeError('Not yet implemented')
     elif command == 'plink':
+        raise RuntimeError('Not yet implemented')
+    elif command == 'test_flow':
         raise RuntimeError('Not yet implemented')
     elif command == 'fpga_flow':
         raise RuntimeError('Not yet implemented')

@@ -6,11 +6,31 @@ from the adam.yml file.
 """
 
 import argparse
+import os
+import subprocess
+import sys
 import yaml
 
+from datetime import datetime
 from jinja2 import Template
 
 template = Template("""
+/*
+ * ============================================================================
+ * ADAM Configuration Package
+ * ============================================================================
+ *
+ * This SystemVerilog package was auto-generated.
+ *
+ * Date   : {{date}}
+ * Target : {{target}}
+ * Branch : {{branch}}
+ * Commit : {{commit}}
+ *
+ * It is not recommended to modify this this file. 
+ * ============================================================================
+ */
+
 `ifndef SYNTHESIS 
     `timescale 1ns/1ps
 `endif
@@ -157,17 +177,43 @@ def format_hex(value, width):
     hex_value = f"{value:0{hex_digits}x}"
     return f"{width}'h{hex_value}"
 
+
 def format_mmap(array, width):
     formatted_array = [format_hex(item, width) for item in array]
     while len(formatted_array) < 3:
         formatted_array += ["'0"]
     return "'{" + ", ".join(formatted_array) + "}"
 
-def gen_cfg_pkg(input_file, output_file, name='adam_cfg_pkg'):
+
+def get_git_info():
+    cwd = os.path.dirname(os.path.abspath(__file__))
+    
+    # Get the current branch name
+    branch = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref',
+        'HEAD'], cwd=cwd)
+    branch = branch.decode('utf-8').strip()
+
+    # Get the last commit hash
+    commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=cwd)
+    commit = commit.decode('utf-8').strip()
+
+    # Check if the repository is in a dirty state, ignoring submodules
+    if subprocess.check_output(['git', 'status', '--porcelain',
+        '--ignore-submodules'], cwd=cwd):
+        commit += " (dirty)"
+
+    return branch, commit
+
+def gen_pkg(input_file, output_file, name='adam_cfg_pkg', target=None):
     with open(input_file, 'r') as file:
         params = yaml.safe_load(file)
 
     params['name'] = name
+    
+    params['date'] = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
+    params['branch'], params['commit'] = get_git_info()
+    params['target'] = target
+
     width = params['addr_width']
 
     for key in hex_fields:
@@ -183,19 +229,18 @@ def gen_cfg_pkg(input_file, output_file, name='adam_cfg_pkg'):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.strip())
-    parser.add_argument('input',
-        type=str,
-        help='Input YAML configuration file')
-    parser.add_argument('-o', '--output',
-        type=str, required=True,
-        help='Output SystemVerilog file')
-    parser.add_argument('-n', '--name',
-        type=str, default='adam_cfg_pkg',
-        help='SystemVerilog package name (default: adam_cfg_pkg)')
+    parser.add_argument('input', type=str,
+        help='Input YAML configuration file.')
+    parser.add_argument('-o', '--output', type=str, required=True,
+        help='Output SystemVerilog file.')
+    parser.add_argument('-n', '--name', type=str, default='adam_cfg_pkg',
+        help='SystemVerilog package name (default: adam_cfg_pkg).')
+    parser.add_argument('-t', '--target', type=str,
+        help='The ADAM target.')  
 
     args = parser.parse_args()
 
-    gen_cfg_pkg(args.input, args.output, args.name)
+    gen_pkg(args.input, args.output, args.name, args.target)
 
 if __name__ == "__main__":
     main()
