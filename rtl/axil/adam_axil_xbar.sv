@@ -78,7 +78,7 @@ module adam_axil_xbar #(
                 MaxMstTrans:  MAX_TRANS,
                 MaxSlvTrans:  MAX_TRANS,
                 FallThrough:  0,
-                LatencyMode:  axi_pkg::NO_LATENCY,
+                LatencyMode:  axi_pkg::CUT_ALL_AX,
                 AxiAddrWidth: ADDR_WIDTH,
                 AxiDataWidth: DATA_WIDTH,
                 NoAddrRules:  NO_MSTS,

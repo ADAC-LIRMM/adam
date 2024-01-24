@@ -30,7 +30,7 @@ default:
   
   no_cpus: 1
   no_dmas: 1
-  no_mems: 2
+  no_mems: 3
   
   en_lpcpu: True
   en_lpmem: True
@@ -39,7 +39,7 @@ default:
   no_lspa_gpios:  1
   no_lspa_spis:   1
   no_lspa_timers: 1
-  no_lspa_uarts:  2
+  no_lspa_uarts:  1
 
   no_lspb_gpios:  0
   no_lspb_spis:   0
