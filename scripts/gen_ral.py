@@ -422,7 +422,7 @@ if __name__ == '__main__':
     addr, _, inc = cfg['mmap_mem']
     ptrs += [('ral_data_t', 'MEM', cfg[f'no_mems'], addr, inc)]
     
-    cw.put('struct {')
+    cw.put('static struct {')
     cw.indent += 1
     
     for dtype, name, length, _, _ in ptrs:

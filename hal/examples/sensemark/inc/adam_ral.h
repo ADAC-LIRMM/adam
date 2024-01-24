@@ -481,7 +481,7 @@ typedef struct {
     };
 } ral_uart_t;
 
-typedef struct {
+static struct {
     ral_data_t * const LPMEM;
     ral_syscfg_t * const SYSCFG;
     ral_gpio_t * const LSPA_GPIO[1];
@@ -489,25 +489,23 @@ typedef struct {
     ral_timer_t * const LSPA_TIMER[1];
     ral_uart_t * const LSPA_UART[1];
     ral_data_t * const MEM[2];
-} ral_t;
-
-#define RAL ((ral_t) { \
-    .LPMEM = (ral_data_t *) 0x00000000, \
-    .SYSCFG = (ral_syscfg_t *) 0x00008000, \
-    .LSPA_GPIO = { \
-        (ral_gpio_t *) 0x00010000, \
-    }, \
-    .LSPA_SPI = { \
-        (ral_spi_t *) 0x00010400, \
-    }, \
-    .LSPA_TIMER = { \
-        (ral_timer_t *) 0x00010800, \
-    }, \
-    .LSPA_UART = { \
-        (ral_uart_t *) 0x00010C00, \
-    }, \
-    .MEM = { \
-        (ral_data_t *) 0x01000000, \
-        (ral_data_t *) 0x02000000, \
-    }, \
-})
+} RAL = {
+    .LPMEM = (ral_data_t *) 0x00000000,
+    .SYSCFG = (ral_syscfg_t *) 0x00008000,
+    .LSPA_GPIO = {
+        (ral_gpio_t *) 0x00010000,
+    },
+    .LSPA_SPI = {
+        (ral_spi_t *) 0x00010400,
+    },
+    .LSPA_TIMER = {
+        (ral_timer_t *) 0x00010800,
+    },
+    .LSPA_UART = {
+        (ral_uart_t *) 0x00010C00,
+    },
+    .MEM = {
+        (ral_data_t *) 0x01000000,
+        (ral_data_t *) 0x02000000,
+    },
+};

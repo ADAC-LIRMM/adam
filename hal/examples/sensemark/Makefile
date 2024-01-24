@@ -55,12 +55,12 @@ LDSCRIPT = link.ld
 
 # ============================================================================ #
 
-BASE_GFLAGS = -march=rv32imc -mabi=ilp32
-FAST_GFLAGS = -march=rv32imfc -mabi=ilp32
+BASE_GFLAGS = -march=rv32imc_zicsr -mabi=ilp32
+FAST_GFLAGS = -march=rv32imc_zicsr -mabi=ilp32
 
-CFLAGS   = -Wall -Wextra -static -mcmodel=medany -ffunction-sections \
+CFLAGS   = -g -Wall -Wextra -static -mcmodel=medany -ffunction-sections \
 	-fdata-sections -O3 -fstrict-volatile-bitfields $(DEFS)
-CXXFLAGS = -Wall -Wextra -static -mcmodel=medany -ffunction-sections \
+CXXFLAGS = -g -Wall -Wextra -static -mcmodel=medany -ffunction-sections \
 	-fdata-sections -O3 -fstrict-volatile-bitfields $(DEFS)
 LDFLAGS  = -Wl,--gc-sections -Wl,-Map=$(MAP_TARGET) -nostdlib \
 	-nostartfiles

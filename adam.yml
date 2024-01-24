@@ -39,7 +39,7 @@ default:
   no_lspa_gpios:  1
   no_lspa_spis:   1
   no_lspa_timers: 1
-  no_lspa_uarts:  1
+  no_lspa_uarts:  2
 
   no_lspb_gpios:  0
   no_lspb_spis:   0

@@ -15,36 +15,26 @@
 reset_handler:
 
 	# Maestro Registers Addresses
-	la x1, 0x20000408 # MMR0
-	la x2, 0x20000414 # MMR1
-	la x3, 0x20000420 # MMR2
-	la x4, 0x2000042C # MMR3
-	la x5, 0x20000438 # MMR4
+	la x1, 0x00008064 # LPMEM
+	la x2, 0x00008094 # MEM0
+	la x3, 0x000080a4 # MEM1
 
 	# Trigger Maestro Resume 
 	li x6, 1 
 	sw x6, 0(x1)
 	sw x6, 0(x2)
 	sw x6, 0(x3)
-	sw x6, 0(x4)
-	sw x6, 0(x5)
 
 	# Wait for completion
-wait_mmr0:
+wait_lpmem:
 	lw x6, 0(x1)
-	bne x6, x0, wait_mmr0
-wait_mmr1:
+	bne x6, x0, wait_lpmem
+wait_mem0:
 	lw x6, 0(x2)
-	bne x6, x0, wait_mmr1
-wait_mmr2:
+	bne x6, x0, wait_mem0
+wait_mem1:
 	lw x6, 0(x3)
-	bne x6, x0, wait_mmr2
-wait_mmr3:
-	lw x6, 0(x4)
-	bne x6, x0, wait_mmr3
-wait_mmr4:
-	lw x6, 0(x5)
-	bne x6, x0, wait_mmr4
+	bne x6, x0, wait_mem1
 
 	# Set up Interrupts
     li     t1, 1
@@ -53,12 +43,12 @@ wait_mmr4:
     slli   t2, t1, 11 # Machine External Interrupt Enable (MEIE)
     csrs   mie, t2
 
-lpu_setup:
-	csrr t0, mhartid
-	beq t0, x0, lpu_setup_end
-	li sp, 0x13002000 # MMR3
-	jal main_lpu
-lpu_setup_end:
+# lpu_setup:
+# 	csrr t0, mhartid
+# 	beq t0, x0, lpu_setup_end
+# 	li sp, 0x00002000 # MEM0
+# 	jal main_lpu
+# lpu_setup_end:
 
 	# Set up Floating-Point
     li     t1, 1
@@ -145,7 +135,11 @@ trap:
 
 	.org 0x00
 	j reset_handler
-	.rept 15
+	.rept 10
+	    j default_handler
+	.endr
+	j default_handler /* external_irq_handler */
+	.rept 4
 	    j default_handler
 	.endr
 	j irq_0_handler
