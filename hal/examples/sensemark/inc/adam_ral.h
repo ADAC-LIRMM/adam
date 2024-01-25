@@ -5,10 +5,10 @@
  *
  * This header was auto-generated using gen_ral.py.
  *
- * Date   : 2024-01-23 15:26:26 UTC
+ * Date   : 2024-01-25 08:56:12 UTC
  * Target : adam_nexys_video
  * Branch : fabric
- * Commit : 439c1f9615de6d53f0dd54ece8f64ed744209f62 (dirty)
+ * Commit : 629c28727193ae692d28d80e0964b19214ea2d6a (dirty)
  *
  * It is not recommended to modify this this file. 
  * ============================================================================
@@ -188,7 +188,7 @@ typedef struct {
         };
         const ral_data_t reserved0;
         const ral_data_t reserved1;
-    } MEM[2];
+    } MEM[3];
     struct {
         struct {
             union {
@@ -481,31 +481,44 @@ typedef struct {
     };
 } ral_uart_t;
 
-static struct {
-    ral_data_t * const LPMEM;
-    ral_syscfg_t * const SYSCFG;
-    ral_gpio_t * const LSPA_GPIO[1];
-    ral_spi_t * const LSPA_SPI[1];
-    ral_timer_t * const LSPA_TIMER[1];
-    ral_uart_t * const LSPA_UART[1];
-    ral_data_t * const MEM[2];
-} RAL = {
+typedef struct {
+    ral_data_t *LPMEM;
+    ral_syscfg_t *SYSCFG;
+    struct {
+        ral_gpio_t *GPIO[1];
+        ral_spi_t *SPI[1];
+        ral_timer_t *TIMER[1];
+        ral_uart_t *UART[1];
+    } LSPA;
+    struct {
+        ral_gpio_t *GPIO[0];
+        ral_spi_t *SPI[0];
+        ral_timer_t *TIMER[0];
+        ral_uart_t *UART[0];
+    } LSPB;
+    ral_data_t *MEM[3];
+} ral_t;
+
+static const ral_t RAL = {
     .LPMEM = (ral_data_t *) 0x00000000,
     .SYSCFG = (ral_syscfg_t *) 0x00008000,
-    .LSPA_GPIO = {
-        (ral_gpio_t *) 0x00010000,
-    },
-    .LSPA_SPI = {
-        (ral_spi_t *) 0x00010400,
-    },
-    .LSPA_TIMER = {
-        (ral_timer_t *) 0x00010800,
-    },
-    .LSPA_UART = {
-        (ral_uart_t *) 0x00010C00,
+    .LSPA = {
+        .GPIO = {
+            (ral_gpio_t *) 0x00010000,
+        },
+        .SPI = {
+            (ral_spi_t *) 0x00010000,
+        },
+        .TIMER = {
+            (ral_timer_t *) 0x00010000,
+        },
+        .UART = {
+            (ral_uart_t *) 0x00010000,
+        },
     },
     .MEM = {
         (ral_data_t *) 0x01000000,
         (ral_data_t *) 0x02000000,
+        (ral_data_t *) 0x03000000,
     },
 };

@@ -32,12 +32,18 @@ header_template = """
 """
 
 class Field:
-    def __init__(self, name=None, size=1):
+    def __init__(self, name=None, size=None):
         self.name = name
         self.size = size
 
 class Flag(Field):
-    pass
+    def __init__(self, name=None, size=1):
+        super().__init__(name, size)
+
+class Dtype(Field):
+    def __init__(self, dtype='ral_data_t', name=None, size=None):
+        super().__init__(name, size)
+        self.dtype = dtype
 
 class Group(Field):
     def __init__(self, name=None, size=None):
@@ -85,7 +91,7 @@ def build_syscfg_tgt(name, size=None, en_bar=0, en_ier=0):
     return syscfg_tgt
 
 
-def build_syscfg(cfg):
+def build_syscfg_t(cfg):
     syscfg = Struct('ral_syscfg_t')
 
     syscfg.add(build_syscfg_tgt('LSDOM'))
@@ -116,7 +122,7 @@ def build_syscfg(cfg):
     return syscfg
 
 
-def build_gpio(cfg):
+def build_gpio_t(cfg):
     gpio = Struct('ral_gpio_t')
 
     idr = Register('IDR')
@@ -152,7 +158,7 @@ def build_gpio(cfg):
     return gpio
 
 
-def build_spi(cfg):
+def build_spi_t(cfg):
     spi = Struct('ral_spi_t')
     
     spi.add(Register('DR'))
@@ -184,7 +190,7 @@ def build_spi(cfg):
     return spi
 
 
-def build_timer(cfg):
+def build_timer_t(cfg):
     timer = Struct('ral_timer_t')
 
     cr = Register('CR')
@@ -206,7 +212,7 @@ def build_timer(cfg):
     return timer
 
 
-def build_uart(cfg):
+def build_uart_t(cfg):
     uart = Struct('ral_uart_t')
 
     uart.add(Register('DR'))
@@ -238,8 +244,36 @@ def build_uart(cfg):
 
 
 def build_ral_t(cfg):
-    ral = Struct('RAL')
+    ral = Struct('ral_t')
 
+    if cfg['en_lpmem']:
+        ral.add(Dtype('ral_data_t *', 'LPMEM'))
+
+    ral.add(Dtype('ral_syscfg_t *', 'SYSCFG'))
+
+    for lspx in ['lspa', 'lspb']:
+        LSPX = lspx.upper()
+        s = Struct(LSPX)
+        s.add(Dtype('ral_gpio_t *', 'GPIO', cfg[f'no_{lspx}_gpios']))
+        s.add(Dtype('ral_spi_t *', 'SPI', cfg[f'no_{lspx}_spis']))
+        s.add(Dtype('ral_timer_t *', 'TIMER', cfg[f'no_{lspx}_timers']))
+        s.add(Dtype('ral_uart_t *', 'UART', cfg[f'no_{lspx}_uarts']))
+        ral.add(s)
+
+    ral.add(Dtype('ral_data_t *', 'MEM', cfg[f'no_mems']))
+    
+    return ral
+
+def write_dtype(item, cw):
+    dtype = item.dtype
+    
+    if dtype[-1] != '*':
+        dtype += ' '
+
+    if item.size == None:
+        cw.put(f'{dtype}{item.name};')
+    else:
+        cw.put(f'{dtype}{item.name}[{item.size}];')
 
 def write_register(register, cw):
     rw_dtype = 'ral_data_t'
@@ -297,6 +331,9 @@ def write_struct(struct, cw, typedef=False):
 
             write_register(item, cw)
 
+        elif isinstance(item, Dtype):
+            write_dtype(item, cw)
+
         else:
             print(type(item))
             raise ValueError()
@@ -311,6 +348,64 @@ def write_struct(struct, cw, typedef=False):
     else:
         cw.put('};')
 
+def write_ral_def(cfg, cw):
+    cw.put('static const ral_t RAL = {')
+    cw.indent += 1
+    
+    if cfg['en_lpmem']:
+        addr, end = cfg['mmap_lpmem']
+        cw.put(f'.LPMEM = (ral_data_t *) {ahex(addr, aw)},')
+
+    addr, end = cfg['mmap_syscfg']
+    cw.put(f'.SYSCFG = (ral_syscfg_t *) {ahex(addr, aw)},')
+
+    for lspx in ['lspa', 'lspb']:
+        LSPX = lspx.upper()
+        
+        if not cfg[f'en_{lspx}']:
+            continue
+
+        cw.put(f'.{LSPX}' + ' = {')
+        cw.indent += 1
+
+        for periph in ['gpio', 'spi', 'timer', 'uart']:
+            PERIPH = periph.upper()
+
+            size = cfg[f'no_{lspx}_{periph}s']
+           
+            if size <= 0:
+                continue
+
+            cw.put(f'.{PERIPH}' + ' = {')
+            cw.indent += 1
+
+            addr, end, inc = cfg[f'mmap_{lspx}']
+            for i in range(size):
+                cw.put(f'(ral_{periph}_t *) {ahex(addr, aw)},')
+                addr += inc
+
+            cw.indent -= 1
+            cw.put('},')
+
+        cw.indent -= 1
+        cw.put('},')
+
+    size = cfg[f'no_mems']
+
+    if size > 0:
+        cw.put('.MEM = {')
+        cw.indent += 1
+        
+        addr, end, inc = cfg['mmap_mem']
+        for i in range(size):
+            cw.put(f'(ral_data_t *) {ahex(addr, aw)},')
+            addr += inc
+
+        cw.indent -= 1
+        cw.put('},')
+
+    cw.indent -= 1
+    cw.put('};')
 
 def get_git_info():
     cwd = os.path.dirname(os.path.abspath(__file__))
@@ -365,12 +460,6 @@ if __name__ == '__main__':
 
     cw = CodeWritter()
 
-    syscfg = build_syscfg(cfg)
-    gpio = build_gpio(cfg)
-    spi = build_spi(cfg)
-    timer = build_timer(cfg)
-    uart = build_uart(cfg)
-
     strb_width = clog2(dw//8)
     date = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
     branch, commit = get_git_info()
@@ -390,69 +479,20 @@ if __name__ == '__main__':
     cw.put(f'typedef volatile unsigned int ral_data_t;')
     cw.skip()
 
-    for typedef in [syscfg, gpio, spi, timer, uart]:
+    typedefs = [
+        build_syscfg_t(cfg),
+        build_gpio_t(cfg),
+        build_spi_t(cfg),
+        build_timer_t(cfg),
+        build_uart_t(cfg),
+        build_ral_t(cfg)
+    ]
+
+    for typedef in typedefs:
         write_struct(typedef, cw, typedef=True)
         cw.skip(1)
 
-    ptrs = []
-    ptrs += [('ral_data_t', 'LPMEM',  None, cfg['mmap_lpmem'][0], 0)]
-    ptrs += [('ral_syscfg_t', 'SYSCFG', None, cfg['mmap_syscfg'][0], 0)]
-
-    for lspx in ['lspa', 'lspb']:
-        addr, _, inc = cfg[f'mmap_{lspx}']
-        
-        LSPX = lspx.upper()
-
-        length = cfg[f'no_{lspx}_gpios']
-        ptrs += [('ral_gpio_t', f'{LSPX}_GPIO', length, addr, inc)]
-        addr += inc*length
-
-        length = cfg[f'no_{lspx}_spis']
-        ptrs += [('ral_spi_t', f'{LSPX}_SPI', length, addr, inc)]
-        addr += inc*length
-
-        length = cfg[f'no_{lspx}_timers']
-        ptrs += [('ral_timer_t', f'{LSPX}_TIMER', length, addr, inc)]
-        addr += inc*length
-
-        length = cfg[f'no_{lspx}_uarts']
-        ptrs += [('ral_uart_t', f'{LSPX}_UART', length, addr, inc)]
-        addr += inc*length
-
-    addr, _, inc = cfg['mmap_mem']
-    ptrs += [('ral_data_t', 'MEM', cfg[f'no_mems'], addr, inc)]
-    
-    cw.put('static struct {')
-    cw.indent += 1
-    
-    for dtype, name, length, _, _ in ptrs:
-        if length == None:
-            cw.put(f'{dtype} * const {name};')
-
-        elif length > 0:
-            cw.put(f'{dtype} * const {name}[{length}];')
-
-    cw.indent -= 1
-    cw.put('} RAL = {')
-    cw.indent += 1
-    
-    for dtype, name, length, addr, inc in ptrs:
-        if length == None:
-            cw.put(f'.{name} = ({dtype} *) {ahex(addr, aw)},')
-
-        elif length > 0:
-            cw.put(f'.{name}' + ' = {')
-            cw.indent += 1
-
-            for _ in range(length):
-                cw.put(f'({dtype} *) {ahex(addr, aw)},')
-                addr += inc
-
-            cw.indent -= 1
-            cw.put('},')
-            
-    cw.indent -= 1
-    cw.put('};')
+    write_ral_def(cfg, cw)
 
     with open(args.output, 'w') as file:
         file.write(cw.content)

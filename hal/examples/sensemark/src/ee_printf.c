@@ -664,11 +664,11 @@ void
 uart_send_char(char c)
 {
     if (get_mhartid() == 0) {
-        while(!RAL.LSPA_UART[0]->TBE);
-        RAL.LSPA_UART[0]->DR = c;
+        while(!RAL.LSPA.UART[0]->TBE);
+        RAL.LSPA.UART[0]->DR = c;
     } else {
-        while(!RAL.LSPA_UART[1]->TBE);
-        RAL.LSPA_UART[1]->DR = c;
+        while(!RAL.LSPA.UART[1]->TBE);
+        RAL.LSPA.UART[1]->DR = c;
     }
 }
 
@@ -681,9 +681,9 @@ ee_printf(const char *fmt, ...)
     int n = 0;
 
     if (get_mhartid() == 0) {
-        uart = RAL.LSPA_UART[0];
+        uart = RAL.LSPA.UART[0];
     } else {
-        uart = RAL.LSPA_UART[1];
+        uart = RAL.LSPA.UART[1];
     }
 
     va_start(args, fmt);

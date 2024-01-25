@@ -67,8 +67,8 @@ int main_lpu()
         asm volatile("wfi");
         mem_log(WFI_END);
 
-        while(!RAL.LSPA_SPI[0]->TBE);
-        RAL.LSPA_SPI[0]->DR = 0xAB;  
+        while(!RAL.LSPA.SPI[0]->TBE);
+        RAL.LSPA.SPI[0]->DR = 0xAB;  
 
         counter++;
 
@@ -111,31 +111,31 @@ void hw_init(void)
     while(RAL.SYSCFG->LSPA.TIMER[0].MR);
 
     // Set up UART0
-    RAL.LSPA_UART[0]->BRR = 5208; // 9600 @ 50MHz 
-    RAL.LSPA_UART[0]->CR  = 0x807; // No parity, 1 stop, 8 data
+    RAL.LSPA.UART[0]->BRR = 5208; // 9600 @ 50MHz 
+    RAL.LSPA.UART[0]->CR  = 0x807; // No parity, 1 stop, 8 data
 
     // Set up UART1
-    RAL.LSPA_UART[1]->BRR = 5208; // 9600 @ 50MHz 
-    RAL.LSPA_UART[1]->CR  = 0x807; // No parity, 1 stop, 8 data
+    RAL.LSPA.UART[1]->BRR = 5208; // 9600 @ 50MHz 
+    RAL.LSPA.UART[1]->CR  = 0x807; // No parity, 1 stop, 8 data
 
     // Set up SPI0
-    RAL.LSPA_SPI[0]->TE   = 1;
-    RAL.LSPA_SPI[0]->RE   = 0;
-    RAL.LSPA_SPI[0]->MS   = 1;
-    RAL.LSPA_SPI[0]->CPHA = 0;
-    RAL.LSPA_SPI[0]->CPOL = 0;
-    RAL.LSPA_SPI[0]->DO   = 0;
-    RAL.LSPA_SPI[0]->DL   = 8;
-    RAL.LSPA_SPI[0]->BRR  = 50; // 1MHz @ 50 MHz
-    RAL.LSPA_SPI[0]->PE   = 1;
+    RAL.LSPA.SPI[0]->TE   = 1;
+    RAL.LSPA.SPI[0]->RE   = 0;
+    RAL.LSPA.SPI[0]->MS   = 1;
+    RAL.LSPA.SPI[0]->CPHA = 0;
+    RAL.LSPA.SPI[0]->CPOL = 0;
+    RAL.LSPA.SPI[0]->DO   = 0;
+    RAL.LSPA.SPI[0]->DL   = 8;
+    RAL.LSPA.SPI[0]->BRR  = 50; // 1MHz @ 50 MHz
+    RAL.LSPA.SPI[0]->PE   = 1;
 
     // Set up TIMER0
-    RAL.LSPA_TIMER[0]->PR  = 0; // 50MHz @ 50MHz
-    RAL.LSPA_TIMER[0]->VR  = 0;
-    RAL.LSPA_TIMER[0]->ARR = 1134; // 44100 Hz
-    RAL.LSPA_TIMER[0]->ER  = ~0;
-    RAL.LSPA_TIMER[0]->IER = ~0;
-    RAL.LSPA_TIMER[0]->PE  = 1;
+    RAL.LSPA.TIMER[0]->PR  = 0; // 50MHz @ 50MHz
+    RAL.LSPA.TIMER[0]->VR  = 0;
+    RAL.LSPA.TIMER[0]->ARR = 1134; // 44100 Hz
+    RAL.LSPA.TIMER[0]->ER  = ~0;
+    RAL.LSPA.TIMER[0]->IER = ~0;
+    RAL.LSPA.TIMER[0]->PE  = 1;
 
     // Enable all interrupts for LPU
     RAL.SYSCFG->LPCPU.IER = ~0;
@@ -202,5 +202,5 @@ void mem_log(uint32_t n) {
 }
 
 void __attribute__((interrupt)) default_handler(void) {
-    RAL.LSPA_TIMER[0]->ER = ~0;
+    RAL.LSPA.TIMER[0]->ER = ~0;
 }
