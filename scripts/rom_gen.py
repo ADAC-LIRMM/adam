@@ -34,89 +34,53 @@ htxt_template = Template("""
 """)
 	
 sverilog_template = Template("""
-module {{ module_name }} (
-    input logic clk,
-    input logic rst,
+`include "adam/macros.svh"
 
-    input  logic pause_req,
-    output logic pause_ack,
+module {{ module_name }} #(
+    `ADAM_CFG_PARAMS
+) (
+    ADAM_SEQ.Slave seq,
 
-    AXI_LITE.Slave slv
+    input  logic  req,
+    input  ADDR_T addr,
+    input  logic  we,
+    input  STRB_T be,
+    input  DATA_T wdata,
+    output DATA_T rdata
 );
 
-	localparam ADDR_WIDTH = {{ addr_width }};
-    localparam DATA_WIDTH = {{ data_width }};
+	localparam SIZE = {{ size }};
 
-    localparam SIZE = {{ size }};
-
-    localparam STRB_WIDTH      = DATA_WIDTH/8;
-    localparam UNALIGNED_WIDTH = $clog2(STRB_WIDTH);
+    localparam UNALIGNED_WIDTH = $clog2(STRB_WIDTH);         
     localparam ALIGNED_WIDTH   = ADDR_WIDTH - UNALIGNED_WIDTH;
     localparam ALIGNED_SIZE    = SIZE / STRB_WIDTH;
 
-    typedef logic [ADDR_WIDTH-1:0] addr_t;
-    typedef logic [DATA_WIDTH-1:0] data_t;
-    typedef logic [STRB_WIDTH-1:0] strb_t;
-    
-    typedef logic [UNALIGNED_WIDTH-1:0] unaligned_t;
-    typedef logic [ALIGNED_WIDTH-1:0]   aligned_t;
-
     // (* RAM_STYLE="BLOCK" *)
-    data_t mem [ALIGNED_SIZE-1:0];
+    DATA_T mem [ALIGNED_SIZE-1:0];
+    
+    logic [ALIGNED_WIDTH-1:0] aligned;
 
-    addr_t raddr;
-
-    // TODO: implement pause
-    assign pause_ack = 0;
-
-	always_comb begin
+    initial begin
+        for (int i = 0; i < ALIGNED_SIZE; i++) begin 
 {%- for word in words %}
-		mem[{{ loop.index - 1 }}] = 32'h{{ '{:08X}'.format(word) }};
+			mem[{{ loop.index - 1 }}] = 32'h{{ '{:08X}'.format(word) }};
 {%- endfor %}
-  	end
+        end       
+    end
 
-	always_comb begin
-		slv.aw_ready = 1;
-		slv.w_ready  = 1;
-		slv.b_resp   = axi_pkg::RESP_DECERR;
-		slv.b_valid  = 1;
-	end
+    assign aligned = addr[ADDR_WIDTH-1:UNALIGNED_WIDTH];
 
-    always_ff @(posedge clk) begin
-        automatic unaligned_t unaligned;
-        automatic aligned_t   aligned;
-        
-        if (rst) begin
-            slv.ar_ready = 1;
-			slv.r_data   = 0;
-            slv.r_resp   = 0;
-            slv.r_valid  = 0;
-        end
-        else begin
-            if(slv.r_valid && slv.r_ready) begin
-                slv.r_valid = 0;
+    always_ff @(posedge seq.clk) begin
+        for (int i = 0; i < STRB_WIDTH; i++) begin
+            if (!req || aligned > ALIGNED_SIZE) begin
+                rdata[i*8 +: 8] <= '0;
             end
-
-            if(slv.ar_valid && slv.ar_ready) begin
-                raddr = slv.ar_addr;
-                slv.ar_ready = 0;
+            else if (we && be[i]) begin
+                //mem[aligned][i*8 +: 8] <= wdata[i*8 +: 8]; 
+                rdata[i*8 +: 8]        <= wdata[i*8 +: 8];
             end
-
-            if(!slv.ar_ready && !slv.r_valid) begin
-                unaligned = raddr[UNALIGNED_WIDTH-1:0];
-                aligned   = raddr[DATA_WIDTH-1:UNALIGNED_WIDTH];
-
-                if (unaligned == 0 && aligned < ALIGNED_SIZE) begin 
-                    slv.r_data = mem[aligned];
-                    slv.r_resp = axi_pkg::RESP_OKAY;
-                end
-                else begin
-                    slv.r_data = 0;
-                    slv.r_resp = axi_pkg::RESP_DECERR;
-                end
-
-                slv.r_valid  = 1;
-                slv.ar_ready = 1;
+            else begin
+                rdata[i*8 +: 8] <= mem[aligned][i*8 +: 8];
             end
         end
     end

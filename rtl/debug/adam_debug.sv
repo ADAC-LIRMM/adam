@@ -141,67 +141,25 @@ module adam_debug #(
 
     // obi to mem ============================================================
 
-    ADAM_PAUSE pause_obi_from_axil ();
-
-    logic  obi_req;
-    logic  obi_gnt;
-    logic  obi_rvalid;
-    logic  obi_rready;
-    DATA_T obi_rdata;
+    ADAM_PAUSE pause_axil_to_mem ();
     
-    logic  rsave;
-    DATA_T rdata;
-    
-    adam_obi_from_axil #(
+    adam_axil_to_mem #(
         `ADAM_CFG_PARAMS_MAP,
 
         .MAX_TRANS (FAB_MAX_TRANS)
-    ) adam_obi_from_axil (
+    ) adam_axil_to_mem (
         .seq   (seq),
-        .pause (pause_obi_from_axil),
+        .pause (pause_axil_to_mem),
 
         .axil (axil_slv),
 
-        .req    (obi_req),
-        .gnt    (obi_gnt),
-        .addr   (dm_slv_addr),
-        .we     (dm_slv_we),
-        .be     (dm_slv_be),
-        .wdata  (dm_slv_wdata),
-        .rvalid (obi_rvalid),
-        .rready (obi_rready),
-        .rdata  (obi_rdata)
+        .mem_req   (dm_slv_req),
+        .mem_addr  (dm_slv_addr),
+        .mem_we    (dm_slv_we),
+        .mem_be    (dm_slv_be),
+        .mem_wdata (dm_slv_wdata),
+        .mem_rdata (dm_slv_rdata)
     );
-
-    assign dm_slv_req = obi_req && obi_gnt;
-    assign obi_gnt = !obi_rvalid;
-    assign obi_rdata = (rsave) ? dm_slv_rdata : rdata;
-
-    always_ff @(posedge seq.clk) begin
-        if (seq.rst) begin
-            obi_rvalid <= 0;
-        end
-        else begin
-            if (obi_rvalid && obi_rready) begin
-                obi_rvalid <= 0; 
-            end
-
-            if (obi_req && obi_gnt) begin
-                obi_rvalid <= 1;
-            end
-        end
-    end
-
-    always @(posedge seq.clk) begin
-        if (seq.rst) begin
-            rsave <= '0;
-            rdata <= '0;
-        end
-        else begin
-            if (rsave) rdata <= dm_slv_rdata;
-            rsave <= dm_slv_req;
-        end
-    end
 
     // obi to axil ============================================================
 
@@ -241,7 +199,7 @@ module adam_debug #(
         .seq (seq),
 
         .slv (pause),
-        .mst ('{pause_obi_from_axil, pause_obi_to_axil, pause_null})
+        .mst ('{pause_axil_to_mem, pause_obi_to_axil, pause_null})
     );
 
 endmodule

@@ -39,7 +39,7 @@ default:
   no_lspa_gpios:  1
   no_lspa_spis:   1
   no_lspa_timers: 1
-  no_lspa_uarts:  1
+  no_lspa_uarts:  2
 
   no_lspb_gpios:  0
   no_lspb_spis:   0
@@ -107,7 +107,7 @@ fsets:
       - axil/adam_axil_apb_bridge_tb.sv
       - axil/adam_axil_skid_tb.sv
       - axil/adam_axil_pause_tb.sv
-      - axil/adam_axil_ram_tb.sv
+      #- axil/adam_axil_ram_tb.sv
       - axil/adam_axil_xbar_tb.sv
       - axil/adam_axil_slv_simple_bhv.sv
     
@@ -165,7 +165,7 @@ fsets:
       - axil/adam_axil_apb_bridge.sv
       - axil/adam_axil_pause.sv
       - axil/adam_axil_skid.sv
-      - axil/adam_axil_ram.sv
+      - axil/adam_axil_to_mem.sv
       - axil/adam_axil_xbar.sv
 
       - debug/adam_debug.sv
@@ -194,6 +194,7 @@ fsets:
       - adam.sv
       
       - adam_clk_div.sv
+      - adam_mem.sv
       #- adam_synth.sv
       #- adam_synth_intf.sv
 
