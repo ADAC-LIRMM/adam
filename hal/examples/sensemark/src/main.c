@@ -13,6 +13,8 @@ int main_lpu();
 static ee_u8 cm_memblock[TOTAL_DATA_SIZE];
 static core_results cm_res;
 
+static volatile int is_hw_init = 0;
+
 static void hw_init(void);
 static void cm_init(void);
 static void cm_run(void);
@@ -20,6 +22,9 @@ static void mem_log(uint32_t n);
 
 int main()
 {
+    volatile int init_guard = 1;
+    while(init_guard); // Change its value in debug!
+
     mem_log(MAIN_START);
     hw_init();
 
@@ -30,19 +35,23 @@ int main()
     cm_init();
     mem_log(CM_INIT_END);
 
-    // Resume LPU0
+    //Resume LPMEM
+    RAL.SYSCFG->LPMEM.MR = 1;
+    while(RAL.SYSCFG->LPMEM.MR);
+
+    //Resume LPU0
     RAL.SYSCFG->LPCPU.MR = 1;
     while(RAL.SYSCFG->LPCPU.MR);
     mem_log(RESUME_LPU);
 
     while (1) {
-        mem_log(SLEEP_START);
-        sleep();
-        mem_log(SLEEP_END);
+        // mem_log(SLEEP_START);
+        // sleep();
+        // mem_log(SLEEP_END);
         
         mem_log(CM_RUN_START);
-        ee_printf("CM_RUN\n");
-        cm_run();
+        ee_printf("CM_RUN\r\n");
+        //cm_run();
         mem_log(CM_RUN_END);
     }
 
@@ -86,8 +95,6 @@ int main_lpu()
     mem_log(MAIN_LPU_END);
     return 0;
 }
-
-volatile int is_hw_init = 0;
 
 void hw_init(void)
 {

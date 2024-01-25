@@ -4,10 +4,13 @@ module adam_nexys_video (
     input  logic clk,
     input  logic rstn,
 
-    input  logic tck,
-    input  logic tms,
-    input  logic tdi,
-    output logic tdo
+    output logic uart_tx,
+    input  logic uart_rx,
+
+    input  logic jtag_tck,
+    input  logic jtag_tms,
+    input  logic jtag_tdi,
+    output logic jtag_tdo
 );
     
     `ADAM_CFG_LOCALPARAMS;
@@ -67,42 +70,114 @@ module adam_nexys_video (
     ADAM_PAUSE   lsdom_lpmem_pause ();
     `ADAM_AXIL_I lsdom_lpmem_axil ();
 
+    logic  lsdom_lpmem_req;
+    ADDR_T lsdom_lpmem_addr;
+    logic  lsdom_lpmem_we;
+    STRB_T lsdom_lpmem_be;
+    DATA_T lsdom_lpmem_wdata;
+    DATA_T lsdom_lpmem_rdata;
+
     assign lsdom_lpmem_seq.clk = lsdom_seq.clk;
     assign lsdom_lpmem_seq.rst = lsdom_seq.rst || lsdom_lpmem_rst;
 
-    adam_axil_ram #(
-        `ADAM_CFG_PARAMS_MAP,
+    if (EN_LPMEM) begin
+        adam_axil_to_mem #(
+            `ADAM_CFG_PARAMS_MAP
+        ) adam_axil_to_mem (
+            .seq   (lsdom_lpmem_seq),
+            .pause (lsdom_lpmem_pause),
 
-        .SIZE (LPMEM_SIZE)
-    ) adam_axil_ram (
-        .seq   (lsdom_lpmem_seq),
-        .pause (lsdom_lpmem_pause),
+            .axil (lsdom_lpmem_axil),
 
-        .slv (lsdom_lpmem_axil)
-    );
+            .mem_req   (lsdom_lpmem_req),
+            .mem_addr  (lsdom_lpmem_addr),
+            .mem_we    (lsdom_lpmem_we),
+            .mem_be    (lsdom_lpmem_be),
+            .mem_wdata (lsdom_lpmem_wdata),
+            .mem_rdata (lsdom_lpmem_rdata)
+        );
+
+        adam_mem #(
+            `ADAM_CFG_PARAMS_MAP,
+
+            .SIZE (LPMEM_SIZE)
+        ) adam_mem (
+            .seq (lsdom_lpmem_seq),
+
+            .req   (lsdom_lpmem_req),
+            .addr  (lsdom_lpmem_addr),
+            .we    (lsdom_lpmem_we),
+            .be    (lsdom_lpmem_be),
+            .wdata (lsdom_lpmem_wdata),
+            .rdata (lsdom_lpmem_rdata)
+        );
+    end
+    else begin
+        // TODO: tie off
+    end
 
     // mem ====================================================================
-
+    
     logic        hsdom_mem_rst   [NO_MEMS+1];
     ADAM_SEQ     hsdom_mem_seq   [NO_MEMS+1] ();
     ADAM_PAUSE   hsdom_mem_pause [NO_MEMS+1] ();
     `ADAM_AXIL_I hsdom_mem_axil  [NO_MEMS+1] ();
+    
+    logic  hsdom_mem_req   [NO_MEMS+1];
+    ADDR_T hsdom_mem_addr  [NO_MEMS+1];
+    logic  hsdom_mem_we    [NO_MEMS+1];
+    STRB_T hsdom_mem_be    [NO_MEMS+1];
+    DATA_T hsdom_mem_wdata [NO_MEMS+1];
+    DATA_T hsdom_mem_rdata [NO_MEMS+1];
 
     for (genvar i = 0; i < NO_MEMS; i++) begin
         assign hsdom_mem_seq[i].clk = lsdom_seq.clk;
         assign hsdom_mem_seq[i].rst = lsdom_seq.rst || hsdom_mem_rst[i];
-    end
 
-    for (genvar i = 0; i < NO_MEMS; i++) begin
-        adam_axil_ram #(
-            `ADAM_CFG_PARAMS_MAP,
-
-            .SIZE (MEM_SIZE[i])
-        ) adam_axil_ram (
+        adam_axil_to_mem #(
+            `ADAM_CFG_PARAMS_MAP
+        ) adam_axil_to_mem (
             .seq   (hsdom_mem_seq[i]),
             .pause (hsdom_mem_pause[i]),
 
-            .slv (hsdom_mem_axil[i])
+            .axil (hsdom_mem_axil[i]),
+
+            .mem_req   (hsdom_mem_req[i]),
+            .mem_addr  (hsdom_mem_addr[i]),
+            .mem_we    (hsdom_mem_we[i]),
+            .mem_be    (hsdom_mem_be[i]),
+            .mem_wdata (hsdom_mem_wdata[i]),
+            .mem_rdata (hsdom_mem_rdata[i])
+        );
+    end
+
+    // sensemark #(
+    //     `ADAM_CFG_PARAMS_MAP
+    // ) sensemark (
+    //     .seq (hsdom_mem_seq[0]),
+
+    //     .req   (hsdom_mem_req[0]),
+    //     .addr  (hsdom_mem_addr[0]),
+    //     .we    (hsdom_mem_we[0]),
+    //     .be    (hsdom_mem_be[0]),
+    //     .wdata (hsdom_mem_wdata[0]),
+    //     .rdata (hsdom_mem_rdata[0])
+    // );
+
+    for (genvar i = 0; i < NO_MEMS; i++) begin
+        adam_mem #(
+            `ADAM_CFG_PARAMS_MAP,
+
+            .SIZE (MEM_SIZE[i])
+        ) adam_mem (
+            .seq (hsdom_mem_seq[i]),
+
+            .req   (hsdom_mem_req[i]),
+            .addr  (hsdom_mem_addr[i]),
+            .we    (hsdom_mem_we[i]),
+            .be    (hsdom_mem_be[i]),
+            .wdata (hsdom_mem_wdata[i]),
+            .rdata (hsdom_mem_rdata[i])
         );
     end
 
@@ -128,7 +203,13 @@ module adam_nexys_video (
         `ADAM_IO_SLV_TIE_OFF(lspa_spi_miso[i]);
         `ADAM_IO_SLV_TIE_OFF(lspa_spi_ss_n[i]);
     end
-    for (genvar i = 0; i < NO_LSPA_UARTS; i++) begin
+
+    assign lspa_uart_tx[0].i = 0;
+    assign uart_tx = lspa_uart_tx[0].o;
+
+    assign lspa_uart_rx[0].i = uart_rx;
+
+    for (genvar i = 1; i < NO_LSPA_UARTS; i++) begin
         `ADAM_IO_SLV_TIE_OFF(lspa_uart_tx[i]);
         `ADAM_IO_SLV_TIE_OFF(lspa_uart_rx[i]);
     end
@@ -166,10 +247,10 @@ module adam_nexys_video (
 
     assign jtag.trst_n = !rst;
     
-    assign jtag.tck = tck;
-    assign jtag.tms = tms;
-    assign jtag.tdi = tdi;
-    assign tdo = jtag.tdo;
+    assign jtag.tck = jtag_tck;
+    assign jtag.tms = jtag_tms;
+    assign jtag.tdi = jtag_tdi;
+    assign jtag_tdo = jtag.tdo;
 
     // pause ext ==============================================================
 

@@ -5,10 +5,10 @@
  *
  * This header was auto-generated using gen_ral.py.
  *
- * Date   : 2024-01-25 08:56:12 UTC
+ * Date   : 2024-01-25 10:55:48 UTC
  * Target : adam_nexys_video
  * Branch : fabric
- * Commit : 629c28727193ae692d28d80e0964b19214ea2d6a (dirty)
+ * Commit : ca213b99097cc5105922123033fd3b85dd0174a8 (dirty)
  *
  * It is not recommended to modify this this file. 
  * ============================================================================
@@ -257,7 +257,7 @@ typedef struct {
             };
             const ral_data_t reserved0;
             const ral_data_t reserved1;
-        } UART[1];
+        } UART[2];
     } LSPA;
     struct {
     } LSPB;
@@ -488,7 +488,7 @@ typedef struct {
         ral_gpio_t *GPIO[1];
         ral_spi_t *SPI[1];
         ral_timer_t *TIMER[1];
-        ral_uart_t *UART[1];
+        ral_uart_t *UART[2];
     } LSPA;
     struct {
         ral_gpio_t *GPIO[0];
@@ -507,13 +507,14 @@ static const ral_t RAL = {
             (ral_gpio_t *) 0x00010000,
         },
         .SPI = {
-            (ral_spi_t *) 0x00010000,
+            (ral_spi_t *) 0x00010400,
         },
         .TIMER = {
-            (ral_timer_t *) 0x00010000,
+            (ral_timer_t *) 0x00010800,
         },
         .UART = {
-            (ral_uart_t *) 0x00010000,
+            (volatile ral_uart_t *) 0x00010C00,
+            (volatile ral_uart_t *) 0x00011000,
         },
     },
     .MEM = {

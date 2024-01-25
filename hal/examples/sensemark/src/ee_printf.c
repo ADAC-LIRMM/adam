@@ -660,18 +660,6 @@ ee_vsprintf(char *buf, const char *fmt, va_list args)
     return str - buf;
 }
 
-void
-uart_send_char(char c)
-{
-    if (get_mhartid() == 0) {
-        while(!RAL.LSPA.UART[0]->TBE);
-        RAL.LSPA.UART[0]->DR = c;
-    } else {
-        while(!RAL.LSPA.UART[1]->TBE);
-        RAL.LSPA.UART[1]->DR = c;
-    }
-}
-
 int
 ee_printf(const char *fmt, ...)
 {

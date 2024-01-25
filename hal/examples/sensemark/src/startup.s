@@ -15,25 +15,20 @@
 reset_handler:
 
 	# Maestro Registers Addresses
-	la x1, 0x00008064 # LPMEM
-	la x2, 0x00008094 # MEM0
-	la x3, 0x000080a4 # MEM1
+	la x1, 0x00008094 # MEM0
+	la x2, 0x000080a4 # MEM1
 
 	# Trigger Maestro Resume 
 	li x6, 1 
 	sw x6, 0(x1)
 	sw x6, 0(x2)
-	sw x6, 0(x3)
 
 	# Wait for completion
-wait_lpmem:
-	lw x6, 0(x1)
-	bne x6, x0, wait_lpmem
 wait_mem0:
-	lw x6, 0(x2)
+	lw x6, 0(x1)
 	bne x6, x0, wait_mem0
 wait_mem1:
-	lw x6, 0(x3)
+	lw x6, 0(x2)
 	bne x6, x0, wait_mem1
 
 	# Set up Interrupts
@@ -43,12 +38,12 @@ wait_mem1:
     slli   t2, t1, 11 # Machine External Interrupt Enable (MEIE)
     csrs   mie, t2
 
-# lpu_setup:
-# 	csrr t0, mhartid
-# 	beq t0, x0, lpu_setup_end
-# 	li sp, 0x00002000 # MEM0
-# 	jal main_lpu
-# lpu_setup_end:
+lpu_setup:
+	csrr t0, mhartid
+	bne t0, x0, lpu_setup_end
+	li sp, 0x000003FC # MEM0
+	jal main_lpu
+lpu_setup_end:
 
 	# Set up Floating-Point
     li     t1, 1

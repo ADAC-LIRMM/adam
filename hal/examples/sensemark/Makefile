@@ -98,9 +98,9 @@ endif
 $(OBJ_DIR)/%.o: %.c
 	@mkdir -p $(dir $@)
 ifeq ($(findstring $<,$(FAST_SRCS)),)
-	$(CC) $< -o $@ -c -MMD -MP $(FAST_GFLAGS) $(addprefix -I, $(INCS))
+	$(CC) $< -o $@ -c -MMD -MP $(FAST_GFLAGS) $(CFLAGS) $(addprefix -I, $(INCS))
 else
-	$(CC) $< -o $@ -c -MMD -MP $(BASE_GFLAGS) $(addprefix -I, $(INCS))
+	$(CC) $< -o $@ -c -MMD -MP $(BASE_GFLAGS) $(CFLAGS) $(addprefix -I, $(INCS))
 endif
 
 $(OBJ_DIR)/%.o: %.cpp
