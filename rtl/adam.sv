@@ -118,138 +118,130 @@ module adam #(
     assign lsdom_lpcpu_seq.clk = lsdom_seq.clk;
     assign lsdom_lpcpu_seq.rst = lsdom_seq.rst || lsdom_lpcpu_rst; 
     
-    generate
-        if (EN_LPCPU) begin
-            `ADAM_CORE_LPCPU lsdom_lpcpu (
-                .seq   (lsdom_lpcpu_seq),
-                .pause (lsdom_lpcpu_pause),
+    if (EN_LPCPU) begin
+        `ADAM_CORE_LPCPU lsdom_lpcpu (
+            .seq   (lsdom_lpcpu_seq),
+            .pause (lsdom_lpcpu_pause),
 
-                .boot_addr (lsdom_lpcpu_boot_addr),
-                .hart_id   ('0),
+            .boot_addr (lsdom_lpcpu_boot_addr),
+            .hart_id   ('0),
 
-                .axil_inst (lsdom_lpcpu_axil[0]),
-                .axil_data (lsdom_lpcpu_axil[1]),
+            .axil_inst (lsdom_lpcpu_axil[0]),
+            .axil_data (lsdom_lpcpu_axil[1]),
 
-                .irq (lsdom_lpcpu_irq),
+            .irq (lsdom_lpcpu_irq),
 
-                .debug_req     ('0),
-                .debug_unavail ()
-            );
-        end
+            .debug_req     ('0),
+            .debug_unavail ()
+        );
+    end
+    else begin
+        // TODO: tie off
+    end
 
-        assign hsdom_debug_unavail[0] = '1; // LPCPU doesn't support debug
-
-    endgenerate
+    assign hsdom_debug_unavail[0] = '1; // LPCPU doesn't support debug
 
     // lsdom - lspa ===========================================================
 
-    generate
-        if (EN_LSPA) begin
-            adam_periph #(
-                `ADAM_CFG_PARAMS_MAP,
+    if (EN_LSPA) begin
+        adam_periph #(
+            `ADAM_CFG_PARAMS_MAP,
 
-                .NO_GPIOS  (NO_LSPA_GPIOS),
-                .NO_SPIS   (NO_LSPA_SPIS),
-                .NO_TIMERS (NO_LSPA_TIMERS),
-                .NO_UARTS  (NO_LSPA_UARTS)
-            ) adam_periph_lspa (
-                .seq   (lsdom_seq),
-                
-                .periph_rst   (lsdom_lspa_rst),
-                .periph_pause (lsdom_lspa_pause),
-                .periph_apb   (lsdom_lspa_apb),
-                .periph_irq   (lsdom_lspa_irq),
-                
-                .gpio_io   (lspa_gpio_io),
-                .gpio_func (lspa_gpio_func),
+            .NO_GPIOS  (NO_LSPA_GPIOS),
+            .NO_SPIS   (NO_LSPA_SPIS),
+            .NO_TIMERS (NO_LSPA_TIMERS),
+            .NO_UARTS  (NO_LSPA_UARTS)
+        ) adam_periph_lspa (
+            .seq   (lsdom_seq),
+            
+            .periph_rst   (lsdom_lspa_rst),
+            .periph_pause (lsdom_lspa_pause),
+            .periph_apb   (lsdom_lspa_apb),
+            .periph_irq   (lsdom_lspa_irq),
+            
+            .gpio_io   (lspa_gpio_io),
+            .gpio_func (lspa_gpio_func),
 
-                .spi_sclk (lspa_spi_sclk),
-                .spi_mosi (lspa_spi_mosi),
-                .spi_miso (lspa_spi_miso),
-                .spi_ss_n (lspa_spi_ss_n),
+            .spi_sclk (lspa_spi_sclk),
+            .spi_mosi (lspa_spi_mosi),
+            .spi_miso (lspa_spi_miso),
+            .spi_ss_n (lspa_spi_ss_n),
 
-                .uart_tx (lspa_uart_tx),
-                .uart_rx (lspa_uart_rx)
-            );
-        end
-        else begin
-            // TODO: tie off
-        end
-    endgenerate
+            .uart_tx (lspa_uart_tx),
+            .uart_rx (lspa_uart_rx)
+        );
+    end
+    else begin
+        // TODO: tie off
+    end
 
     // lsdom - lspb ===========================================================
 
-    generate
-        if (EN_LSPB) begin
-            adam_periph #(
-                `ADAM_CFG_PARAMS_MAP,
+    if (EN_LSPB) begin
+        adam_periph #(
+            `ADAM_CFG_PARAMS_MAP,
 
-                .NO_GPIOS  (NO_LSPB_GPIOS),
-                .NO_SPIS   (NO_LSPB_SPIS),
-                .NO_TIMERS (NO_LSPB_TIMERS),
-                .NO_UARTS  (NO_LSPB_UARTS)
-            ) adam_periph_lspb (
-                .seq   (lsdom_seq),
-                .pause (lsdom_lspb_pause),
-                
-                .periph_rst   (lsdom_lspb_rst),
-                .periph_pause (lsdom_lspb_pause),
-                .periph_apb   (lsdom_lspb_apb),
-                .periph_irq   (lsdom_lspb_irq),
+            .NO_GPIOS  (NO_LSPB_GPIOS),
+            .NO_SPIS   (NO_LSPB_SPIS),
+            .NO_TIMERS (NO_LSPB_TIMERS),
+            .NO_UARTS  (NO_LSPB_UARTS)
+        ) adam_periph_lspb (
+            .seq   (lsdom_seq),
+            .pause (lsdom_lspb_pause),
+            
+            .periph_rst   (lsdom_lspb_rst),
+            .periph_pause (lsdom_lspb_pause),
+            .periph_apb   (lsdom_lspb_apb),
+            .periph_irq   (lsdom_lspb_irq),
 
-                .gpio_io   (lspb_gpio_io),
-                .gpio_func (lspb_gpio_func),
+            .gpio_io   (lspb_gpio_io),
+            .gpio_func (lspb_gpio_func),
 
-                .spi_sclk (lspb_spi_sclk),
-                .spi_mosi (lspb_spi_mosi),
-                .spi_miso (lspb_spi_miso),
-                .spi_ss_n (lspb_spi_ss_n),
+            .spi_sclk (lspb_spi_sclk),
+            .spi_mosi (lspb_spi_mosi),
+            .spi_miso (lspb_spi_miso),
+            .spi_ss_n (lspb_spi_ss_n),
 
-                .uart_tx (lspb_uart_tx),
-                .uart_rx (lspb_uart_rx)
-            );
-        end
-        else begin
-            // TODO: tie off
-        end
-    endgenerate
+            .uart_tx (lspb_uart_tx),
+            .uart_rx (lspb_uart_rx)
+        );
+    end
+    else begin
+        // TODO: tie off
+    end
 
     // hsdom - cpu ============================================================
 
-    generate
-        for (genvar i = 0; i < NO_CPUS; i++) begin
+    for (genvar i = 0; i < NO_CPUS; i++) begin
 
-            assign hsdom_cpu_seq[i].clk = hsdom_seq.clk;
-            assign hsdom_cpu_seq[i].rst = hsdom_seq.rst || hsdom_cpu_rst[i]; 
+        assign hsdom_cpu_seq[i].clk = hsdom_seq.clk;
+        assign hsdom_cpu_seq[i].rst = hsdom_seq.rst || hsdom_cpu_rst[i]; 
 
-            `ADAM_CORE_CPU #(
-                `ADAM_CFG_PARAMS_MAP
-            ) hsdom_cpu (
-                .seq   (hsdom_seq),
-                .pause (hsdom_cpu_pause[i]),
+        `ADAM_CORE_CPU #(
+            `ADAM_CFG_PARAMS_MAP
+        ) hsdom_cpu (
+            .seq   (hsdom_seq),
+            .pause (hsdom_cpu_pause[i]),
 
-                .boot_addr (hsdom_cpu_boot_addr[i]),
-                .hart_id   (i+1), // +1 because LPCPU is 0
+            .boot_addr (hsdom_cpu_boot_addr[i]),
+            .hart_id   (i+1), // +1 because LPCPU is 0
 
-                .axil_inst (hsdom_cpu_axil[2*i + 0]),
-                .axil_data (hsdom_cpu_axil[2*i + 1]),
+            .axil_inst (hsdom_cpu_axil[2*i + 0]),
+            .axil_data (hsdom_cpu_axil[2*i + 1]),
 
-                .irq       (hsdom_cpu_irq[i]),
-                
-                .debug_req     (hsdom_debug_req[i+1]),
-                .debug_unavail (hsdom_debug_unavail[i+1])
-            );
-        end
-    endgenerate
+            .irq       (hsdom_cpu_irq[i]),
+            
+            .debug_req     (hsdom_debug_req[i+1]),
+            .debug_unavail (hsdom_debug_unavail[i+1])
+        );
+    end
 
     // hsdom - dma ============================================================
 
-    generate
-        for (genvar i = 0; i < NO_DMAS; i++) begin
-            `ADAM_PAUSE_SLV_TIE_OFF(hsdom_dma_pause[i]);
-            `ADAM_AXIL_MST_TIE_OFF (hsdom_dma_axil [i]);
-        end
-    endgenerate
+    for (genvar i = 0; i < NO_DMAS; i++) begin
+        `ADAM_PAUSE_SLV_TIE_OFF(hsdom_dma_pause[i]);
+        `ADAM_AXIL_MST_TIE_OFF (hsdom_dma_axil [i]);
+    end
 
     // hsdom - hsp ===========================================================
 
@@ -290,7 +282,7 @@ module adam #(
     adam_syscfg #(
         `ADAM_CFG_PARAMS_MAP
     ) adam_syscfg (
-        .seq   (lsdom_seq), // ok
+        .seq   (lsdom_seq),
         .pause (lsdom_syscfg_pause),
 
         .slv (lsdom_syscfg_axil),

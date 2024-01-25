@@ -10,13 +10,10 @@ module adam_clk_div #(
     assign mst.clk = counter[WIDTH-1];
     assign mst.rst = slv.rst;
 
+    // initial counter = 0;
+
     always_ff @(posedge slv.clk) begin
-        if (slv.rst) begin
-            counter <= 0;
-        end
-        else begin
-            counter <= counter + 1;
-        end
+        counter <= counter + 1;
     end
 
 endmodule

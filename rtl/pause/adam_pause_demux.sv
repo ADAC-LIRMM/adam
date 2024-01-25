@@ -34,7 +34,6 @@ module adam_pause_demux #(
         else begin
             always_ff @(posedge seq.clk) begin
                 if (seq.rst) begin
-                    slv_ack <= 1;
                     for (int i = 0; i < NO_MSTS; i++) begin
                         mst_req[i] <= 1;
                     end
