@@ -261,7 +261,7 @@ def build_ral_t(cfg):
         ral.add(s)
 
     ral.add(Dtype('ral_data_t *', 'MEM', cfg[f'no_mems']))
-    
+
     return ral
 
 def write_dtype(item, cw):
@@ -368,6 +368,8 @@ def write_ral_def(cfg, cw):
         cw.put(f'.{LSPX}' + ' = {')
         cw.indent += 1
 
+        addr, end, inc = cfg[f'mmap_{lspx}']
+
         for periph in ['gpio', 'spi', 'timer', 'uart']:
             PERIPH = periph.upper()
 
@@ -378,8 +380,7 @@ def write_ral_def(cfg, cw):
 
             cw.put(f'.{PERIPH}' + ' = {')
             cw.indent += 1
-
-            addr, end, inc = cfg[f'mmap_{lspx}']
+            
             for i in range(size):
                 cw.put(f'(ral_{periph}_t *) {ahex(addr, aw)},')
                 addr += inc
