@@ -18,10 +18,6 @@
 
 extern void sleep(void);
 
-static inline uint32_t get_mhartid() {
-    uint32_t hartid;
-    asm volatile ("csrr %0, mhartid" : "=r"(hartid));
-    return hartid;
-}
+
 
 #endif

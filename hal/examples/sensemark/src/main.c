@@ -1,39 +1,19 @@
-#include "coremark.h"
-#include "sensemark.h"
+#include <stdint.h>
 
-volatile ee_s32 seed1_volatile = 0;
-volatile ee_s32 seed2_volatile = 0;
-volatile ee_s32 seed3_volatile = 0;
-volatile ee_s32 seed4_volatile = 0;
-volatile ee_s32 seed5_volatile = 0;
+#include "adam_ral.h"
 
-int main();
-int main_lpu();
-
-static ee_u8 cm_memblock[TOTAL_DATA_SIZE];
-static core_results cm_res;
-
-static volatile int is_hw_init = 0;
-
+static uint32_t mhartid();
 static void hw_init(void);
-static void cm_init(void);
-static void cm_run(void);
-static void mem_log(uint32_t n);
+static void print(const char * str);
 
 int main()
 {
     volatile int init_guard = 1;
     while(init_guard); // Change its value in debug!
 
-    mem_log(MAIN_START);
     hw_init();
 
-    ee_printf("IM ALIVE [CPU]\n");
-
-    mem_log(CM_INIT_START);
-    ee_printf("CM_INIT\n");
-    cm_init();
-    mem_log(CM_INIT_END);
+    print("IM ALIVE [CPU]\r\n");
 
     //Resume LPMEM
     RAL.SYSCFG->LPMEM.MR = 1;
@@ -42,22 +22,18 @@ int main()
     //Resume LPU0
     RAL.SYSCFG->LPCPU.MR = 1;
     while(RAL.SYSCFG->LPCPU.MR);
-    mem_log(RESUME_LPU);
 
     while (1) {
         // mem_log(SLEEP_START);
-        // sleep();
+        //sleep();
         // mem_log(SLEEP_END);
         
-        mem_log(CM_RUN_START);
-        ee_printf("CM_RUN\r\n");
+        //mem_log(CM_RUN_START);
+        print("CM_RUN\r\n");
         //cm_run();
-        mem_log(CM_RUN_END);
+        //mem_log(CM_RUN_END);
     }
 
-    ee_printf("END [CPU]\n");
-
-    mem_log(MAIN_END);
     return 0;
 }
 
@@ -65,16 +41,14 @@ int main_lpu()
 {
     int counter;
 
-    mem_log(MAIN_LPU_START);
-
-    ee_printf("IM ALIVE [LPU]\n");
+    print("IM ALIVE [LPU]\r\n");
 
     counter = 0;
 
     while(1) {
-        mem_log(WFI_START);
+        print("test\r\n");
+
         asm volatile("wfi");
-        mem_log(WFI_END);
 
         while(!RAL.LSPA.SPI[0]->TBE);
         RAL.LSPA.SPI[0]->DR = 0xAB;  
@@ -86,21 +60,23 @@ int main_lpu()
             while(!RAL.SYSCFG->CPU[0].MR);
             RAL.SYSCFG->CPU[0].MR = 1;
             while(RAL.SYSCFG->CPU[0].MR);
-            mem_log(RESUME_CPU);
         }
     }
 
-    ee_printf("END [LPU]\n");
+    //ee_printf("END [LPU]\n");
 
-    mem_log(MAIN_LPU_END);
     return 0;
+}
+
+uint32_t mhartid()
+{
+    uint32_t hartid;
+    asm volatile ("csrr %0, mhartid" : "=r"(hartid));
+    return hartid;
 }
 
 void hw_init(void)
 {
-    if (is_hw_init) return;
-    is_hw_init = 1;
-
     // Resume UART0
     RAL.SYSCFG->LSPA.UART[0].MR = 1;
     while(RAL.SYSCFG->LSPA.UART[0].MR);
@@ -148,66 +124,20 @@ void hw_init(void)
     RAL.SYSCFG->LPCPU.IER = ~0;
 }
 
-void cm_init(void)
-{   
-    ee_u32 i;
-    ee_s32 matrix_seed;
-
-    cm_res.seed1 = seed1_volatile;
-	cm_res.seed2 = seed2_volatile;
-	cm_res.seed3 = seed3_volatile;
-
-    cm_res.memblock[0] = (void *) cm_memblock;
-	cm_res.size = TOTAL_DATA_SIZE / NUM_ALGORITHMS;
-	cm_res.err = 0;
-
-	for (i = 0; i < NUM_ALGORITHMS; i++) {
-		cm_res.memblock[i+1] = (void *) (cm_memblock + cm_res.size*i);
-	}
-
-    cm_res.list = core_list_init(cm_res.size, cm_res.memblock[1], 
-        cm_res.seed1);
-
-    matrix_seed = cm_res.seed1 | (((ee_s32) cm_res.seed2) << 16);
-
-    core_init_matrix(cm_res.size, cm_res.memblock[2], matrix_seed,
-        &(cm_res.mat));
-
-    core_init_state(cm_res.size, cm_res.seed1, cm_res.memblock[3]);
-}   
-
-void cm_run(void)
+void __attribute__((interrupt)) default_handler(void)
 {
-    ee_u32 i;
-	ee_u16 crc;
-
-	cm_res.iterations = 1;
-	cm_res.crc = 0;
-	cm_res.crclist = 0;
-	cm_res.crcmatrix = 0;
-	cm_res.crcstate = 0;
-
-    for (i = 0; i < cm_res.iterations; i++) {
-	    crc = core_bench_list(&cm_res, 1);
-		cm_res.crc = crcu16(crc, cm_res.crc);
-		crc = core_bench_list(&cm_res, -1);
-		cm_res.crc = crcu16(crc, cm_res.crc);
-		if (i == 0) cm_res.crclist = cm_res.crc;
-	}
-}
-
-void mem_log(uint32_t n) {
-    uint32_t result;
-    uint32_t address = 0x10000000 + 16*n;
-
-    // asm volatile(
-    //     "lw %0, 0(%1)"
-    //     : "=r"(result)
-    //     : "r"(address)
-    //     : "memory"
-    // );
-}
-
-void __attribute__((interrupt)) default_handler(void) {
     RAL.LSPA.TIMER[0]->ER = ~0;
 }
+
+void print(const char *str) {
+    ral_uart_t *uart;
+
+    uart = (mhartid() == 0) ? RAL.LSPA.UART[0] : RAL.LSPA.UART[1];
+
+    while(*str != '\0') {
+        while(!uart->TBE);
+        uart->DR = *str;
+        str++;
+    }
+}
+

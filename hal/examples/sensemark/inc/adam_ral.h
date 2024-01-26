@@ -513,8 +513,8 @@ static const ral_t RAL = {
             (ral_timer_t *) 0x00010800,
         },
         .UART = {
-            (volatile ral_uart_t *) 0x00010C00,
-            (volatile ral_uart_t *) 0x00011000,
+            (ral_uart_t *) 0x00010C00,
+            (ral_uart_t *) 0x00011000,
         },
     },
     .MEM = {
