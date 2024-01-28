@@ -220,7 +220,7 @@ module adam #(
         `ADAM_CORE_CPU #(
             `ADAM_CFG_PARAMS_MAP
         ) hsdom_cpu (
-            .seq   (hsdom_seq),
+            .seq   (hsdom_cpu_seq[i]),
             .pause (hsdom_cpu_pause[i]),
 
             .boot_addr (hsdom_cpu_boot_addr[i]),
@@ -229,7 +229,7 @@ module adam #(
             .axil_inst (hsdom_cpu_axil[2*i + 0]),
             .axil_data (hsdom_cpu_axil[2*i + 1]),
 
-            .irq       (hsdom_cpu_irq[i]),
+            .irq (hsdom_cpu_irq[i]),
             
             .debug_req     (hsdom_debug_req[i+1]),
             .debug_unavail (hsdom_debug_unavail[i+1])

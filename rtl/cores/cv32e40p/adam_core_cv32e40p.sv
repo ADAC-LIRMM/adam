@@ -48,7 +48,7 @@ module adam_core_cv32e40p #(
 
     assign data_rready = 1;
 
-    assign debug_unavail = 0;
+    assign debug_unavail = pause.req || pause.ack;
 
     cv32e40p_top #(
         .FPU              (1),
