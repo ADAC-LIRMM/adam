@@ -27,7 +27,7 @@ RAL (Register Abstraction Layer).
    
    getting_started
    guidelines/index
-   build_tools/index
+   scripts/index
    hal/index
    fabric/index
    periph/index

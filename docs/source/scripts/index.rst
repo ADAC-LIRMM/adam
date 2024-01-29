@@ -1,7 +1,7 @@
 .. _build_tools:
 
-Build Tools
-===========
+Scripts
+=======
 
 .. toctree::
    :maxdepth: 1
