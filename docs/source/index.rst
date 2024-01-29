@@ -26,6 +26,7 @@ RAL (Register Abstraction Layer).
    :caption: Contents:
    
    getting_started
+   configuration
    guidelines/index
    scripts/index
    hal/index

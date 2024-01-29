@@ -53,3 +53,47 @@ Implemented Flows
     
 - ``fpga_flow``: Targeted at FPGA deployment, this flow combines ``atgen``,
   and ``bitst``.
+
+.. note::
+
+   Bits and pieces of the ``power_flow`` are still present within the script.
+   However, due to significant changes and extensive refactoring required to
+   align with the project's current direction, it wont run without considerable
+   refactoring.
+
+Command Line Flags
+==================
+
+- ``-p, --project``: Specifies the project directory containing configuration
+  files and source code.
+    
+- ``-w, --work``: Sets the work directory where all generated 
+  output files will be stored.
+
+- ``-t, --target``: Selects the target from the adam.yml file.
+  
+- ``-d, --dry-run``: Performs a trial run without executing any tasks,
+  useful for verifying configurations and command line options.
+   
+- ``-y, --assume-yes``: Automatically confirms any prompts during execution,
+  automating operations that would otherwise require user interaction.
+    
+- ``-g, --gui``: Opens graphical interfaces of external tools, if supported,
+  for tasks that have a GUI option.
+   
+- ``--dirty``: Prevents cleaning of the work directories before starting a
+  new task, useful for enabling iterative compilation in some *tasks*.
+
+- ``--help``: Displays a help message listing all command-line options and
+  their descriptions.
+
+Task/Flow Specific Flags
+------------------------
+
+- ``--top``: Used with ``vunit`` or ``test_flow`` to run a specific testbench
+  or a test case within a testbench.
+  Format: ``<testbench name>`` or ``<testbench name>.<test case>``.
+
+- ``--help``: Displays detailed help information for the specified task or
+  flow, outlining available options and usage instructions.
+  
