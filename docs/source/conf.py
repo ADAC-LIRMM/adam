@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'ADAM'
-copyright = '2023, LIRMM'
+copyright = '2024, LIRMM'
 author = 'LIRMM'
 
 # -- General configuration ---------------------------------------------------
