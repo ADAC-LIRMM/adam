@@ -241,7 +241,7 @@ def main():
         help='Output SystemVerilog file.')
     parser.add_argument('-n', '--name', type=str, default='adam_cfg_pkg',
         help='SystemVerilog package name (default: adam_cfg_pkg).')
-    parser.add_argument('-t', '--target', type=str,
+    parser.add_argument('-t', '--target', type=str, default='default',
         help='The ADAM target.')  
 
     args = parser.parse_args()
