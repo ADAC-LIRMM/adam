@@ -35,15 +35,15 @@ ROM_TARGET 	= $(TARGET_DIR)/$(PROJECT).sv
 BASE_SRCS = \
     src/startup.s \
 	src/main.c \
-	#src/cvt.c \
-	#src/ee_printf.c \
+	src/cvt.c \
+	src/ee_printf.c \
 	
 FAST_SRCS = \
 	src/sleep.s \
-	#coremark/core_list_join.c \
-	#coremark/core_matrix.c \
-	#coremark/core_state.c \
-	#coremark/core_util.c
+	coremark/core_list_join.c \
+	coremark/core_matrix.c \
+	coremark/core_state.c \
+	coremark/core_util.c
 
 SRCS = $(BASE_SRCS) $(FAST_SRCS)
 

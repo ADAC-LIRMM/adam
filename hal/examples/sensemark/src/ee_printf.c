@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <coremark.h>
 #include <sensemark.h>
 #include <stdarg.h>
 
@@ -668,7 +667,7 @@ ee_printf(const char *fmt, ...)
     va_list args;
     int n = 0;
 
-    if (get_mhartid() == 0) {
+    if (mhartid() == 0 || 1) {
         uart = RAL.LSPA.UART[0];
     } else {
         uart = RAL.LSPA.UART[1];

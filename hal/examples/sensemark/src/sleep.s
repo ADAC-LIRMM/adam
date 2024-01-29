@@ -95,9 +95,9 @@ fp_backup_end:
     sw x31, 124(sp)
 
     # Load Memory Bank Addresses
-	li t0, 0x12000000 # RAM
-	la t1, 0x14000000 # RAM Backup
-	la t2, 0x14004000 # RAM Backup End (16k)
+	li t0, 0x01000000 # RAM
+	la t1, 0x02000000 # RAM Backup
+	la t2, 0x02004000 # RAM Backup End (16k)
     
     # Backup Stack Pointer
     sw sp, 0(t1)
@@ -126,7 +126,7 @@ backup_loop_end:
 
     # Trigger Maestro Action
     li t1, 3
-    li t2, 0x20001008
+    li t2, 0x02008074
     sw t1, 0(t2)
 wait_maestro:
     lw t1, 0(t2)
@@ -136,9 +136,9 @@ wait_maestro:
 wakeup:
 
     # Load Memory Bank Addresses
-	li t0, 0x12000000 # RAM
-	la t1, 0x14000000 # RAM Backup
-	la t2, 0x14004000 # RAM Backup End (16k)
+	li t0, 0x01000000 # RAM
+	la t1, 0x02000000 # RAM Backup
+	la t2, 0x02004000 # RAM Backup End (16k)
     
     # Restore Stack Pointer
     lw sp, 0(t1)

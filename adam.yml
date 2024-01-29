@@ -151,6 +151,8 @@ fsets:
       - ../include/
 
     sources:
+      - ../hal/examples/sensemark/build/target/sensemark.sv
+
       - intf/adam_intf_io.sv
       - intf/adam_intf_jtag.sv
       - intf/adam_intf_pause.sv
