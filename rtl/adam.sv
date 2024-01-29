@@ -131,8 +131,8 @@ module adam #(
 
             .irq (lsdom_lpcpu_irq),
 
-            .debug_req     ('0),
-            .debug_unavail ()
+            .debug_req     (hsdom_debug_req[0]),
+            .debug_unavail (hsdom_debug_unavail[0])
         );
     end
     else begin

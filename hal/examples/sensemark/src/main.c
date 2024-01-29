@@ -15,18 +15,18 @@ static void cm_run(void);
 
 int main()
 {
-    volatile int init_guard = 1;
-    while(init_guard); // Change its value in debug!
+    // volatile int init_guard = 1;
+    // while(init_guard); // Change its value in debug!
 
     hw_init();
+
+    // Resume LPCPU
+    RAL.SYSCFG->LPCPU.MR = 1;
+    while(RAL.SYSCFG->LPCPU.MR);
 
     ee_printf("IM ALIVE [CPU]\r\n");
 
     cm_init();
-
-    // Resume LPCPU
-    // RAL.SYSCFG->LPCPU.MR = 1;
-    // while(RAL.SYSCFG->LPCPU.MR);
 
     while (1) {
         //sleep();
@@ -44,13 +44,13 @@ int main_lpu()
 {
     int i, j;
 
-    print("IM ALIVE [LPU]\r\n");
+    ee_printf("IM ALIVE [LPU]\r\n");
 
     i = 0;
     j = 0;
 
     while(1) { 
-        print("test\r\n");       
+        ee_printf("test\r\n");       
         //asm volatile("wfi");
 
         while(!RAL.LSPA.SPI[0]->TBE);
@@ -63,7 +63,7 @@ int main_lpu()
 
             char *str = " \r\n";
             str[0] = '0' + j++ % 10;
-            print(str);
+            ee_printf(str);
 
             RAL.SYSCFG->CPU[0].MR = 1;
             while(RAL.SYSCFG->CPU[0].MR);
@@ -77,9 +77,9 @@ int main_lpu()
 
 void hw_init(void)
 {
-    // Stop LPCPU
-    RAL.SYSCFG->LPCPU.MR = 3;
-    while(RAL.SYSCFG->LPCPU.MR);
+    // // Stop LPCPU
+    // RAL.SYSCFG->LPCPU.MR = 3;
+    // while(RAL.SYSCFG->LPCPU.MR);
 
     // Resume LPMEM
     RAL.SYSCFG->LPMEM.MR = 1;

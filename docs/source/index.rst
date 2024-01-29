@@ -22,11 +22,12 @@ RAL (Register Abstraction Layer).
 .. _ICOBS: https://gite.lirmm.fr/adac/icobs/
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
    
    getting_started
    guidelines/index
+   build_tools/index
    hal/index
    fabric/index
    periph/index

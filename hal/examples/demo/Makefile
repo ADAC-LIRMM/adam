@@ -12,8 +12,7 @@ OBJDUMP = riscv32-unknown-elf-objdump
 ADAM_DIR = $(shell realpath ../../../)
 
 CODE_LOADER = $(ADAM_DIR)/scripts/code_loader.py
-MEM_MAP_GEN = $(ADAM_DIR)/scripts/mem_map_gen.py
-ROM_GEN     = $(ADAM_DIR)/scripts/rom_gen.py
+GEN_ROM     = $(ADAM_DIR)/scripts/rom_gen.py
 
 # ============================================================================ #
 
@@ -123,7 +122,7 @@ $(MAP_TARGET): $(ELF_TARGET)
 
 $(ROM_TARGET): $(ELF_TARGET)
 	@mkdir -p $(dir $@)
-	$(ROM_GEN) $< -o $@ -f sverilog -m $(PROJECT)
+	$(GEN_ROM) $< -o $@ -f sverilog -m $(PROJECT)
 
 # ============================================================================ #
 

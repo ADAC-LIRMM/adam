@@ -667,7 +667,7 @@ ee_printf(const char *fmt, ...)
     va_list args;
     int n = 0;
 
-    if (mhartid() == 0 || 1) {
+    if (mhartid() == 0) {
         uart = RAL.LSPA.UART[0];
     } else {
         uart = RAL.LSPA.UART[1];
