@@ -25,8 +25,8 @@ how one would do it:
 
 .. code-block:: bash
 
-   $ cd work/default/atgen
-   $ gen_pkg.py target.yml -o adam_cfg_pkg.sv -n adam_cfg_pkg -t default
+   (adam) ~/work/default/atgen $ gen_pkg.py target.yml -o adam_cfg_pkg.sv \
+      -n adam_cfg_pkg -t default
 
 In this example, ``target.yml`` is the input YAML configuration file,
 ``adam_cfg_pkg.sv`` is the desired output SystemVerilog file,
