@@ -10,9 +10,9 @@ This adaptability, combined with the :ref:`activity_pause_protocol` for
 efficient power management, positions ADAM as a versatile tool for developing
 energy-efficient computing nodes.
 
-The ``adam.py`` script and ``adam.yml`` configuration file improves the project
-management by automating various tasks, making the development process more
-efficient.
+The :ref:`adam_py` script and :ref::`adam_yml` configuration file improves the
+project management by automating various tasks, making the development process
+more efficient.
 This efficiency is further supported by the integration of an
 HAL (Hardware Abstraction Layer) and an auto-generated
 RAL (Register Abstraction Layer).
