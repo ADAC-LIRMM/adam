@@ -90,7 +90,7 @@ Now you have a docker image running with ADAM installed. You can check it by:
     
 .. code-block:: bash
 
-    (adam) ~ $ flow.py --help
+    (adam) ~ $ adam.py --help
 
 
 In the future, you can run the docker image without rebuilding by running:
@@ -121,30 +121,30 @@ This can be done running the following command:
 
 .. code-block:: bash
 
-    (adam) ~ $ flow.py vunit
+    (adam) ~ $ adam.py vunit
 
-Running Software Applications
-=============================
+.. Running Software Applications
+.. =============================
 
-In this section, we will run a full software application demo on ADAM.
-First, go to the demo directory:
+.. In this section, we will run a full software application demo on ADAM.
+.. First, go to the demo directory:
 
-.. code-block:: bash
+.. .. code-block:: bash
 
-    (adam) ~ $ cd examples/demo
+..     (adam) ~ $ cd hal/examples/demo
 
-Second, compile the software application:
+.. Second, compile the software application:
 
-.. code-block:: bash
+.. .. code-block:: bash
 
-    (adam) ~ $ make all
+..     (adam) ~ $ make all
 
-Third, load the software application on ADAM:
+.. Third, load the software application on ADAM:
 
-.. code-block:: bash
+.. .. code-block:: bash
 
-    (adam) ~ $ python3 ./scripts/code_loader.py ./build/target/demo.elf \
-    -p /dev/ttyUSB2
+..     (adam) ~ $ python3 ./scripts/code_loader.py ./build/target/demo.elf \
+..     -p /dev/ttyUSB2
 
-The software application should be running on ADAM now.
-You can check the UART output in this very terminal.
+.. The software application should be running on ADAM now.
+.. You can check the UART output in this very terminal.

@@ -37,7 +37,7 @@ SRCS = \
 	src/main.c
 
 INCS = \
-	$(ADAM_DIR)/HAL/inc \
+	$(ADAM_DIR)/hal/inc \
 	inc
 
 LDSCRIPT = link.ld
