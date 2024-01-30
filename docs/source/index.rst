@@ -25,7 +25,7 @@ RAL (Register Abstraction Layer).
    :maxdepth: 1
    :caption: Contents:
    
-   getting_started/index
+   tutorials/index
    configuration
    hal/index
    debug
