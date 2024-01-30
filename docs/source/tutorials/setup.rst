@@ -101,6 +101,23 @@ the script without the ``--build`` flag.
 To exit the interactive Docker container session, type ``exit`` at the
 command prompt.
 
+Setup
+=====
+
+.. warning::
+
+   It's crucial to re-run the setup script after any major changes,
+   such as switching branches, to ensure that all dependencies are
+   correctly configured.
+
+To configure ADAM and its dependencies, especially after significant changes
+like branch switches, run the setup script within your Docker container. 
+:ref:`Read more <setup_bash>`.
+
+.. code-block:: bash
+
+   (adam) ~ $ setup.bash --no-venv
+
 Verifying the Installation
 ==========================
 
