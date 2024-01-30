@@ -47,7 +47,7 @@ RUN dpkg --add-architecture i386 && \
 
 RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen && locale-gen
 
-ARG ARCH="rv32imc_zicsr_zifencei"
+ARG ARCH="rv32imfc_zicsr_zifencei"
 
 ENV PATH="/opt/riscv/bin:${PATH}"
 
@@ -57,9 +57,9 @@ RUN git clone https://github.com/riscv/riscv-gnu-toolchain.git && \
     ./configure --prefix=/opt/riscv \
         --enable-debug-info=yes \
         --disable-linux \
-        --disable-multilib \
+        --enable-multilib \
         --with-arch=${ARCH} \
-        --with-abi=ilp32 \
+        --with-abi=ilp32f \
         --with-cmodel=medlow \
     && make -j$(nproc) && \
     cd .. && rm -rf riscv-gnu-toolchain

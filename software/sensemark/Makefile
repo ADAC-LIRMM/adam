@@ -50,12 +50,12 @@ INCS = \
 	inc \
 	coremark
 
-LDSCRIPT = link.ld
+LDSCRIPT = ../link.ld
 
 # ============================================================================ #
 
 BASE_GFLAGS = -march=rv32imc_zicsr -mabi=ilp32
-FAST_GFLAGS = -march=rv32imfc_zicsr -mabi=ilp32
+FAST_GFLAGS = -march=rv32imfc_zicsr -mabi=ilp32f
 
 CFLAGS   = -g -O0 -Wall -Wextra -static -mcmodel=medany -ffunction-sections \
 	-fdata-sections -fstrict-volatile-bitfields $(DEFS)

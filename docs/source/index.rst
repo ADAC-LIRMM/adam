@@ -25,14 +25,15 @@ RAL (Register Abstraction Layer).
    :maxdepth: 1
    :caption: Contents:
    
-   getting_started
+   getting_started/index
    configuration
-   guidelines/index
-   scripts/index
    hal/index
+   debug
    fabric/index
    periph/index
    activity_pause_protocol
+   scripts/index
+   guidelines/index
 
 Indices and tables
 ==================

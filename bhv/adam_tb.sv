@@ -121,20 +121,20 @@ module adam_tb;
         );
     end
 
-    sensemark #(
-        `ADAM_CFG_PARAMS_MAP
-    ) sensemark (
-        .seq (hsdom_mem_seq[0]),
+    // sensemark #(
+    //     `ADAM_CFG_PARAMS_MAP
+    // ) sensemark (
+    //     .seq (hsdom_mem_seq[0]),
 
-        .req   (hsdom_mem_req[0]),
-        .addr  (hsdom_mem_addr[0]),
-        .we    (hsdom_mem_we[0]),
-        .be    (hsdom_mem_be[0]),
-        .wdata (hsdom_mem_wdata[0]),
-        .rdata (hsdom_mem_rdata[0])
-    );
+    //     .req   (hsdom_mem_req[0]),
+    //     .addr  (hsdom_mem_addr[0]),
+    //     .we    (hsdom_mem_we[0]),
+    //     .be    (hsdom_mem_be[0]),
+    //     .wdata (hsdom_mem_wdata[0]),
+    //     .rdata (hsdom_mem_rdata[0])
+    // );
 
-    for (genvar i = 1; i < NO_MEMS; i++) begin
+    for (genvar i = 0; i < NO_MEMS; i++) begin
         adam_mem #(
             `ADAM_CFG_PARAMS_MAP,
 

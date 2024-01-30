@@ -1,5 +1,5 @@
-HAL
-============
+HAL -- Hardware Abstraction Layer
+=================================
 
 .. toctree::
    :maxdepth: 2

@@ -151,8 +151,6 @@ fsets:
       - ../include/
 
     sources:
-      - ../hal/examples/sensemark/build/target/sensemark.sv
-
       - intf/adam_intf_io.sv
       - intf/adam_intf_jtag.sv
       - intf/adam_intf_pause.sv
@@ -192,13 +190,10 @@ fsets:
       - fabric/adam_fabric_lspx.sv
       - fabric/adam_fabric.sv
 
-      #- adam_syscfg.sv
       - adam.sv
       
       - adam_clk_div.sv
       - adam_mem.sv
-      #- adam_synth.sv
-      #- adam_synth_intf.sv
 
   adam_cv32e40p_rtl:
     requires:
