@@ -16,7 +16,7 @@ set(CMAKE_EXE_LINKER_FLAGS "${GLOBAL_FLAGS} -T ${LINKER_SCRIPT} -nostdlib -nosta
 
 # HAL
 #file(GLOB_RECURSE HAL_SOURCES "${CMAKE_SOURCE_DIR}/hal/src/*.c")
-include_directories("${CMAKE_SOURCE_DIR}/hal/inc")
+# include_directories("${CMAKE_SOURCE_DIR}/hal/inc")
 
 # Sensemark
 set(SENSEMARK_INCLUDE

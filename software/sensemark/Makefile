@@ -1,4 +1,4 @@
-# Authors: Soriano Theo; Felipe Alencar
+# Authors: Felipe Alencar
 
 AS  = riscv32-unknown-elf-as
 CC  = riscv32-unknown-elf-gcc
@@ -9,10 +9,10 @@ OBJDUMP = riscv32-unknown-elf-objdump
 
 # ============================================================================ #
 
-ICOBS_DIR = $(shell realpath ../../../)
+ADAM_DIR = $(shell realpath ../../)
 
-CODE_LOADER = $(ICOBS_DIR)/scripts/code_loader.py
-GEN_ROM     = $(ICOBS_DIR)/scripts/gen_rom.py
+CODE_LOADER = $(ADAM_DIR)/scripts/code_loader.py
+GEN_ROM     = $(ADAM_DIR)/scripts/gen_rom.py
  
 # ============================================================================ #
 
