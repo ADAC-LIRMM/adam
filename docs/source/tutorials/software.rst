@@ -117,7 +117,7 @@ With OpenOCD ready, proceed with debugging:
 
 .. code-block:: bash
 
-   (adam) ~ $ gdb path/to/your/application.elf
+   (adam) ~ $ riscv32-unknown-elf-gdb path/to/your/application.elf
 
 2. **Connect GDB to OpenOCD**: Inside GDB, connect to the OpenOCD server.
 
