@@ -27,7 +27,7 @@ RAL (Register Abstraction Layer).
    
    tutorials/index
    configuration
-   hal/index
+   software/index
    hardware/index
    scripts/index
    guidelines/index
