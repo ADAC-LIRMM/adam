@@ -24,7 +24,7 @@ software, and possibly configuration tutorials.
    your specific development needs.
 
 6. :ref:`tutorial_hardware_development`: Dive into how to develop and integrate
-   an example peripheral into adam.
+   an example peripheral into ADAM.
    
 .. toctree::
    :maxdepth: 1
