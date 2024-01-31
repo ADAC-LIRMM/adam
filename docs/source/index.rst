@@ -28,10 +28,7 @@ RAL (Register Abstraction Layer).
    tutorials/index
    configuration
    hal/index
-   debug
-   fabric/index
-   periph/index
-   activity_pause_protocol
+   hardware/index
    scripts/index
    guidelines/index
 
