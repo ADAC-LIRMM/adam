@@ -23,6 +23,9 @@ software, and possibly configuration tutorials.
 5. :ref:`tutorial_custom_configuration`: Explore how to configure ADAM for
    your specific development needs.
 
+6. :ref:`tutorial_hardware_development`: Dive into how to develop and integrate
+   an example peripheral into adam.
+   
 .. toctree::
    :maxdepth: 1
    :caption: Contents:
@@ -32,3 +35,4 @@ software, and possibly configuration tutorials.
    bitstream
    software
    custom_configuration
+   hardware_development

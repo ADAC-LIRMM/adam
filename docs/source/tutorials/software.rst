@@ -9,8 +9,8 @@ Welcome to ADAM's Software Tutorial, where we'll guide you through the
 process of compiling an example project, setting up the hardware,
 and taking your design from compilation to execution.
 
-Compiling an Project
-====================
+Compiling an Application
+========================
 
 TODO
 
