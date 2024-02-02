@@ -123,7 +123,7 @@ With OpenOCD ready, proceed with debugging:
 
 .. code-block:: bash
 
-   (gdb) target remote localhost:3333
+   (gdb) target remote :3333
 
 Debugging with GDB
 ==================
