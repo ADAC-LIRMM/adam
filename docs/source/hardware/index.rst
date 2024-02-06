@@ -8,5 +8,6 @@ Hardware
    :caption: Contents:
     
    fabric
+   syscfg
    activity_pause_protocol
    periph/index
