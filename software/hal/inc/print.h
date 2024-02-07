@@ -1,7 +1,7 @@
 #ifndef __PRINT_H__
 #define __PRINT_H__
 
-#include "mem_map.h"
+#include "adam_ral.h"
 #include "types.h"
 #include "uart.h"
 #include <stdarg.h>

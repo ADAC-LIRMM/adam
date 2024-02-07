@@ -21,8 +21,8 @@ int main()
     hw_init();
 
     // Resume LPCPU
-    RAL.SYSCFG->LPCPU.MR = 1;
-    while(RAL.SYSCFG->LPCPU.MR);
+    // RAL.SYSCFG->LPCPU.MR = 1;
+    // while(RAL.SYSCFG->LPCPU.MR);
 
     ee_printf("IM ALIVE [CPU]\r\n");
 

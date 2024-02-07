@@ -6,22 +6,24 @@
 #include <stdint.h>
 #include <stdarg.h>
 
-#define _WFI() {asm volatile("wfi");}
+extern void sleep(void);
+
+// #define _WFI() {asm volatile("wfi");}
 
 // Architecture definition inc
-#include "mem_map.h"
+#include "adam_ral.h"
 
 // Drivers inc
-#include "gpio.h"
-#include "spi.h"
+// #include "gpio.h"
+// #include "spi.h"
 #include "uart.h"
-#include "timer.h"
-#include "sysctrl.h"
+// #include "timer.h"
+// #include "sysctrl.h"
 
 // Utils inc
-#include "types.h"
-#include "utils.h"
-#include "print.h"
+// #include "types.h"
+// #include "utils.h"
+// #include "print.h"
 
 // Application headers
 

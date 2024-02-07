@@ -15,36 +15,21 @@
 reset_handler:
 
 	# Maestro Registers Addresses
-	la x1, 0x20000408 # MMR0
-	la x2, 0x20000414 # MMR1
-	la x3, 0x20000420 # MMR2
-	la x4, 0x2000042C # MMR3
-	la x5, 0x20000438 # MMR4
+	la x1, 0x00008094 # MEM0
+	la x2, 0x000080a4 # MEM1
 
 	# Trigger Maestro Resume 
 	li x6, 1 
 	sw x6, 0(x1)
 	sw x6, 0(x2)
-	sw x6, 0(x3)
-	sw x6, 0(x4)
-	sw x6, 0(x5)
 
 	# Wait for completion
-wait_mmr0:
+wait_mem0:
 	lw x6, 0(x1)
-	bne x6, x0, wait_mmr0
-wait_mmr1:
+	bne x6, x0, wait_mem0
+wait_mem1:
 	lw x6, 0(x2)
-	bne x6, x0, wait_mmr1
-wait_mmr2:
-	lw x6, 0(x3)
-	bne x6, x0, wait_mmr2
-wait_mmr3:
-	lw x6, 0(x4)
-	bne x6, x0, wait_mmr3
-wait_mmr4:
-	lw x6, 0(x5)
-	bne x6, x0, wait_mmr4
+	bne x6, x0, wait_mem1
 
 	# Set up Interrupts
     li     t1, 1
@@ -52,6 +37,18 @@ wait_mmr4:
     csrs   mstatus, t2
     slli   t2, t1, 11 # Machine External Interrupt Enable (MEIE)
     csrs   mie, t2
+
+lpu_setup:
+	csrr t0, mhartid
+	bne t0, x0, lpu_setup_end
+	li sp, 0x000003FC # LPMEM
+	jal main_lpu
+lpu_setup_end:
+
+	# Set up Floating-Point
+    li     t1, 1
+    slli   t1, t1, 13 # FP
+    csrs   mstatus, t1
 
     # Set up stack pointer
 	la sp, _stack_end
@@ -136,7 +133,7 @@ trap:
 	.rept 10
 	    j default_handler
 	.endr
-	j external_irq_handler
+	j default_handler /* external_irq_handler */
 	.rept 4
 	    j default_handler
 	.endr
@@ -172,7 +169,6 @@ trap:
 /* -------------------------------------------------------------------------- */
 /* WEAK ALIASES */
 
-.weak external_irq_handler
 .weak irq_0_handler
 .weak irq_1_handler
 .weak irq_2_handler
@@ -190,7 +186,6 @@ trap:
 .weak irq_14_handler
 .weak irq_nmi_handler
 
-.set external_irq_handler, default_handler
 .set irq_0_handler, default_handler
 .set irq_1_handler, default_handler
 .set irq_2_handler, default_handler

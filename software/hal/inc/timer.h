@@ -2,7 +2,7 @@
 #ifndef __TIMER_H__
 #define	__TIMER_H__
 
-#include "mem_map.h"
+#include "adam_ral.h"
 #include "types.h"
 
 typedef struct

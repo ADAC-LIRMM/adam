@@ -1,7 +1,7 @@
 #ifndef __UTILS_H__
 #define	__UTILS_H__
 
-#include "mem_map.h"
+#include "adam_ral.h"
 #include "types.h"
 #include "print.h"
 

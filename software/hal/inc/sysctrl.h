@@ -2,7 +2,7 @@
 #ifndef __SYSCTRL_H__
 #define	__SYSCTRL_H__
 
-#include "mem_map.h"
+#include "adam_ral.h"
 #include "types.h"
 
 #define SYSCTRL_SYSCTRL_INTERUPT(__MASK__)  {SYSCTRL.IER_CPU0_IE0 = (__MASK__);}

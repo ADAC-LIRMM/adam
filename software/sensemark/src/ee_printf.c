@@ -668,9 +668,9 @@ ee_printf(const char *fmt, ...)
     int n = 0;
 
     if (mhartid() == 0) {
-        uart = RAL.LSPA.UART[0];
-    } else {
         uart = RAL.LSPA.UART[1];
+    } else {
+        uart = RAL.LSPA.UART[0];
     }
 
     va_start(args, fmt);

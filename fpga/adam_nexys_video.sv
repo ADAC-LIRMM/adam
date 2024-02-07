@@ -25,6 +25,11 @@ module adam_nexys_video (
     logic rst;
     logic [3:0] counter;
 
+    initial begin
+        counter = 0;
+        rst = 1;
+    end
+
     always_ff @(posedge clk) begin
         if (!rstn) begin
             counter <= 0;

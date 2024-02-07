@@ -11,8 +11,8 @@ _heap_size  = 8192;
 /* Memory */
 MEMORY
 {
-	ROM (rx)  : ORIGIN = 0x11000000, LENGTH = 512K
-    RAM (w)   : ORIGIN = 0x12000000, LENGTH = 512K
+	ROM (rx)  : ORIGIN = 0x01000000, LENGTH = 32768
+    RAM (w)   : ORIGIN = 0x02000000, LENGTH = 32768
 }
 
 /* Sections */

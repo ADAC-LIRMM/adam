@@ -1,7 +1,7 @@
 #ifndef __SPI_H__
 #define __SPI_H__
 
-#include "mem_map.h"
+#include "adam_ral.h"
 #include "types.h"
 #include "utils.h"
 

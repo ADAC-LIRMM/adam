@@ -1,4 +1,4 @@
-# Authors: Soriano Theo; Felipe Alencar
+# Authors: Felipe Alencar
 
 AS  = riscv32-unknown-elf-as
 CC  = riscv32-unknown-elf-gcc
@@ -9,11 +9,11 @@ OBJDUMP = riscv32-unknown-elf-objdump
 
 # ============================================================================ #
 
-ADAM_DIR = $(shell realpath ../../../)
+ADAM_DIR = $(shell realpath ../../)
 
 CODE_LOADER = $(ADAM_DIR)/scripts/code_loader.py
-GEN_ROM     = $(ADAM_DIR)/scripts/rom_gen.py
-
+GEN_ROM     = $(ADAM_DIR)/scripts/gen_rom.py
+ 
 # ============================================================================ #
 
 BUILD_DIR = build
@@ -31,24 +31,31 @@ ROM_TARGET 	= $(TARGET_DIR)/$(PROJECT).sv
 
 # ============================================================================ #
 
-SRCS = \
-	src/startup.s \
-	$(wildcard $(ADAM_DIR)/HAL/src/*.c) \
-	src/main.c
+BASE_SRCS = \
+    src/startup.s \
+	$(ADAM_DIR)/software/hal/src/uart.c \
+	src/main.c \
+	
+FAST_SRCS = \
+	src/sleep.s \
+
+SRCS = $(BASE_SRCS) $(FAST_SRCS)
 
 INCS = \
-	$(ADAM_DIR)/hal/inc \
-	inc
+	inc \
+	$(ADAM_DIR)/software/hal/inc \
 
 LDSCRIPT = link.ld
 
 # ============================================================================ #
 
-GFLAGS   = -march=rv32i_zicsr -mabi=ilp32
-CFLAGS   = -Wall -Wextra -static -mcmodel=medany -ffunction-sections \
-	-fdata-sections -O3 -fstrict-volatile-bitfields
-CXXFLAGS = -Wall -Wextra -static -mcmodel=medany -ffunction-sections \
-	-fdata-sections -O3 -fstrict-volatile-bitfields
+BASE_GFLAGS = -march=rv32imc_zicsr -mabi=ilp32
+FAST_GFLAGS = -march=rv32imfc_zicsr -mabi=ilp32f
+
+CFLAGS   = -g -O0 -Wall -Wextra -static -mcmodel=medany -ffunction-sections \
+	-fdata-sections -fstrict-volatile-bitfields $(DEFS)
+CXXFLAGS = -g -O0 -Wall -Wextra -static -mcmodel=medany -ffunction-sections \
+	-fdata-sections -fstrict-volatile-bitfields $(DEFS)
 LDFLAGS  = -Wl,--gc-sections -Wl,-Map=$(MAP_TARGET) -nostdlib \
 	-nostartfiles
 
@@ -58,7 +65,7 @@ OBJS = \
 	$(patsubst %.c,$(OBJ_DIR)/%.o,$(filter %.c,$(SRCS))) \
     $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(filter %.cpp,$(SRCS))) \
     $(patsubst %.s,$(OBJ_DIR)/%.o,$(filter %.s,$(SRCS)))
-
+	
 DEPS = \
 	$(patsubst %.c,$(DEP_DIR)/%.d,$(filter %.c,$(SRCS))) \
 	$(patsubst %.cpp,$(DEP_DIR)/%.d,$(filter %.cpp,$(SRCS)))
@@ -76,15 +83,27 @@ all: \
 
 $(OBJ_DIR)/%.o: %.s
 	@mkdir -p $(dir $@)
-	$(AS) $< -o $@ -c $(GFLAGS)
+ifeq ($(findstring $<,$(FAST_SRCS)),)
+	$(AS) $< -o $@ -c $(FAST_GFLAGS)
+else
+	$(AS) $< -o $@ -c $(BASE_GFLAGS)
+endif
 
 $(OBJ_DIR)/%.o: %.c
 	@mkdir -p $(dir $@)
-	$(CC) $< -o $@ -c -MMD -MP $(GFLAGS) $(CFLAGS) $(addprefix -I, $(INCS))
+ifeq ($(findstring $<,$(FAST_SRCS)),)
+	$(CC) $< -o $@ -c -MMD -MP $(FAST_GFLAGS) $(CFLAGS) $(addprefix -I, $(INCS))
+else
+	$(CC) $< -o $@ -c -MMD -MP $(BASE_GFLAGS) $(CFLAGS) $(addprefix -I, $(INCS))
+endif
 
 $(OBJ_DIR)/%.o: %.cpp
 	@mkdir -p $(dir $@)
-	$(CXX) $< -o $@ -c -MMD -MP $(GFLAGS) $(CXXFLAGS) $(addprefix -I, $(INCS))
+ifeq ($(findstring $<,$(FAST_SRCS)),)
+	$(CXX) $< -o $@ -c -MMD -MP $(FAST_GFLAGS) $(addprefix -I, $(INCS))
+else
+	$(CXX) $< -o $@ -c -MMD -MP $(BASE_GFLAGS) $(addprefix -I, $(INCS))
+endif
 
 # ============================================================================ #
 
