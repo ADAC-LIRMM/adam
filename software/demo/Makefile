@@ -34,6 +34,9 @@ ROM_TARGET 	= $(TARGET_DIR)/$(PROJECT).sv
 BASE_SRCS = \
     src/startup.s \
 	$(ADAM_DIR)/software/hal/src/uart.c \
+	$(ADAM_DIR)/software/hal/src/cvt.c \
+	$(ADAM_DIR)/software/hal/src/print.c \
+	$(ADAM_DIR)/software/hal/src/timer.c \
 	src/main.c \
 	
 FAST_SRCS = \
@@ -49,15 +52,42 @@ LDSCRIPT = link.ld
 
 # ============================================================================ #
 
-BASE_GFLAGS = -march=rv32imc_zicsr -mabi=ilp32
-FAST_GFLAGS = -march=rv32imfc_zicsr -mabi=ilp32f
+BASE_GFLAGS = -march=rv32imc_zicsr \
+              -mabi=ilp32
 
-CFLAGS   = -g -O0 -Wall -Wextra -static -mcmodel=medany -ffunction-sections \
-	-fdata-sections -fstrict-volatile-bitfields $(DEFS)
-CXXFLAGS = -g -O0 -Wall -Wextra -static -mcmodel=medany -ffunction-sections \
-	-fdata-sections -fstrict-volatile-bitfields $(DEFS)
-LDFLAGS  = -Wl,--gc-sections -Wl,-Map=$(MAP_TARGET) -nostdlib \
-	-nostartfiles
+FAST_GFLAGS = -march=rv32imfc_zicsr \
+              -mabi=ilp32f
+
+CFLAGS   = -g \
+           -O0 \
+           -Wall \
+           -Wextra \
+           -static \
+           -mcmodel=medany \
+           -ffunction-sections \
+           -fdata-sections \
+           -fstrict-volatile-bitfields \
+           $(DEFS)
+
+CXXFLAGS = -g \
+           -O0 \
+           -Wall \
+           -Wextra \
+           -static \
+           -mcmodel=medany \
+           -ffunction-sections \
+           -fdata-sections \
+           -fstrict-volatile-bitfields \
+           $(DEFS)
+
+LDFLAGS  =	-Wl,--gc-sections \
+			-Wl,-Map=$(MAP_TARGET) \
+			-nostdlib \
+			-nostartfiles \
+			-lgcc \
+			-lc_nano \
+			-lnosys \
+			-lsupc++ \
 
 # ============================================================================ #
 

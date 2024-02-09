@@ -1,6 +1,8 @@
 
 #include "uart.h"
 
+#define SYSTEM_CLOCK 50000000 // Define your system clock frequency (e.g., 50MHz)
+
 /**
   * @brief  Initializes the UART peripheral.
   * @param  uart: Pointer to the UART peripheral 
@@ -8,56 +10,20 @@
   * @param  baud_rate: Baud rate to be used.
   * @retval None
   */
-void uart_init(ral_uart_t *uart, int baud_rate) {
-    // Disable UART peripheral
-    uart->CR_BITS.PE = 0;
-    
-    // Configure data length, parity, stop bits, etc. (as needed)
-    uart->CR_BITS.DL = 8; // 8-bit data length
-    uart->CR_BITS.SB = 0; // 1 stop bit
-    uart->CR_BITS.PS = 0; // Even parity
-    uart->CR_BITS.PC = 0; // Parity control disabled
-    uart->CR_BITS.RE = 1; // Receiver enabled
-    uart->CR_BITS.TE = 1; // Transmitter enabled
+void uart_init(ral_uart_t *uart, uint32_t baudrate) {
+    // Calculate the BRR value based on the system clock and desired baud rate
+    uint32_t brr_value = SYSTEM_CLOCK / baudrate;
 
+    // Set the Baud Rate Register (BRR)
+    uart->BRR = brr_value;
 
-    // Configure baud rate
-    uart->BRR = calculate_baudrate(baud_rate);
+    // Reset the Control Register (CR) to 0
+    uart->CR = 0;
 
-    // Enable UART peripheral
-    uart->CR_BITS.PE = 1;
-}
-
-/**
-  * @brief  Sends a single character via UART.
-  * @param  c: Character to be sent.
-  * @retval None
-  */
-void uart_send_char(ral_uart_t *uart, char data) {
-    // Wait until the transmit buffer is empty
-    while (!uart->SR_BITS.TBE);
-
-    // Send the data
-    uart->DR = data;
-}
-
-/**
-  * @brief  Sends a string of characters via UART.
-  * @param  str: Pointer to the null-terminated string.
-  * @retval None
-  */
-void uart_send_str(ral_uart_t *uart, const char *str) {
-    while (*str != '\0') {
-        uart_send_char(uart, *str);
-        str++;
-    }
-}
-
-/**
-  * @brief  Calculates the baud rate register value for a 50MHz clock.
-  * @param  baud_rate: Baud rate to be used.
-  * @retval Baud rate register value.
-  */
-uint32_t calculate_baudrate(int baud_rate) {
-    return (50000000 / baud_rate);
+    // Configure the Control Register (CR) bit by bit
+    uart->CR |= (1 << 0); // PE: Parity control disabled
+    uart->CR |= (1 << 1); // TE: Transmitter enabled
+    uart->CR |= (1 << 2); // RE: Receiver enabled
+    // PC, PS, and SB are already 0 (parity disabled, even parity, 1 stop bit)
+    uart->CR |= (8 << 8); // DL: 8 data bits
 }

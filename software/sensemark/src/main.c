@@ -26,6 +26,10 @@ int main()
 
     ee_printf("IM ALIVE [CPU]\r\n");
 
+    float f = 3.15;
+
+    ee_printf("floa = %f\r\n", f);
+
     cm_init();
 
     while (1) {

@@ -17,13 +17,13 @@ extern void sleep(void);
 // #include "gpio.h"
 // #include "spi.h"
 #include "uart.h"
-// #include "timer.h"
+#include "timer.h"
 // #include "sysctrl.h"
 
 // Utils inc
-// #include "types.h"
+#include "types.h"
 // #include "utils.h"
-// #include "print.h"
+#include "print.h"
 
 // Application headers
 

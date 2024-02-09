@@ -1,69 +1,53 @@
 
 #include "timer.h"
+#include "print.h"
 
-void TIMER_Init(TIMER_t  *TIMERx, TIMER_Init_t *TIMER_Init)
+void timer_init(ral_timer_t  *timer, uint32_t presc, uint32_t val, uint32_t reload)
 {
-    TIMERx->PR = TIMER_Init->Presc;
-    TIMERx->VR = TIMER_Init->Val;
-    TIMERx->ARR = TIMER_Init->Reload;
+    timer->PR  = presc;
+    timer->VR  = val;
+    timer->ARR = reload;
+    timer->ER  = ~0;
+    timer->IER = ~0;
 }
 
-void TIMER_DeInit(TIMER_t  *TIMERx)
+void timer_start(ral_timer_t  *timer)
 {
-    TIMERx->PR = 0;
-    TIMERx->VR = 0;
-    TIMERx->ARR = 0;
+    timer->PE = 1;
+    while(timer->PE != 1);
 }
 
-void TIMER_Start(TIMER_t  *TIMERx)
+void timer_stop(ral_timer_t  *timer)
 {
-    TIMERx->PE = 1;
-    while(TIMERx->PE != 1);
+    timer->PE = 0;
+    while(timer->PE != 0);
 }
 
-void TIMER_Stop(TIMER_t  *TIMERx)
+void timer_wait(ral_timer_t *timer)
 {
-    TIMERx->PE = 0;
-    while(TIMERx->PE != 0);
+    while(timer->ARE != 1);
+    timer->ARE = 1;
 }
 
-void TIMER_Wait(TIMER_t  *TIMERx)
+void delay_ms(ral_timer_t  *timer, uint32_t ms)
 {
-    while(TIMERx->ARE != 1);
-    TIMERx->ARE = 1;
+    timer->PE = 0;
+    timer->PR = 49999;
+    timer->VR = 0;
+    timer->ARR = ms;
+    timer->IER = ~0;
+    timer->PE = 1;
+    while(timer->PE != 1);
+    timer_wait(timer);
 }
 
-void TIMER_Reset_val(TIMER_t  *TIMERx)
+
+unsigned int get_timer_value(ral_timer_t  *timer)
 {
-    TIMERx->VR = 0;
+    return timer->VR;
 }
 
-void delay_ms(TIMER_t  *TIMERx, uint32_t ms)
+void timer_reset_value(ral_timer_t  *timer)
 {
-    TIMER_Stop(TIMERx);
-    TIMERx->PR = 50000;
-    TIMERx->VR = 0;
-    TIMERx->ARR = ms;
-    TIMER_Start(TIMERx);
-    TIMER_Wait(TIMERx);
-}
-
-void set_timer_ms(TIMER_t  *TIMERx, uint32_t ms)
-{
-    TIMER_Stop(TIMERx);
-    TIMERx->PR = 50000;
-    TIMERx->VR = 0;
-    TIMERx->ARR = ms;
-    TIMERx->IER = 1;
-    TIMER_Start(TIMERx);
-}
-
-void set_timer_ns(TIMER_t  *TIMERx, uint32_t ns)
-{
-    TIMER_Stop(TIMERx);
-    TIMERx->PR = 5;
-    TIMERx->VR = 0;
-    TIMERx->ARR = ns;
-    TIMERx->IER = 1;
-    TIMER_Start(TIMERx);
+    timer->VR = 0;
 }

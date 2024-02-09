@@ -4,14 +4,27 @@ static void hw_init(void);
 
 int main()
 {
+    // volatile int init_guard = 1;
+    // while(init_guard); // Change its value in debug!
+
     hw_init();
 
+    // Initialize UART 0 with a baud rate of 9600
     uart_init(RAL.LSPA.UART[0], 9600);
 
-    uart_send_str(RAL.LSPA.UART[0], "Hello, World!\r\n");
+    ee_printf("IM ALIVE!\r\n");
 
-    while(1) {
-    };
+    int i = 35;
+    float f = 3.15;
+    ee_printf("i = %d\r\n", i);
+    ee_printf("f = %.2f\r\n", f);
+
+    ee_printf("Starting timer\r\n");
+
+    while (1) {
+        delay_ms(RAL.LSPA.TIMER[0], 5000);
+        ee_printf("5 Seconds have passed!\r\n");
+    }
 
     return 0;
 }
@@ -23,10 +36,6 @@ int main_lpu()
 
 void hw_init(void)
 {
-    // // Stop LPCPU
-    // RAL.SYSCFG->LPCPU.MR = 3;
-    // while(RAL.SYSCFG->LPCPU.MR);
-
     // Resume LPMEM
     RAL.SYSCFG->LPMEM.MR = 1;
     while(RAL.SYSCFG->LPMEM.MR);
@@ -37,41 +46,21 @@ void hw_init(void)
         while(RAL.SYSCFG->MEM[i].MR);
     }
 
-    // Resume UART0
+    // // Resume UART0
     RAL.SYSCFG->LSPA.UART[0].MR = 1;
-    while(RAL.SYSCFG->LSPA.UART[0].MR);
-
-    // Resume UART1
-    RAL.SYSCFG->LSPA.UART[1].MR = 1;
-    while(RAL.SYSCFG->LSPA.UART[1].MR);
-
-    // Resume SPI0
-    RAL.SYSCFG->LSPA.SPI[0].MR = 1;
     while(RAL.SYSCFG->LSPA.UART[0].MR);
 
     // Resume TIMER0
     RAL.SYSCFG->LSPA.TIMER[0].MR = 1;
     while(RAL.SYSCFG->LSPA.TIMER[0].MR);
 
-    // Set up SPI0
-    RAL.LSPA.SPI[0]->TE   = 1;
-    RAL.LSPA.SPI[0]->RE   = 0;
-    RAL.LSPA.SPI[0]->MS   = 1;
-    RAL.LSPA.SPI[0]->CPHA = 0;
-    RAL.LSPA.SPI[0]->CPOL = 0;
-    RAL.LSPA.SPI[0]->DO   = 0;
-    RAL.LSPA.SPI[0]->DL   = 8;
-    RAL.LSPA.SPI[0]->BRR  = 50; // 1MHz @ 50 MHz
-    RAL.LSPA.SPI[0]->PE   = 1;
-
-    // Set up TIMER0
-    RAL.LSPA.TIMER[0]->PR  = 0; // 50MHz @ 50MHz
-    RAL.LSPA.TIMER[0]->VR  = 0;
-    RAL.LSPA.TIMER[0]->ARR = 1134; // 44100 Hz
-    RAL.LSPA.TIMER[0]->ER  = ~0;
-    RAL.LSPA.TIMER[0]->IER = ~0;
-    RAL.LSPA.TIMER[0]->PE  = 1;
-
+    // Why we don't need this command 
+    // if it is not the LPCPU we're using?
     // Enable all interrupts for LPCPU
     RAL.SYSCFG->LPCPU.IER = ~0;
+}
+
+void __attribute__((interrupt)) default_handler(void)
+{
+    RAL.LSPA.TIMER[0]->ER = ~0;
 }

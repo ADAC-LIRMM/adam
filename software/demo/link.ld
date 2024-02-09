@@ -109,6 +109,9 @@ SECTIONS
 		_bss_end = .;
 	} > RAM
 
+	_end = .;
+	PROVIDE (end = .);
+
 	.heap (NOLOAD) :
 	{
 		. = ALIGN(4);

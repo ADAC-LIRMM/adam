@@ -462,14 +462,14 @@ typedef struct {
             ral_data_t SB : 1;
             ral_data_t : 2;
             ral_data_t DL : 4;
-        } CR_BITS;
+        };
     };
     union {
         ral_data_t SR;
         struct {
             ral_data_t TBE : 1;
             ral_data_t RBF : 1;
-        } SR_BITS;
+        };
     };
     ral_data_t BRR;
     union {
