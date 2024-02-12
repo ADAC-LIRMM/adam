@@ -20,12 +20,19 @@ int main()
     ee_printf("f = %.2f\r\n", f);
 
     ee_printf("Starting timer\r\n");
+    int pin = 0;
 
     while (1) {
-        delay_ms(RAL.LSPA.TIMER[0], 5000);
-        ee_printf("5 Seconds have passed!\r\n");
+        gpio_write(RAL.LSPA.GPIO[0], pin, 1);
+        delay_ms(RAL.LSPA.TIMER[0], 1000);
+        gpio_write(RAL.LSPA.GPIO[0], pin, 0);
+        delay_ms(RAL.LSPA.TIMER[0], 1000);
+        if (pin < 7) {
+            pin++;
+        } else {
+            pin = 0;
+        }
     }
-
     return 0;
 }
 
@@ -46,13 +53,17 @@ void hw_init(void)
         while(RAL.SYSCFG->MEM[i].MR);
     }
 
-    // // Resume UART0
+    // Resume UART0
     RAL.SYSCFG->LSPA.UART[0].MR = 1;
     while(RAL.SYSCFG->LSPA.UART[0].MR);
 
     // Resume TIMER0
     RAL.SYSCFG->LSPA.TIMER[0].MR = 1;
     while(RAL.SYSCFG->LSPA.TIMER[0].MR);
+
+    // Resume GPIO0
+    RAL.SYSCFG->LSPA.GPIO[0].MR = 1;
+    while(RAL.SYSCFG->LSPA.GPIO[0].MR);
 
     // Why we don't need this command 
     // if it is not the LPCPU we're using?

@@ -70,10 +70,7 @@ typedef enum
                                      ((__FUNC__) == GPIO_FUNCSEL_ALT2) ||\
                                      ((__FUNC__) == GPIO_FUNCSEL_ALT3))
 
-// void              GPIO_Init(GPIO_t  *GPIOx, GPIO_Init_t *GPIO_Init);
-// void              GPIO_DeInit(GPIO_t  *GPIOx, uint32_t GPIO_Pin);
-// GPIO_PinState     GPIO_ReadPin(GPIO_t* GPIOx, uint16_t GPIO_Pin);
-// void              GPIO_WritePin(GPIO_t* GPIOx, uint16_t GPIO_Pin, GPIO_PinState PinState);
-// void              GPIO_TogglePin(GPIO_t* GPIOx, uint16_t GPIO_Pin);
+void gpio_init(ral_gpio_t *gpio, uint8_t pin, uint8_t mode, uint8_t otype);
+void gpio_write(ral_gpio_t *gpio, uint8_t pin, uint8_t value);
 
 #endif

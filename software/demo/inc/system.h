@@ -14,7 +14,7 @@ extern void sleep(void);
 #include "adam_ral.h"
 
 // Drivers inc
-// #include "gpio.h"
+#include "gpio.h"
 // #include "spi.h"
 #include "uart.h"
 #include "timer.h"

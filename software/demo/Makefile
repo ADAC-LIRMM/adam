@@ -37,6 +37,7 @@ BASE_SRCS = \
 	$(ADAM_DIR)/software/hal/src/cvt.c \
 	$(ADAM_DIR)/software/hal/src/print.c \
 	$(ADAM_DIR)/software/hal/src/timer.c \
+	$(ADAM_DIR)/software/hal/src/gpio.c \
 	src/main.c \
 	
 FAST_SRCS = \

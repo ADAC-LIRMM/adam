@@ -24,7 +24,7 @@ default:
   addr_width: 32
   data_width: 32
 
-  gpio_width: 16
+  gpio_width: 8
   
   rst_boot_addr: 0x01000000
   

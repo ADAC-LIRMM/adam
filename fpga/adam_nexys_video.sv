@@ -7,6 +7,8 @@ module adam_nexys_video (
     output logic uart_tx,
     input  logic uart_rx,
 
+    output logic gpio_io[NO_LSPA_GPIOS*GPIO_WIDTH],
+
     input  logic jtag_tck,
     input  logic jtag_tms,
     input  logic jtag_tdi,
@@ -199,9 +201,10 @@ module adam_nexys_video (
     ADAM_IO lspa_uart_tx [NO_LSPA_UARTS+1] ();
     ADAM_IO lspa_uart_rx [NO_LSPA_UARTS+1] ();
 
-    for (genvar i = 0; i < NO_LSPA_GPIOS; i++) begin
+    for (genvar i = 0; i < NO_LSPA_GPIOS*GPIO_WIDTH; i++) begin
         `ADAM_IO_SLV_TIE_OFF(lspa_gpio_io[i]);
     end
+
     for (genvar i = 0; i < NO_LSPA_SPIS; i++) begin
         `ADAM_IO_SLV_TIE_OFF(lspa_spi_sclk[i]);
         `ADAM_IO_SLV_TIE_OFF(lspa_spi_mosi[i]);
@@ -211,12 +214,20 @@ module adam_nexys_video (
 
     assign lspa_uart_tx[0].i = 0;
     assign uart_tx = lspa_uart_tx[0].o;
-
     assign lspa_uart_rx[0].i = uart_rx;
 
     for (genvar i = 1; i < NO_LSPA_UARTS; i++) begin
         `ADAM_IO_SLV_TIE_OFF(lspa_uart_tx[i]);
         `ADAM_IO_SLV_TIE_OFF(lspa_uart_rx[i]);
+    end
+
+    // Ground all lspa_gpio_func
+    for (genvar i = 0; i < NO_LSPA_GPIOS*GPIO_WIDTH; i++) begin
+        assign lspa_gpio_func[i] = 2'b00;
+    end
+    // Connect gpio_io to lspa_gpio_io
+    for (genvar i = 0; i < NO_LSPA_GPIOS*GPIO_WIDTH; i++) begin
+        assign gpio_io[i] = lspa_gpio_io[i].o;
     end
 
     // lspb io ================================================================
