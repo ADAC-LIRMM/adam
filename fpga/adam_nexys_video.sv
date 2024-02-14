@@ -20,7 +20,7 @@ module adam_nexys_video (
     localparam integer LPMEM_SIZE = 1024;
 
     localparam integer MEM_SIZE [NO_MEMS+1] = 
-        '{32768, 32768, 32768, 0};
+        '{524288, 524288, 0, 0};
 
     // rst ====================================================================
 

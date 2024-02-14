@@ -23,6 +23,7 @@ TARGET_DIR = $(BUILD_DIR)/target
 
 PROJECT = demo
 
+HEX_TARGET  = $(TARGET_DIR)/$(PROJECT).hex
 BIN_TARGET  = $(TARGET_DIR)/$(PROJECT).bin
 ELF_TARGET  = $(TARGET_DIR)/$(PROJECT).elf
 DUMP_TARGET = $(TARGET_DIR)/$(PROJECT).dump
@@ -104,6 +105,7 @@ DEPS = \
 # ============================================================================ #
 
 all: \
+	$(HEX_TARGET)  \
 	$(BIN_TARGET)  \
 	$(ELF_TARGET)  \
 	$(DUMP_TARGET) \
@@ -154,6 +156,10 @@ $(DEP_DIR)/%.d: %.cpp
 		'$(patsubst %.cpp,$(OBJ_DIR)/%.o,$<)' $< -MF $@
 
 # ============================================================================ #
+
+$(HEX_TARGET): $(ELF_TARGET)
+	@mkdir -p $(dir $@)
+	$(OBJCOPY) $< -O ihex $@
 
 $(BIN_TARGET): $(ELF_TARGET)
 	@mkdir -p $(dir $@)
