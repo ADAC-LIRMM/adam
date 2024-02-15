@@ -21,12 +21,15 @@ int main()
     ee_printf("i = %d\r\n", i);
     ee_printf("f = %.2f\r\n", f);
 
-    ee_printf("Starting timer\r\n");
-    timer_init(RAL.LSPA.TIMER[0], 49999, 0, UINT32_MAX);
     int pin = 0;
 
     while (1) {
+
+        // Set the pin high
         gpio_write(RAL.LSPA.GPIO[0], pin, 1);
+
+        // Test the timer in ms (should be around 920ms)
+        timer_init(RAL.LSPA.TIMER[0], 50000, 0, UINT32_MAX);
         timer_start(RAL.LSPA.TIMER[0]);
         for(int j = 0; j < 1000000; j++) {
             __asm__("nop");
@@ -37,10 +40,29 @@ int main()
         timer_stop(RAL.LSPA.TIMER[0]);
         int timer_value = get_timer_value(RAL.LSPA.TIMER[0]);
         timer_reset_value(RAL.LSPA.TIMER[0]);
-        ee_printf("Elapsed time: %d\r\n", timer_value);
+        ee_printf("Elapsed time: %dms\r\n", timer_value);
+
+        // Test the timer in us (should be around 920000us)
+        timer_init(RAL.LSPA.TIMER[0], 50, 0, UINT32_MAX);
+        timer_start(RAL.LSPA.TIMER[0]);
+        for(int j = 0; j < 1000000; j++) {
+            __asm__("nop");
+        }
+        for(int j = 0; j < 1000000; j++) {
+            __asm__("nop");
+        }
+        timer_stop(RAL.LSPA.TIMER[0]);
+        timer_value = get_timer_value(RAL.LSPA.TIMER[0]);
+        timer_reset_value(RAL.LSPA.TIMER[0]);
+        ee_printf("Elapsed time: %dus\r\n", timer_value);
+
+        // Set the pin low
         gpio_write(RAL.LSPA.GPIO[0], pin, 0);
+        // Delay for 1s
         delay_ms(RAL.LSPA.TIMER[0], 1000);
         ee_printf("Delay done\r\n");
+
+        // Cycle through the pins
         if (pin < 7) {
             pin++;
         } else {
