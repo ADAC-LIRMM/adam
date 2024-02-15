@@ -2,6 +2,8 @@
 
 static void hw_init(void);
 
+volatile int timer_interrupt_occurred = 0;
+
 int main()
 {
     // volatile int init_guard = 1;
@@ -20,13 +22,25 @@ int main()
     ee_printf("f = %.2f\r\n", f);
 
     ee_printf("Starting timer\r\n");
+    timer_init(RAL.LSPA.TIMER[0], 49999, 0, UINT32_MAX);
     int pin = 0;
 
     while (1) {
         gpio_write(RAL.LSPA.GPIO[0], pin, 1);
-        delay_ms(RAL.LSPA.TIMER[0], 1000);
+        timer_start(RAL.LSPA.TIMER[0]);
+        for(int j = 0; j < 1000000; j++) {
+            __asm__("nop");
+        }
+        for(int j = 0; j < 1000000; j++) {
+            __asm__("nop");
+        }
+        timer_stop(RAL.LSPA.TIMER[0]);
+        int timer_value = get_timer_value(RAL.LSPA.TIMER[0]);
+        timer_reset_value(RAL.LSPA.TIMER[0]);
+        ee_printf("Elapsed time: %d\r\n", timer_value);
         gpio_write(RAL.LSPA.GPIO[0], pin, 0);
         delay_ms(RAL.LSPA.TIMER[0], 1000);
+        ee_printf("Delay done\r\n");
         if (pin < 7) {
             pin++;
         } else {
@@ -36,10 +50,6 @@ int main()
     return 0;
 }
 
-int main_lpu()
-{
-    return 0;
-}
 
 void hw_init(void)
 {
@@ -65,13 +75,13 @@ void hw_init(void)
     RAL.SYSCFG->LSPA.GPIO[0].MR = 1;
     while(RAL.SYSCFG->LSPA.GPIO[0].MR);
 
-    // Why we don't need this command 
-    // if it is not the LPCPU we're using?
-    // Enable all interrupts for LPCPU
-    RAL.SYSCFG->LPCPU.IER = ~0;
+    RAL.SYSCFG->CPU[0].IER = ~0;
 }
 
 void __attribute__((interrupt)) default_handler(void)
 {
+    // Clear timer interrupt
     RAL.LSPA.TIMER[0]->ER = ~0;
+    // Flag the interrupt
+    timer_interrupt_occurred = 1;
 }

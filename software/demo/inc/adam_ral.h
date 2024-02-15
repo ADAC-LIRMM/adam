@@ -5,10 +5,10 @@
  *
  * This header was auto-generated using gen_ral.py.
  *
- * Date   : 2024-01-25 10:55:48 UTC
+ * Date   : 2024-02-15 10:34:01 UTC
  * Target : adam_nexys_video
  * Branch : fabric
- * Commit : ca213b99097cc5105922123033fd3b85dd0174a8 (dirty)
+ * Commit : dcf25be3fe56c9cae8cfb63749ee1d0440da26b8 (dirty)
  *
  * It is not recommended to modify this this file. 
  * ============================================================================
@@ -188,7 +188,7 @@ typedef struct {
         };
         const ral_data_t reserved0;
         const ral_data_t reserved1;
-    } MEM[3];
+    } MEM[2];
     struct {
         struct {
             union {
@@ -275,14 +275,6 @@ typedef struct {
             ral_data_t ID5 : 1;
             ral_data_t ID6 : 1;
             ral_data_t ID7 : 1;
-            ral_data_t ID8 : 1;
-            ral_data_t ID9 : 1;
-            ral_data_t ID10 : 1;
-            ral_data_t ID11 : 1;
-            ral_data_t ID12 : 1;
-            ral_data_t ID13 : 1;
-            ral_data_t ID14 : 1;
-            ral_data_t ID15 : 1;
         };
     };
     union {
@@ -296,14 +288,6 @@ typedef struct {
             ral_data_t OD5 : 1;
             ral_data_t OD6 : 1;
             ral_data_t OD7 : 1;
-            ral_data_t OD8 : 1;
-            ral_data_t OD9 : 1;
-            ral_data_t OD10 : 1;
-            ral_data_t OD11 : 1;
-            ral_data_t OD12 : 1;
-            ral_data_t OD13 : 1;
-            ral_data_t OD14 : 1;
-            ral_data_t OD15 : 1;
         };
     };
     union {
@@ -317,14 +301,6 @@ typedef struct {
             ral_data_t MODE5 : 1;
             ral_data_t MODE6 : 1;
             ral_data_t MODE7 : 1;
-            ral_data_t MODE8 : 1;
-            ral_data_t MODE9 : 1;
-            ral_data_t MODE10 : 1;
-            ral_data_t MODE11 : 1;
-            ral_data_t MODE12 : 1;
-            ral_data_t MODE13 : 1;
-            ral_data_t MODE14 : 1;
-            ral_data_t MODE15 : 1;
         };
     };
     union {
@@ -338,14 +314,6 @@ typedef struct {
             ral_data_t OTYPE5 : 1;
             ral_data_t OTYPE6 : 1;
             ral_data_t OTYPE7 : 1;
-            ral_data_t OTYPE8 : 1;
-            ral_data_t OTYPE9 : 1;
-            ral_data_t OTYPE10 : 1;
-            ral_data_t OTYPE11 : 1;
-            ral_data_t OTYPE12 : 1;
-            ral_data_t OTYPE13 : 1;
-            ral_data_t OTYPE14 : 1;
-            ral_data_t OTYPE15 : 1;
         };
     };
     union {
@@ -359,14 +327,6 @@ typedef struct {
             ral_data_t FS5 : 2;
             ral_data_t FS6 : 2;
             ral_data_t FS7 : 2;
-            ral_data_t FS8 : 2;
-            ral_data_t FS9 : 2;
-            ral_data_t FS10 : 2;
-            ral_data_t FS11 : 2;
-            ral_data_t FS12 : 2;
-            ral_data_t FS13 : 2;
-            ral_data_t FS14 : 2;
-            ral_data_t FS15 : 2;
         };
     };
     union {
@@ -380,14 +340,6 @@ typedef struct {
             ral_data_t IE5 : 1;
             ral_data_t IE6 : 1;
             ral_data_t IE7 : 1;
-            ral_data_t IE8 : 1;
-            ral_data_t IE9 : 1;
-            ral_data_t IE10 : 1;
-            ral_data_t IE11 : 1;
-            ral_data_t IE12 : 1;
-            ral_data_t IE13 : 1;
-            ral_data_t IE14 : 1;
-            ral_data_t IE15 : 1;
         };
     };
 } ral_gpio_t;
@@ -496,7 +448,7 @@ typedef struct {
         ral_timer_t *TIMER[0];
         ral_uart_t *UART[0];
     } LSPB;
-    ral_data_t *MEM[3];
+    ral_data_t *MEM[2];
 } ral_t;
 
 static const ral_t RAL = {
@@ -517,9 +469,9 @@ static const ral_t RAL = {
             (ral_uart_t *) 0x00011000,
         },
     },
+    .LSPB = {},
     .MEM = {
         (ral_data_t *) 0x01000000,
         (ral_data_t *) 0x02000000,
-        (ral_data_t *) 0x03000000,
     },
 };

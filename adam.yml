@@ -30,7 +30,7 @@ default:
   
   no_cpus: 1
   no_dmas: 1
-  no_mems: 3
+  no_mems: 2
   
   en_lpcpu: True
   en_lpmem: True

@@ -38,12 +38,12 @@ wait_mem1:
     slli   t2, t1, 11 # Machine External Interrupt Enable (MEIE)
     csrs   mie, t2
 
-lpu_setup:
-	csrr t0, mhartid
-	bne t0, x0, lpu_setup_end
-	li sp, 0x000003FC # LPMEM
-	jal main_lpu
-lpu_setup_end:
+#	lpu_setup:
+#		csrr t0, mhartid
+#		bne t0, x0, lpu_setup_end
+#		li sp, 0x000003FC # LPMEM
+#		jal main_lpu
+#	lpu_setup_end:
 
 	# Set up Floating-Point
     li     t1, 1
