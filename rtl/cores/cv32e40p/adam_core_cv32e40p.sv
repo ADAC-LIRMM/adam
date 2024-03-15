@@ -146,6 +146,13 @@ module adam_core_cv32e40p #(
     // pause ==================================================================
 
     ADAM_PAUSE pause_null ();
+    ADAM_PAUSE temp_pause [3] ();
+    assign temp_pause[0].ack        = pause_inst.ack;
+    assign temp_pause[1].ack        = pause_data.ack;
+    assign temp_pause[2].ack        = pause_null.ack;
+    assign pause_inst.req           = temp_pause[0].req;
+    assign pause_data.req           = temp_pause[1].req;
+    assign pause_null.req           = temp_pause[2].req;
 
     adam_pause_demux #(
         `ADAM_CFG_PARAMS_MAP,
@@ -156,7 +163,7 @@ module adam_core_cv32e40p #(
         .seq (seq),
 
         .slv (pause),
-        .mst ('{pause_inst, pause_data, pause_null})
+        .mst (temp_pause)
     );
 
 endmodule

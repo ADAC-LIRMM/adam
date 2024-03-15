@@ -119,7 +119,7 @@ module adam #(
     assign lsdom_lpcpu_seq.rst = lsdom_seq.rst || lsdom_lpcpu_rst; 
     
     if (EN_LPCPU) begin
-        `ADAM_CORE_LPCPU lsdom_lpcpu (
+        adam_core_cv32e40p lsdom_lpcpu (
             .seq   (lsdom_lpcpu_seq),
             .pause (lsdom_lpcpu_pause),
 
@@ -217,7 +217,7 @@ module adam #(
         assign hsdom_cpu_seq[i].clk = hsdom_seq.clk;
         assign hsdom_cpu_seq[i].rst = hsdom_seq.rst || hsdom_cpu_rst[i]; 
 
-        `ADAM_CORE_CPU #(
+        adam_core_cv32e40p #(
             `ADAM_CFG_PARAMS_MAP
         ) hsdom_cpu (
             .seq   (hsdom_cpu_seq[i]),

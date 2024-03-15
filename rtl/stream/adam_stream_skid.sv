@@ -17,8 +17,7 @@ module adam_stream_skid #(
     end
 
     always_ff @(posedge seq.clk) begin
-        automatic bit tmp;
-
+        
         if (seq.rst) begin
             stall     <= '0;
             buffer    <= '0;

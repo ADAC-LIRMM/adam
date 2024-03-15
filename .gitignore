@@ -6,3 +6,8 @@
 **/*.wav
 **/*.str
 venv/
+**/*.svf
+**/*.log
+**/output.txt
+**/powerflow/reports/
+**/powerflow/src/

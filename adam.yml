@@ -75,6 +75,52 @@ default:
   tt: 18 #ns
     
 fsets: 
+  ps_adam_tb:
+    includes:
+      - ./include/
+      - ./libs/axi/include/
+      - ./libs/apb/include/
+    sources:
+      - ./work/adam_nexys_video/atgen/adam_cfg_pkg.sv
+      - ./libs/axi/src/axi_pkg.sv
+      - ./libs/axi/src/axi_intf.sv
+      - ./rtl/intf/adam_intf_io.sv
+      - ./rtl/intf/adam_intf_jtag.sv
+      - ./rtl/intf/adam_intf_pause.sv
+      - ./rtl/intf/adam_intf_seq.sv
+      - ./rtl/intf/adam_intf_stream.sv
+      - ./rtl/axil/adam_axil_pause.sv
+      - ./rtl/adam_mem.sv
+      - bhv/adam_seq_bhv.sv
+      - bhv/jtag/adam_jtag_mst_bhv.sv
+      - powerflow/src/adam_synth.v
+      - software/sensemark/build/target/sensemark.sv
+      - rtl/adam_wrap.sv
+      - sim/bhv/ps_adam_tb.sv
+
+  my_adam_tb:
+    requires:
+      - adam_rtl
+      - adam_cv32e40p_rtl
+    sources:
+      - ./work/adam_nexys_video/atgen/adam_cfg_pkg.sv
+      - bhv/adam_clk_gate.sv
+      - bhv/adam_seq_bhv.sv
+      - bhv/jtag/adam_jtag_mst_bhv.sv
+      - rtl/adam_unwrap.sv
+      - rtl/adam_wrap.sv
+      - software/sensemark/build/target/sensemark.sv
+      - sim/bhv/my_adam_tb.sv
+
+  adam_synth:
+    requires:
+      - adam_rtl
+      - adam_cv32e40p_rtl
+    sources:
+      - ./work/adam_nexys_video/atgen/adam_cfg_pkg.sv
+      - bhv/adam_clk_gate.sv
+      - rtl/adam_unwrap.sv
+
   adam_nexys_video_rtl:
     requires:
       - adam_rtl
@@ -83,7 +129,7 @@ fsets:
     sources:
       - bhv/adam_clk_gate.sv
       - fpga/adam_nexys_video.sv
-      
+
   adam_bhv:
     requires:
       - adam_rtl
@@ -107,7 +153,6 @@ fsets:
       - axil/adam_axil_apb_bridge_tb.sv
       - axil/adam_axil_skid_tb.sv
       - axil/adam_axil_pause_tb.sv
-      #- axil/adam_axil_ram_tb.sv
       - axil/adam_axil_xbar_tb.sv
       - axil/adam_axil_slv_simple_bhv.sv
     
@@ -119,7 +164,6 @@ fsets:
       - jtag/adam_jtag_mst_bhv.sv
 
       - obi/adam_obi_from_axil_tb.sv
-      #- obi/adam_obi_to_axil_tb.sv
 
       - pause/adam_pause_demux_tb.sv
       - pause/adam_pause_mux_tb.sv

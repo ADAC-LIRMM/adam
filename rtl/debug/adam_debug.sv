@@ -189,6 +189,13 @@ module adam_debug #(
     // pause ==================================================================
 
     ADAM_PAUSE pause_null ();
+    ADAM_PAUSE temp_pause [3] ();
+    assign temp_pause[0].ack        = pause_axil_to_mem.ack;
+    assign temp_pause[1].ack        = pause_obi_to_axil.ack;
+    assign temp_pause[2].ack        = pause_null.ack;
+    assign pause_axil_to_mem.req    = temp_pause[0].req;
+    assign pause_obi_to_axil.req    = temp_pause[1].req;
+    assign pause_null.req           = temp_pause[2].req;
 
     adam_pause_demux #(
         `ADAM_CFG_PARAMS_MAP,
@@ -199,7 +206,7 @@ module adam_debug #(
         .seq (seq),
 
         .slv (pause),
-        .mst ('{pause_axil_to_mem, pause_obi_to_axil, pause_null})
+        .mst (temp_pause)
     );
 
 endmodule

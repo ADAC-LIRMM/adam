@@ -5,7 +5,7 @@ module adam_clk_div #(
     ADAM_SEQ.Master mst
 );
 
-    logic [WIDTH-1:0] counter;
+    logic [WIDTH-1:0] counter = 'b0;
 
     assign mst.clk = counter[WIDTH-1];
     assign mst.rst = slv.rst;

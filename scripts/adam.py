@@ -150,7 +150,7 @@ set_property verilog_define "{{ defines | join(' ') }}" $sources_1
 
 set nproc [exec nproc]
 
-launch_runs impl_1 -to_step write_bitstream -jobs $nproc
+launch_runs impl_1 -to_step write_bitstream -jobs 32
 wait_on_run impl_1
 
 file copy \\

@@ -70,6 +70,13 @@ module adam_syscfg #(
     ADAM_PAUSE tgt_demux_pause ();
     ADAM_PAUSE tgt_pause [NO_TGTS+1] ();
     ADAM_PAUSE pause_null ();
+    ADAM_PAUSE temp_pause [3] ();
+    assign temp_pause[0].ack        = apb_pause.ack;
+    assign temp_pause[1].ack        = tgt_demux_pause.ack;
+    assign temp_pause[2].ack        = pause_null.ack;
+    assign apb_pause.req            = temp_pause[0].req;
+    assign tgt_demux_pause.req      = temp_pause[1].req;
+    assign pause_null.req           = temp_pause[2].req;
 
     adam_pause_demux #(
         .NO_MSTS  (2),
@@ -78,7 +85,7 @@ module adam_syscfg #(
         .seq (seq),
 
         .slv (pause),
-        .mst ('{apb_pause, tgt_demux_pause, pause_null})
+        .mst (temp_pause)
     );
 
     adam_pause_demux #(
