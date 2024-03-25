@@ -7,7 +7,7 @@ WAVE		= "do ../wave/wave_adam_ps.do"
 SDF_FILE	= ../powerflow/scripts/adam_unwrap.sdf
 RUNTIME		= "run 80 us"
 CMOS28FDSOI_DIR = /tools/DKits/ST/cmos28fdsoi_10a
-
+OPTION 		= -novopt
 # List of source files
 SOURCES := $(shell python ./yaml_parser.py $(YAML) | head -n 1)
 INCLUDES := $(shell python ./yaml_parser.py $(YAML) | tail -n 1)

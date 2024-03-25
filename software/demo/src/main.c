@@ -4,74 +4,52 @@ static void hw_init(void);
 
 volatile int timer_interrupt_occurred = 0;
 
-int main()
+int main ()
 {
-    // volatile int init_guard = 1;
-    // while(init_guard); // Change its value in debug!
-
     hw_init();
-
-    // Initialize UART 0 with a baud rate of 9600
+    
     uart_init(RAL.LSPA.UART[0], 9600);
-
-    ee_printf("IM ALIVE!\r\n");
-
-    int i = 35;
-    float f = 3.15;
-    ee_printf("i = %d\r\n", i);
-    ee_printf("f = %.2f\r\n", f);
-
-    int pin = 0;
-
+    
+    volatile unsigned char cpu_led_on = 0;
     while (1) {
 
-        // Set the pin high
-        gpio_write(RAL.LSPA.GPIO[0], pin, 1);
-
-        // Test the timer in ms (should be around 920ms)
-        timer_init(RAL.LSPA.TIMER[0], 50000, 0, UINT32_MAX);
-        timer_start(RAL.LSPA.TIMER[0]);
-        for(int j = 0; j < 1000000; j++) {
-            __asm__("nop");
+            cpu_led_on = !cpu_led_on;   
+            for (int i = 0; i < 4; i++)
+            {
+                gpio_write(RAL.LSPA.GPIO[0], i, cpu_led_on);
+                //delay_us(RAL.LSPA.TIMER[0], 10);
+            }
+            // if LPU is asleep wake it up
+            if(RAL.SYSCFG->LPCPU.SR == 3){
+                RAL.SYSCFG->LPCPU.MR = 1;
+                while(RAL.SYSCFG->LPCPU.MR);
+            }
+            sleep();
+            __asm__ volatile("nop");
         }
-        for(int j = 0; j < 1000000; j++) {
-            __asm__("nop");
-        }
-        timer_stop(RAL.LSPA.TIMER[0]);
-        int timer_value = get_timer_value(RAL.LSPA.TIMER[0]);
-        timer_reset_value(RAL.LSPA.TIMER[0]);
-        ee_printf("Elapsed time: %dms\r\n", timer_value);
+    return 0;
+}
 
-        // Test the timer in us (should be around 920000us)
-        timer_init(RAL.LSPA.TIMER[0], 50, 0, UINT32_MAX);
-        timer_start(RAL.LSPA.TIMER[0]);
-        for(int j = 0; j < 1000000; j++) {
-            __asm__("nop");
-        }
-        for(int j = 0; j < 1000000; j++) {
-            __asm__("nop");
-        }
-        timer_stop(RAL.LSPA.TIMER[0]);
-        timer_value = get_timer_value(RAL.LSPA.TIMER[0]);
-        timer_reset_value(RAL.LSPA.TIMER[0]);
-        ee_printf("Elapsed time: %dus\r\n", timer_value);
-
-        // Set the pin low
-        gpio_write(RAL.LSPA.GPIO[0], pin, 0);
-        // Delay for 1s
-        delay_ms(RAL.LSPA.TIMER[0], 1000);
-        ee_printf("Delay done\r\n");
-
-        // Cycle through the pins
-        if (pin < 7) {
-            pin++;
-        } else {
-            pin = 0;
+int main_lpu() 
+{
+    volatile unsigned char lpu_led_on = 0;
+    while (1)
+    {
+        while (RAL.SYSCFG->CPU[0].SR == 3) // When the CPU is Paused
+        {
+            lpu_led_on = !lpu_led_on;
+            for (int i = 4; i < 8; i++)
+            {
+                gpio_write(RAL.LSPA.GPIO[0], i, lpu_led_on);
+                //delay_us(RAL.LSPA.TIMER[0], 10);
+            }
+            // Wake CPU
+            RAL.SYSCFG->CPU[0].MR = 1;
+            while(RAL.SYSCFG->CPU[0].MR);
         }
     }
     return 0;
 }
-
 
 void hw_init(void)
 {
@@ -96,8 +74,9 @@ void hw_init(void)
     // Resume GPIO0
     RAL.SYSCFG->LSPA.GPIO[0].MR = 1;
     while(RAL.SYSCFG->LSPA.GPIO[0].MR);
-
-    RAL.SYSCFG->CPU[0].IER = ~0;
+    
+    // Enable LPU Interrupt
+    RAL.SYSCFG->LPCPU.IER = ~0;
 }
 
 void __attribute__((interrupt)) default_handler(void)

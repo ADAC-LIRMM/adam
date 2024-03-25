@@ -5,8 +5,8 @@ WORK_DIR	= ./temp
 YAML		= my_adam_tb
 TB 			= my_adam_tb
 WAVE		= "do ../wave/wave_my_adam.do"
-RUNTIME		= "run 2 ms"
-
+RUNTIME		= "run 1 ms"
+OPTION 		= -voptargs=+acc
 # List of source files
 SOURCES := $(shell python ./yaml_parser.py $(YAML) | head -n 1)
 INCLUDES := $(shell python ./yaml_parser.py $(YAML) | tail -n 1)

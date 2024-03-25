@@ -11,3 +11,6 @@ venv/
 **/output.txt
 **/powerflow/reports/
 **/powerflow/src/
+sim/scripts/vsim.wlf
+sim/scripts/transcript
+sim/scripts/modelsim.ini

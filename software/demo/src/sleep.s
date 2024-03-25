@@ -12,7 +12,7 @@ sleep:
     # Check for Dirty Floating-Point State  
     li t1, 0x80000000 # SD bit
     and t1, t1, t0 
-    beq t1, zero, fp_backup_end
+    beq t1, zero, reg_backup
 
     # Floating-Point Backup
     addi sp, sp, -140
@@ -57,13 +57,11 @@ sleep:
 
     csrr t1, fcsr
     sw t1, 136(sp)
-fp_backup_end:
+reg_backup:
 
     # Register Backup
     addi sp, sp, -128
-    # sw x0, 0(sp)
     sw x1, 4(sp)
-    # sw x2, 8(sp)
     sw x3, 12(sp)
     sw x4, 16(sp)
     sw x5, 20(sp)
@@ -97,73 +95,57 @@ fp_backup_end:
     # Load Memory Bank Addresses
 	li t0, 0x01000000 # RAM
 	la t1, 0x02000000 # RAM Backup
-	la t2, 0x02004000 # RAM Backup End (16k)
+	la t2, 0x02008000 # RAM Backup End (16k)
     
     # Backup Stack Pointer
     sw sp, 0(t1)
     add t1, t1, 4
 
-    # Copy RAM to NV Memory
-    # Check if data section is empty, if so, skip copy loop
-	bge t1, t2, backup_loop_end
-backup_loop:
-    # Backup word
-	lw t3, 0(t0)
-	sw t3, 0(t1)
-    
-    # Increment pointers
-	add t0, t0, 4
-	add t1, t1, 4
-    
-    # Check for exit condition
-	ble t1, t2, backup_loop
+# Backup ROM into RAM
+# backup_loop:
+#     # Backup word
+# 	lw t3, 0(t0)
+# 	sw t3, 0(t1)
+#     
+#     # Increment pointers
+# 	add t0, t0, 4
+# 	add t1, t1, 4
+#     
+#     # Check for exit condition
+# 	ble t1, t2, backup_loop
+
 backup_loop_end:
 
     # Update SYSCTRL.BAR_CPU0 (Boot Address Register)
     la t1, wakeup
-    li t2, 0x2000100C 
-    sw t1, 0(t2)
+    lui t2, 0x8
+    sw t1, 120(t2)
 
     # Trigger Maestro Action
     li t1, 3
-    li t2, 0x02008074
+    li t2, 0x00008074
     sw t1, 0(t2)
+
 wait_maestro:
     lw t1, 0(t2)
     bne t1, x0, wait_maestro
 
 # MIRROR LINE ---------------------------------------------------------------- #
-wakeup:
 
+wakeup:
     # Load Memory Bank Addresses
 	li t0, 0x01000000 # RAM
 	la t1, 0x02000000 # RAM Backup
-	la t2, 0x02004000 # RAM Backup End (16k)
+	la t2, 0x02008000 # RAM Backup End (32k)
     
     # Restore Stack Pointer
     lw sp, 0(t1)
-    add t1, t1, 4
+    # add t1, t1, 4
 
-    # Copy RAM to NV Memory
-    # Check if data section is empty, if so, skip copy loop
-	bge t1, t2, restore_loop_end
-restore_loop:
-    # Restore word
-    lw t3, 0(t1)
-	sw t3, 0(t0)
-	
-    # Increment pointers
-	add t0, t0, 4
-	add t1, t1, 4
-    
-    # Check for exit condition
-	ble t1, t2, restore_loop
 restore_loop_end:
 
     # Register Restore
-    # lw x0, 0(sp)
     lw x1, 4(sp)
-    # lw x2, 8(sp)
     lw x3, 12(sp)
     lw x4, 16(sp)
     lw x5, 20(sp)
@@ -248,6 +230,5 @@ fp_restore_end:
 
     # Write mstatus
     csrw mstatus, t0
-
     # Return
     ret
