@@ -9,6 +9,7 @@ void timer_init(ral_timer_t  *timer, uint32_t presc, uint32_t val, uint32_t relo
 void timer_start(ral_timer_t  *timer);
 void timer_stop(ral_timer_t  *timer);
 void delay_ms(ral_timer_t  *timer, uint32_t ms);
+void delay_us(ral_timer_t  *timer, uint32_t us);
 unsigned int get_timer_value(ral_timer_t  *timer);
 void timer_reset_value(ral_timer_t  *timer);
 

@@ -92,14 +92,22 @@ reg_backup:
     sw x30, 120(sp)
     sw x31, 124(sp)
 
+    # Backup Stack Pointer 
+    la t0, _stack_ptr_start
+    sw sp, 0(t0)
+    nop 
+
     # Load Memory Bank Addresses
 	li t0, 0x01000000 # RAM
 	la t1, 0x02000000 # RAM Backup
 	la t2, 0x02008000 # RAM Backup End (16k)
     
     # Backup Stack Pointer
-    sw sp, 0(t1)
-    add t1, t1, 4
+    # sw sp, 0(t1)
+    # add t1, t1, 4
+
+    
+
 
 # Backup ROM into RAM
 # backup_loop:
@@ -133,14 +141,20 @@ wait_maestro:
 # MIRROR LINE ---------------------------------------------------------------- #
 
 wakeup:
+
+    # Retrieve Stack Pointer 
+    la t0, _stack_ptr_start
+    lw sp, 0(t0)
+
     # Load Memory Bank Addresses
 	li t0, 0x01000000 # RAM
-	la t1, 0x02000000 # RAM Backup
+	la t1, _stack_ptr_end # RAM Backup
 	la t2, 0x02008000 # RAM Backup End (32k)
     
     # Restore Stack Pointer
-    lw sp, 0(t1)
+    # lw sp, 0(t1)
     # add t1, t1, 4
+
 
 restore_loop_end:
 

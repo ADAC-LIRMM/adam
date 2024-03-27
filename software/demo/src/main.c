@@ -9,7 +9,12 @@ int main ()
     hw_init();
     
     uart_init(RAL.LSPA.UART[0], 9600);
-    
+
+    // if LPU is asleep wake it up
+    if(RAL.SYSCFG->LPCPU.SR == 3){
+        RAL.SYSCFG->LPCPU.MR = 1;
+        while(RAL.SYSCFG->LPCPU.MR);
+    }
     volatile unsigned char cpu_led_on = 0;
     while (1) {
 
@@ -17,15 +22,10 @@ int main ()
             for (int i = 0; i < 4; i++)
             {
                 gpio_write(RAL.LSPA.GPIO[0], i, cpu_led_on);
-                //delay_us(RAL.LSPA.TIMER[0], 10);
-            }
-            // if LPU is asleep wake it up
-            if(RAL.SYSCFG->LPCPU.SR == 3){
-                RAL.SYSCFG->LPCPU.MR = 1;
-                while(RAL.SYSCFG->LPCPU.MR);
+                delay_ms(RAL.LSPA.TIMER[0], 1000);
             }
             sleep();
-            __asm__ volatile("nop");
+            // __asm__ volatile("nop");
         }
     return 0;
 }
@@ -41,7 +41,13 @@ int main_lpu()
             for (int i = 4; i < 8; i++)
             {
                 gpio_write(RAL.LSPA.GPIO[0], i, lpu_led_on);
-                //delay_us(RAL.LSPA.TIMER[0], 10);
+                // The CPU's backup register does not work 
+                // if we use delay function here for some reason
+                // But still works for the gpio_write
+                // Gotta check the linker script and reserve a place 
+                // for backup registers only
+                delay_ms(RAL.LSPA.TIMER[0], 1000);
+                // delay_us(RAL.LSPA.TIMER[0], 100);
             }
             // Wake CPU
             RAL.SYSCFG->CPU[0].MR = 1;
@@ -77,6 +83,7 @@ void hw_init(void)
     
     // Enable LPU Interrupt
     RAL.SYSCFG->LPCPU.IER = ~0;
+    // RAL.SYSCFG->CPU[0].IER = ~0;
 }
 
 void __attribute__((interrupt)) default_handler(void)

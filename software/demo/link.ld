@@ -15,6 +15,8 @@ MEMORY
     RAM (w)   : ORIGIN = 0x02000000, LENGTH = 524288
 }
 
+_stack_ptr_size = 4; /* Size of stack pointer, 4 for 32-bit, 8 for 64-bit */
+
 /* Sections */
 SECTIONS
 {
@@ -58,6 +60,17 @@ SECTIONS
 		. = ALIGN(4);
 		_text_end = .;
 	} > ROM
+	
+	.stack_ptr (NOLOAD) :
+    {
+        . = ALIGN(4);
+        _stack_ptr_start = .;
+        
+        . = . + _stack_ptr_size;
+        
+        . = ALIGN(4);
+        _stack_ptr_end = .;
+    } > RAM
 
 	.data :
 	{

@@ -39,6 +39,20 @@ void delay_ms(ral_timer_t  *timer, uint32_t ms)
     timer_interrupt_occurred = 0; // Reset the flag
 }
 
+void delay_us(ral_timer_t  *timer, uint32_t us)
+{
+    timer->PE = 0;
+    timer->PR = 50;
+    timer->VR = 0;
+    timer->ARR = us;
+    timer->IER = ~0;
+    timer->PE = 1;
+    while(timer->PE != 1);
+    // Wait for timer to finish
+    while(!timer_interrupt_occurred); // Wait for the interrupt to occur
+    timer_interrupt_occurred = 0; // Reset the flag
+}
+
 unsigned int get_timer_value(ral_timer_t  *timer)
 {
     return timer->VR;
