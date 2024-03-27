@@ -1,55 +1,51 @@
+`include "adam/macros.svh"
+
 module adam_core_ibex #(
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32,
-
-    // Dependent parameters bellow, do not override.
-    
-    parameter STRB_WIDTH = (DATA_WIDTH/8),
-
-    parameter type addr_t = logic [ADDR_WIDTH-1:0],
-    parameter type data_t = logic [DATA_WIDTH-1:0],
-    parameter type strb_t = logic [STRB_WIDTH-1:0]
+    `ADAM_CFG_PARAMS
 ) (
-    input logic clk,
-    input logic rst,
+    ADAM_SEQ.Slave   seq,
+    ADAM_PAUSE.Slave pause,
 
-    input  logic pause.req,
-    output logic pause.ack,
+    input  ADDR_T boot_addr,
+    input  DATA_T hart_id,
 
-    input  addr_t boot_addr,
-    input  data_t hart_id,
+    AXI_LITE.Master axil_inst,
+    AXI_LITE.Master axil_data,
 
-    AXI_LITE.Master inst_axil,
-    AXI_LITE.Master data_axil,
+    input  logic irq,
 
-    input  logic irq
+    input logic debug_req,
+    output logic debug_unavail
 );
+    assign debug_unavail = '1;
+    // logic  pause_inst.req;
+    // logic  pause_inst.ack;
 
-    logic  inst_pause.req;
-    logic  inst_pause.ack;
+    ADAM_PAUSE pause_inst ();
+    ADAM_PAUSE pause_data ();
 
     logic  inst_req_o;
     logic  inst_gnt_i;
     logic  inst_rvalid_i;
     logic  inst_rready_o;
-    addr_t inst_addr_o;
-    strb_t inst_be_o;
-    data_t inst_wdata_o;
+    ADDR_T inst_addr_o;
+    STRB_T inst_be_o;
+    DATA_T inst_wdata_o;
     logic  inst_we_o;
-    data_t inst_rdata_i;
+    DATA_T inst_rdata_i;
 
-    logic  data_pause.req;
-    logic  data_pause.ack;
+    // logic  pause_data.req;
+    // logic  pause_data.ack;
 
     logic  data_req_o;
     logic  data_gnt_i;
     logic  data_rvalid_i;
     logic  data_rready_o;
-    addr_t data_addr_o;
-    strb_t data_be_o;
-    data_t data_wdata_o;
+    ADDR_T data_addr_o;
+    STRB_T data_be_o;
+    DATA_T data_wdata_o;
     logic  data_we_o;
-    data_t data_rdata_i;
+    DATA_T data_rdata_i;
     
     assign inst_rready_o = 1;
     assign inst_be_o     = 0;
@@ -81,9 +77,10 @@ module adam_core_ibex #(
     ) ibex_top (
         // Clock and reset
         .clk_i       (seq.clk),
-        .rst_ni      (!rst),
+        .rst_ni      (!seq.rst),
         .test_en_i   ('0),
-        .scan_rst_ni (test),
+        // .scan_rst_ni (test),
+        .scan_rst_ni ('0),
         // .ram_cfg_i   (10'b0),
 
         // Configuration
@@ -136,15 +133,15 @@ module adam_core_ibex #(
         .DATA_WIDTH(DATA_WIDTH)
     ) instr_adam_obi_to_axil (
         .seq   (seq),
-        .pause (inst_seq),
+        .pause (pause_inst),
 
-        .axil (inst_axil),
+        .axil (axil_inst),
 
         .req    (inst_req_o),
         .gnt    (inst_gnt_i),
         .addr   (inst_addr_o),
         .we     ('0),
-        .be     (strb_t'(0)),
+        .be     ('0),
         .wdata  ('0),
         .rvalid (inst_rvalid_i),
         .rready (inst_rready_o),
@@ -156,9 +153,9 @@ module adam_core_ibex #(
         .DATA_WIDTH (DATA_WIDTH)
     ) data_adam_obi_to_axil (
         .seq   (seq),
-        .pause (data_pause),
+        .pause (pause_data),
 
-        .axil (data_axil),
+        .axil (axil_data),
 
         .req    (data_req_o),
         .gnt    (data_gnt_i),
@@ -172,14 +169,14 @@ module adam_core_ibex #(
     );
 
     always_comb begin
-        inst_pause.req = pause.req;
-        data_pause.req = pause.req;
+        pause_inst.req = pause.req;
+        pause_data.req = pause.req;
 
         if (pause.req) begin
-            pause.ack = inst_pause.ack && data_pause.ack;
+            pause.ack = pause_inst.ack && pause_data.ack;
         end
         else begin
-            pause.ack = inst_pause.ack || data_pause.ack;
+            pause.ack = pause_inst.ack || pause_data.ack;
         end
     end
 

@@ -119,7 +119,9 @@ module adam #(
     assign lsdom_lpcpu_seq.rst = lsdom_seq.rst || lsdom_lpcpu_rst; 
     
     if (EN_LPCPU) begin
-        adam_core_cv32e40p lsdom_lpcpu (
+        adam_core_ibex #(
+            `ADAM_CFG_PARAMS_MAP
+        ) lsdom_lpcpu (
             .seq   (lsdom_lpcpu_seq),
             .pause (lsdom_lpcpu_pause),
 

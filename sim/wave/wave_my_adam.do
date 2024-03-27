@@ -21,6 +21,8 @@ add wave -hex   /my_adam_tb/dut/adam_unwrap/adam/genblk4[0]/hsdom_cpu/cv32e40p_t
 add wave -hex   /my_adam_tb/dut/adam_unwrap/adam/genblk4[0]/hsdom_cpu/cv32e40p_top/core_i/id_stage_i/register_file_i/mem_fp
 add wave -divider CPU_DATA
 add wave -hex   /my_adam_tb/dut/adam_unwrap/adam/hsdom_cpu_axil[1]/*
+add wave -divider MEMDATA
+add wave -hex   /my_adam_tb/genblk3[1]/adam_mem/*
 add wave -divider LPU_INSTR
 add wave -hex   /my_adam_tb/dut/adam_unwrap/adam/lsdom_lpcpu_axil[0]/ar_addr
 add wave -hex   /my_adam_tb/dut/adam_unwrap/adam/lsdom_lpcpu_axil[0]/ar_valid
