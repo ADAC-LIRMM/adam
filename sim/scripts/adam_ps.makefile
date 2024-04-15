@@ -5,9 +5,10 @@ YAML		= ps_adam_tb
 TB 			= ps_adam_tb
 WAVE		= "do ../wave/wave_adam_ps.do"
 SDF_FILE	= ../powerflow/scripts/adam_unwrap.sdf
-RUNTIME		= "run 80 us"
+RUNTIME		= "run 2 ms"
 CMOS28FDSOI_DIR = /tools/DKits/ST/cmos28fdsoi_10a
-OPTION 		= -novopt
+OPTION 		= -voptargs=+acc
+
 # List of source files
 SOURCES := $(shell python ./yaml_parser.py $(YAML) | head -n 1)
 INCLUDES := $(shell python ./yaml_parser.py $(YAML) | tail -n 1)
@@ -26,8 +27,11 @@ run :
 	@echo '** RUN **'
 	@echo '*********'
 	vlog -force_refresh
-	vsim -printsimstats $(OPTION) -suppress 12027 -suppress 2732 -suppress 8884 -suppress 2912 -suppress 13181 -suppress 12003 -L work -gui -do $(WAVE) -do $(RUNTIME) work.$(TB) &
 	
+	vsim -printsimstats $(OPTION) -suppress 12027 -suppress 2732 -suppress 8884 -suppress 2912 -suppress 13181 -suppress 12003 -L work -gui -do $(WAVE) -do $(RUNTIME) work.$(TB) &
+	# Setup VCD
+	
+
 #INIT
 init :
 	@echo '**********'
@@ -56,3 +60,4 @@ clean :
 	@echo '***********'
 	@rm -rf $(WORK_DIR) transcript *.wlf modelsim.ini *.vstf
 	@rm -rf wl*
+	@rm -rf vcd*

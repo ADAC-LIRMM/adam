@@ -1,23 +1,12 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
-add wave -hex /ps_adam_tb/hsdom_seq/*
-add wave -hex /ps_adam_tb/lsdom_seq/*
-add wave -hex /ps_adam_tb/dut/adam_unwrap/lsdom_seq_rst
-add wave -hex /ps_adam_tb/dut/adam_unwrap/adam/lsdom_lpcpu_rst 
-add wave -hex /ps_adam_tb/dut/adam_unwrap/adam/lsdom_lpcpu_seq_rst 
-add wave -hex /ps_adam_tb/dut/adam_unwrap/adam/\hsdom_cpu_rst[0]  
-add wave -hex /ps_adam_tb/dut/adam_unwrap/adam/hsdom_cpu_seq_0__rst
-
-add wave -hex /ps_adam_tb/genblk2[1]/adam_axil_to_mem/*
-add wave -hex /ps_adam_tb/hsdom_mem_axil[1]/*
-
-add wave -hex /ps_adam_tb/dut/adam_unwrap/adam/*
-add wave -divider CPU 
-add wave -hex /ps_adam_tb/dut/adam_unwrap/adam/genblk4_0__hsdom_cpu/*
-add wave -divider SYSCFG
-add wave -hex /ps_adam_tb/dut/adam_unwrap/adam/adam_syscfg/*
-add wave -divider Fabric
-add wave -hex /ps_adam_tb/dut/adam_unwrap/adam/adam_fabric/*
+# add wave -divider GPIO_UART
+# add wave -hex   /ps_adam_tb/dut/adam_unwrap/*
+# add wave -hex   /ps_adam_tb/dut/hsdom_seq/*
+add wave -divider HSDOM
+add wave -hex   /ps_adam_tb/dut/lsdom_seq/*
+add wave -hex   /ps_adam_tb/dut/adam_unwrap/adam/genblk1_lsdom_lpcpu/*
+add wave -hex   /ps_adam_tb/dut/adam_unwrap/adam/adam_fabric/adam_fabric_lsdom/*
 
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {434910 ps} 0}

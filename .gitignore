@@ -14,3 +14,4 @@ venv/
 sim/scripts/vsim.wlf
 sim/scripts/transcript
 sim/scripts/modelsim.ini
+sim/scripts/adam_ps.vcd
