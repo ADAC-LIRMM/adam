@@ -11,7 +11,10 @@ venv/
 **/output.txt
 **/powerflow/reports/
 **/powerflow/src/
+**/powerflow/scripts/*.csv
+**/powerflow/scripts/*.out
 sim/scripts/vsim.wlf
 sim/scripts/transcript
 sim/scripts/modelsim.ini
 sim/scripts/adam_ps.vcd
+rtl/instr_rom.sv

@@ -28,7 +28,7 @@ BIN_TARGET  = $(TARGET_DIR)/$(PROJECT).bin
 ELF_TARGET  = $(TARGET_DIR)/$(PROJECT).elf
 DUMP_TARGET = $(TARGET_DIR)/$(PROJECT).dump
 MAP_TARGET 	= $(TARGET_DIR)/$(PROJECT).map
-ROM_TARGET 	= $(TARGET_DIR)/$(PROJECT).sv
+ROM_TARGET 	= $(TARGET_DIR)/instr_rom.sv
 
 # ============================================================================ #
 
@@ -178,8 +178,8 @@ $(MAP_TARGET): $(ELF_TARGET)
 
 $(ROM_TARGET): $(ELF_TARGET)
 	@mkdir -p $(dir $@)
-	$(GEN_ROM) $< -o $@ -f sverilog -m $(PROJECT)
-
+	$(GEN_ROM) $< -o $@ -f sverilog -m instr_rom
+	@cp $(BUILD_DIR)/target/instr_rom.sv $(ADAM_DIR)/rtl/instr_rom.sv
 # ============================================================================ #
 
 .PHONY: load

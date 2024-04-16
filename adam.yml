@@ -34,7 +34,7 @@ default:
   
   en_lpcpu: True
   en_lpmem: True
-  en_debug: False
+  en_debug: True
 
   no_lspa_gpios:  1
   no_lspa_spis:   1
@@ -94,7 +94,7 @@ fsets:
       - bhv/adam_seq_bhv.sv
       - bhv/jtag/adam_jtag_mst_bhv.sv
       - powerflow/src/adam_synth.v
-      - software/sensemark/build/target/sensemark.sv
+      - rtl/instr_rom.sv
       - rtl/adam_wrap.sv
       - sim/bhv/ps_adam_tb.sv
 
@@ -110,7 +110,7 @@ fsets:
       - bhv/jtag/adam_jtag_mst_bhv.sv
       - rtl/adam_unwrap.sv
       - rtl/adam_wrap.sv
-      - software/sensemark/build/target/sensemark.sv
+      - rtl/instr_rom.sv
       - sim/bhv/my_adam_tb.sv
 
   adam_synth:
@@ -132,7 +132,7 @@ fsets:
     sources:
       - bhv/adam_clk_gate.sv
       - fpga/adam_nexys_video.sv
-      - software/sensemark/build/target/sensemark.sv
+      - rtl/instr_rom.sv
 
   adam_bhv:
     requires:

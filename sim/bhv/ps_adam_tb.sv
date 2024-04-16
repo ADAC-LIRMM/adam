@@ -88,9 +88,9 @@ module ps_adam_tb;
         assign hsdom_mem_seq[i].rst = lsdom_seq.rst || hsdom_mem_rst[i];
     end
 
-    sensemark #(
+    instr_rom #(
         `ADAM_CFG_PARAMS_MAP
-    ) sensemark (
+    ) instr_rom (
         .seq (hsdom_mem_seq[0]),
 
         .req   (hsdom_mem_req[0]),
@@ -229,5 +229,18 @@ module ps_adam_tb;
     );
 
     // test ===================================================================
+    initial begin
+        $dumpfile("adam_ps.vcd");
+        $dumpvars(0 ,dut);
+        // Wait for 600 µs
+        $dumpoff;
+        #600000;
+        // Start Saving for 100 µs
+        $dumpon;
+        #100000;
+        // Stop Saving
+        $dumpoff;
+    end
+
 
 endmodule

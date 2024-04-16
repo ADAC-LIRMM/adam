@@ -42,7 +42,7 @@ read_vcd "$simul/adam_ps.vcd" -strip_path ps_adam_tb/dut/adam_unwrap
 set_power_analysis_options \
     -waveform_format out \
     -waveform_output waveform \
-    -separate_dyn_and_leak_power_waveform
+    -separate_dyn_and_leak_power_waveform \
     -waveform_interval 100 \\
 
 check_power
