@@ -10,14 +10,16 @@ set dirs        [list "./work" "../reports" "../src"]
 # Iterate over directories
 foreach dir $dirs {
     if {[file exists $dir]} {
-        puts "Directory $dir already exists. Do you want to delete it? (yes/no)"
-        gets stdin response
-        if {$response eq "yes"} {
-            file delete -force -- $dir
-            file mkdir $dir
-        } else {
-            puts "Directory $dir was not deleted."
-        }
+        # puts "Directory $dir already exists. Do you want to delete it? (yes/no)"
+        # gets stdin response
+        # if {$response eq "yes"} {
+        file delete -force -- $dir
+        file mkdir $dir
+        # } else {
+        #     puts "Directory $dir was not deleted."
+        # }
+    } else {
+        file mkdir $dir
     }
 }
 

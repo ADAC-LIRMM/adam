@@ -65,7 +65,7 @@ def index_parser(args):
     return name, index
 
 
-def power_linker(waveform_path, interval, output_path, targets):
+def power_linker(waveform_path,start_time, interval, output_path, targets):
     target_data = {}
     for name, module in targets:
         csv_path = output_path / f'{name}.csv'
@@ -176,7 +176,9 @@ if __name__ == '__main__':
     parser.add_argument('waveform', type=Path,
         help='PrimePower waveform path.')
     parser.add_argument('interval', type=float,
-        help='PrimePower waveform interval [ns]')
+        help='PrimePower waveform interval [ps]')
+    #parser.add_argument('start_time', type=float,
+    #    help='PrimePower waveform start_time [ns]')
     parser.add_argument('-o', '--output', type=Path,
         help='Output directory path.')
     parser.add_argument('-t', '--targets', nargs='+', type=str, default=[],
@@ -186,6 +188,7 @@ if __name__ == '__main__':
     
     waveform_path = args.waveform
     interval = args.interval
+    start_time = 0
     output_path = args.output
     targets = [arg.split(':') for arg in args.targets]
 
@@ -200,5 +203,5 @@ if __name__ == '__main__':
 
     logging.info(f'Starting power_linker.py')
 
-    power_linker(waveform_path, interval, output_path, targets)
+    power_linker(waveform_path, start_time, interval, output_path, targets)
 

@@ -230,5 +230,42 @@ module my_adam_tb;
     );
 
     // test ===================================================================
+    task automatic mem_rw_cnt(input string file_csv, input logic req, input logic we, input STRB_T be, input string mem_name);
+        automatic int nb_bytes = 0;
+        automatic int fd;
+        fd = $fopen(file_csv, "a");
+        @(posedge hsdom_seq.clk);
+            if (req && !we) begin
+                nb_bytes = 4;
+                $fdisplay(fd, "%s;read;%d;%t", mem_name, nb_bytes, $time);
+            end
+            else if (req && we) begin
+                nb_bytes = $countones(be);
+                $fdisplay(fd, "%s;write;%d;%t", mem_name, nb_bytes,  $time);
+            end 
+    $fclose(fd);
 
+    endtask //automatic
+
+    initial 
+    begin
+        // Create a CSV file with {Memory, Operation, #bytes, #reads, #writes, time}
+        int fd1;
+        int fd2;
+        fd1 = $fopen("/scratch/k-romdhane/mem_ops/setup_instr_mem_rw.csv", "w");
+        $fdisplay(fd1, "Memory;Operation;#bytes;time(ns)");
+        $fclose(fd1);
+        fd2 = $fopen("/scratch/k-romdhane/mem_ops/setup_data_mem_rw.csv", "w");
+        $fdisplay(fd2, "Memory;Operation;#bytes;time(ns)");
+        $fclose(fd2);
+        // Add 1 ms delay before starting to save
+        #1000000
+        forever 
+        begin
+            fork
+                mem_rw_cnt("/scratch/k-romdhane/mem_ops/setup_instr_mem_rw.csv",hsdom_mem_req[0], hsdom_mem_we[0], hsdom_mem_be[0], "instr_rom");
+                mem_rw_cnt("/scratch/k-romdhane/mem_ops/setup_data_mem_rw.csv",hsdom_mem_req[1], hsdom_mem_we[1], hsdom_mem_be[1], "data_mem");
+            join
+        end
+    end
 endmodule

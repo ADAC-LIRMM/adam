@@ -3,11 +3,12 @@ SHELL = /bin/bash
 WORK_DIR	= ./temp
 YAML		= ps_adam_tb
 TB 			= ps_adam_tb
-WAVE		= "do ../wave/wave_adam_ps.do"
+WAVE		= "do ../../sim/wave/wave_adam_ps.do"
 SDF_FILE	= ../powerflow/scripts/adam_unwrap.sdf
-RUNTIME		= "run 2 ms"
+RUNTIME		= "run 1 ms"
 CMOS28FDSOI_DIR = /tools/DKits/ST/cmos28fdsoi_10a
-OPTION 		= -voptargs=+acc
+OPTION 		= -voptargs=+acc 
+OUTPUT_DIR	= ../output
 
 # List of source files
 SOURCES := $(shell python ./yaml_parser.py $(YAML) | head -n 1)
@@ -28,9 +29,9 @@ run :
 	@echo '*********'
 	vlog -force_refresh
 	
-	vsim -printsimstats $(OPTION) -suppress 12027 -suppress 2732 -suppress 8884 -suppress 2912 -suppress 13181 -suppress 12003 -L work -gui -do $(WAVE) -do $(RUNTIME) work.$(TB) &
+	vsim -printsimstats $(OPTION) -suppress 12027 -suppress 2732 -suppress 8884 -suppress 2912 -suppress 13181 -suppress 12003 -L work -do $(RUNTIME) work.$(TB) &
 	# Setup VCD
-	
+	# -do $(WAVE)
 
 #INIT
 init :
@@ -39,6 +40,7 @@ init :
 	@echo '**********'
 	@pkill vsim || true
 	mkdir -p $(WORK_DIR)
+	mkdir -p $(OUTPUT_DIR)
 	vlib $(WORK_DIR)/work
 	vmap work $(WORK_DIR)/work
 	
@@ -58,6 +60,6 @@ clean :
 	@echo '***********'
 	@echo '** CLEAN **'
 	@echo '***********'
-	@rm -rf $(WORK_DIR) transcript *.wlf modelsim.ini *.vstf
-	@rm -rf wl*
-	@rm -rf vcd*
+	@rm -rf $(WORK_DIR) transcript *.wlf modelsim.ini *.vstf *.log *.txt
+	@rm -rf .vcd*
+	@rm -rf $(OUTPUT_DIR)

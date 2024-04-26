@@ -229,18 +229,25 @@ module ps_adam_tb;
     );
 
     // test ===================================================================
+    // initial begin
+    //     $dumpfile("adam_ps.vcd");
+    //     $dumpvars(0 ,dut);
+    //     // Wait for 600 µs
+    //     $dumpoff;
+    //     #600000;
+    //     // Start Saving for 100 µs
+    //     $dumpon;
+    //     #100000;
+    //     // Stop Saving
+    //     $dumpoff;
+    // end
+    
     initial begin
-        $dumpfile("adam_ps.vcd");
+        $dumpfile("/scratch/k-romdhane/vcd_files/adam_setup.vcd");
         $dumpvars(0 ,dut);
-        // Wait for 600 µs
-        $dumpoff;
-        #600000;
-        // Start Saving for 100 µs
+        // Start Saving for 131 µs
         $dumpon;
-        #100000;
-        // Stop Saving
-        $dumpoff;
+        // #200000;
+        // $dumpoff;
     end
-
-
 endmodule

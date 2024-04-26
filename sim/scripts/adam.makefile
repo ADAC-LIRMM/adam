@@ -7,6 +7,8 @@ TB 			= my_adam_tb
 WAVE		= "do ../wave/wave_my_adam.do"
 RUNTIME		= "run 1 ms"
 OPTION 		= -voptargs=+acc
+OUTPUT_DIR	= ../outputs
+
 # List of source files
 SOURCES := $(shell python ./yaml_parser.py $(YAML) | head -n 1)
 INCLUDES := $(shell python ./yaml_parser.py $(YAML) | tail -n 1)
@@ -21,8 +23,8 @@ run :
 	@echo '*********'
 	@echo '** RUN **'
 	@echo '*********'
-	# vlog -force_refresh
-	vsim -printsimstats $(OPTION) -suppress 2912 -suppress 13181 -suppress 12003 -L work -gui -do $(WAVE) -do $(RUNTIME) work.$(TB) &
+	vlog -force_refresh
+	vsim -printsimstats $(OPTION) -suppress 2912 -suppress 13181 -suppress 12003 -L work -do $(RUNTIME) work.$(TB) &
 	
 #INIT
 init :
@@ -31,6 +33,7 @@ init :
 	@echo '**********'
 	@pkill vsim || true
 	mkdir -p $(WORK_DIR)
+	mkdir -p $(OUTPUT_DIR)
 	vlib $(WORK_DIR)/work
 	vmap work $(WORK_DIR)/work
 
@@ -47,5 +50,5 @@ clean :
 	@echo '***********'
 	@echo '** CLEAN **'
 	@echo '***********'
-	@rm -rf $(WORK_DIR) transcript *.wlf modelsim.ini *.vstf
-	@rm -rf wl*
+	@rm -rf $(WORK_DIR) transcript *.wlf modelsim.ini *.vstf *.log *.txt
+	@rm -rf $(OUTPUT_DIR)

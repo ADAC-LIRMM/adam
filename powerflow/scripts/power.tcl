@@ -3,8 +3,39 @@
 # =============================================================================
 # This script is used to perform power analysis on the synthesized design.
 # Execute by running the following command: pwr_shell -f power.tcl
+# To clean the folder : export CLEAN=1; pwr_shell -f power.tcl; unset CLEAN
+
 set synth   ../src
 set simul   ../../sim/scripts
+
+# Define directories
+set dirs        [list "../outputs"]
+
+# # Check if "clean" is in the command-line arguments
+# if {[info exists env(CLEAN)] >= 0} {
+#     # Iterate over directories
+#     foreach dir $dirs {
+#         if {[file exists $dir]} {
+#             file delete -force -- $dir
+#             puts "Directory $dir deleted."
+#         }
+#     }
+#     foreach log_file [glob -nocomplain *.log *.svf] {
+#             file delete -force -- $log_file
+#             puts "File $log_file deleted."
+#         }
+#     # Exit the script after cleaning
+#     exit
+# }
+# Iterate over directories
+foreach dir $dirs {
+    if {[file exists $dir]} {
+        file delete -force -- $dir
+        file mkdir $dir
+    } else {
+        file mkdir $dir
+    }
+}
 
 # Technology Setup
 # =============================================================================
@@ -27,7 +58,7 @@ set power_analysis_mode time_based
 read_verilog $synth/adam_synth.v
 current_design adam_unwrap
 link
-start_gui
+# start_gui
 
 # Timing
 # =============================================================================
@@ -37,18 +68,20 @@ start_gui
 
 # Perform Power Estimation
 # =============================================================================
-read_vcd "$simul/adam_ps.vcd" -strip_path ps_adam_tb/dut/adam_unwrap
+read_vcd "/scratch/k-romdhane/vcd_files/adam_setup.vcd" -strip_path ps_adam_tb/dut/adam_unwrap -pipe_exec "make -f ../../sim/scripts/adam_ps.makefile"
 
+# Time based analysis with an intervalle of 20ns and the outfile will be adam.out
 set_power_analysis_options \
     -waveform_format out \
-    -waveform_output waveform \
-    -separate_dyn_and_leak_power_waveform \
-    -waveform_interval 100 \\
+    -waveform_output /scratch/k-romdhane/waveforms/setup \
+    -waveform_interval 1 \
+    -separate_dyn_and_leak_power_waveform 
 
 check_power
 update_power
-report_power
-
+report_power -verbose > /scratch/k-romdhane/reports/setup_power_report.txt
+report_power -hierarchy > /scratch/k-romdhane/reports/setup_power_report_hier.txt
+# report_units > ../outputs/adam_power_units.txt
 # Exit
 # =============================================================================
 exit
