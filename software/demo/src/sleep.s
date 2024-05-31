@@ -12,7 +12,7 @@ sleep:
     # Check for Dirty Floating-Point State  
     li t1, 0x80000000 # SD bit
     and t1, t1, t0 
-    beq t1, zero, reg_backup
+    beq t1, zero, reg_backup #if not dirty then dont backup
 
     # Floating-Point Backup
     addi sp, sp, -140
@@ -47,8 +47,7 @@ sleep:
     fsw f28, 112(sp)
     fsw f29, 116(sp)
     fsw f30, 120(sp)
-    fsw f31, 124(sp)
-
+    fsw f31, 124(sp)    
     csrr t1, fflags
     sw t1, 128(sp)
 
@@ -56,7 +55,16 @@ sleep:
     sw t1, 132(sp)
 
     csrr t1, fcsr
+
+    #set the mstatus.fs to clean state (mstatus[14:13]=2'b10)
+    li t3, 0xffffcfff       # Create a mask with bits 13 and 14 set to 0 and all other bits set to 1
+    and t0, t0, t3          # Clear bits 13 and 14
+    li t4, 0x00002000       # Create a value with bits 13 set to 1 and bit 14 set to 0
+    or t0, t0, t4           # Set bit 13 to 1 while preserving the rest
+    csrw mstatus, t0        # Write back the modified value to mstatus
+
     sw t1, 136(sp)
+    
 reg_backup:
 
     # Register Backup
@@ -95,20 +103,13 @@ reg_backup:
     # Backup Stack Pointer 
     la t0, _stack_ptr_start
     sw sp, 0(t0)
-    nop 
+    # nop 
 
     # Load Memory Bank Addresses
 	li t0, 0x01000000 # RAM
 	la t1, 0x02000000 # RAM Backup
 	la t2, 0x02008000 # RAM Backup End (16k)
     
-    # Backup Stack Pointer
-    # sw sp, 0(t1)
-    # add t1, t1, 4
-
-    
-
-
 # Backup ROM into RAM
 # backup_loop:
 #     # Backup word
@@ -192,9 +193,16 @@ restore_loop_end:
     addi sp, sp, 128
 
     # Check for Dirty Floating-Point State  
-    li t1, 0x80000000 # SD bit
-    and t1, t1, t0
-    beq t1, zero, fp_restore_end
+    # li t1, 0x80000000 # SD bit
+    # and t1, t1, t0
+    # beq t1, zero, fp_restore_end #if it's clean then backup the registers
+   
+    # Check if mstatus.FS is clean
+    csrr t2, mstatus            # Load mstatus into t2
+    li t3, 0x00006000           #Create a value with bits 13 and 14 set to 1 and all other bits set to 0
+    and t4, t2, t3              # Isolate bits 13 and 14
+    li t5, 0x00004000           #Create a value with bit 13 set to 1 and bit 14 set to 0
+    bne t4, t5, fp_restore_end  # Compare isolated bits with the expected value
 
     # Floating-Point Restore
     flw f0, 0(sp)
@@ -229,7 +237,7 @@ restore_loop_end:
     flw f29, 116(sp)
     flw f30, 120(sp)
     flw f31, 124(sp)
-    
+
     lw t1, 128(sp)
     csrw fflags, t1
 

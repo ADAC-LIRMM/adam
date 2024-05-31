@@ -5,7 +5,7 @@ YAML		= ps_adam_tb
 TB 			= ps_adam_tb
 WAVE		= "do ../../sim/wave/wave_adam_ps.do"
 SDF_FILE	= ../powerflow/scripts/adam_unwrap.sdf
-RUNTIME		= "run 1 ms"
+RUNTIME		= "run 10 ms"
 CMOS28FDSOI_DIR = /tools/DKits/ST/cmos28fdsoi_10a
 OPTION 		= -voptargs=+acc 
 OUTPUT_DIR	= ../output
@@ -29,7 +29,7 @@ run :
 	@echo '*********'
 	vlog -force_refresh
 	
-	vsim -printsimstats $(OPTION) -suppress 12027 -suppress 2732 -suppress 8884 -suppress 2912 -suppress 13181 -suppress 12003 -L work -do $(RUNTIME) work.$(TB) &
+	vsim -printsimstats $(OPTION) -suppress 12027 -suppress 2732 -suppress 8884 -suppress 2912 -suppress 13181 -suppress 12003 -L work -gui -do $(RUNTIME) work.$(TB) &
 	# Setup VCD
 	# -do $(WAVE)
 
@@ -46,7 +46,7 @@ init :
 	
 	# Technology Setup
 	# =============================================================================
-	vlog -work work $(CMOS28FDSOI_DIR)/C28SOI_SC_12_CORE_LL/5.1-05/behaviour/verilog/C28SOI_SC_12_CORE_LL.v
+	vlog -work work $(CMOS28FDSOI_DIR)/C28SOI_SC_12_CORE_LR/5.1-03/behaviour/verilog/C28SOI_SC_12_CORE_LR.v
 #RTL
 rtl :
 	@echo '*********'

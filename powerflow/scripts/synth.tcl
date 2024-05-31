@@ -28,8 +28,8 @@ foreach dir $dirs {
 set CMOS28FDSOI_DIR $env(CMOS28FDSOI_DIR)
 set SYN_PATH $env(SNPS_SYN_PATH)
 set search_path	". $SYN_PATH/libraries/syn $SYN_PATH/dw/sim_ver \\
-  $CMOS28FDSOI_DIR/C28SOI_SC_12_CORE_LL/5.1-05/libs "
-set target_library "C28SOI_SC_12_CORE_LL_tt28_0.90V_0.00V_0.00V_0.00V_125C.db"
+  $CMOS28FDSOI_DIR/C28SOI_SC_12_CORE_LR/5.1-03/libs "
+set target_library "C28SOI_SC_12_CORE_LR_tt28_0.90V_25C.db"
 # set symbol_library "C28SOI_SC_12_CORE_LL.sdb"
 # set synthetic_library dw_foundation.sldb 
 set link_library "* $target_library "

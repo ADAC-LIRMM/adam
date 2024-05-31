@@ -247,25 +247,73 @@ module my_adam_tb;
 
     endtask //automatic
 
+    // Takes in input byte and serializes it 
+    task automatic UART_WRITE_BYTE(input [7:0] i_Data, input integer baudrate, input integer clk_freq);
+        // static integer c_BIT_PERIOD;
+        automatic integer ii;
+        begin
+        ii = 0;
+        // c_BIT_PERIOD = clk_freq / baudrate + 35;
+        lspa_uart_rx[0].i = 1'b1;
+        #160000
+        // Send Start Bit
+        lspa_uart_rx[0].i = 1'b0;
+        #(1s / baudrate);
+        #1000;
+
+        // Send Data Byte
+        for (ii=0; ii<8; ii=ii+1)
+        begin
+          lspa_uart_rx[0].i = i_Data[ii];
+          #(1s / baudrate);
+        end
+
+        // Send Stop Bit
+        lspa_uart_rx[0].i = 1'b1;
+        #(1s / baudrate);
+        end
+    endtask // UART_WRITE_BYTE
+
     initial 
     begin
         // Create a CSV file with {Memory, Operation, #bytes, #reads, #writes, time}
         int fd1;
         int fd2;
-        fd1 = $fopen("/scratch/k-romdhane/mem_ops/setup_instr_mem_rw.csv", "w");
+        fd1 = $fopen("../outputs/new_instr_mem_rw.csv", "w");
         $fdisplay(fd1, "Memory;Operation;#bytes;time(ns)");
         $fclose(fd1);
-        fd2 = $fopen("/scratch/k-romdhane/mem_ops/setup_data_mem_rw.csv", "w");
+        fd2 = $fopen("../outputs/new_data_mem_rw.csv", "w");
         $fdisplay(fd2, "Memory;Operation;#bytes;time(ns)");
         $fclose(fd2);
-        // Add 1 ms delay before starting to save
-        #1000000
+        // Add 1 ms delay before starting to save : #1 000 000
+        // 10 us delay
+
         forever 
         begin
             fork
-                mem_rw_cnt("/scratch/k-romdhane/mem_ops/setup_instr_mem_rw.csv",hsdom_mem_req[0], hsdom_mem_we[0], hsdom_mem_be[0], "instr_rom");
-                mem_rw_cnt("/scratch/k-romdhane/mem_ops/setup_data_mem_rw.csv",hsdom_mem_req[1], hsdom_mem_we[1], hsdom_mem_be[1], "data_mem");
+                begin
+                    $display("time: %t", $time);
+                end
+                begin
+                    mem_rw_cnt("../outputs/new_instr_mem_rw.csv",hsdom_mem_req[0], hsdom_mem_we[0], hsdom_mem_be[0], "instr_rom");
+                end
+                begin
+                    mem_rw_cnt("../outputs/new_data_mem_rw.csv",hsdom_mem_req[1], hsdom_mem_we[1], hsdom_mem_be[1], "data_mem");
+                end
             join
         end
+    end
+    initial begin
+        #1000000
+        // write 'a' to UART
+        UART_WRITE_BYTE(8'h61, 115200, 500000000);
+        // write 'b' to UART
+        UART_WRITE_BYTE(8'h62, 115200, 500000000);
+        // write 'b' to UART
+        UART_WRITE_BYTE(8'h63, 115200, 500000000);
+        // write 'b' to UART
+        UART_WRITE_BYTE(8'h63, 115200, 500000000);
+        // write 's' to UART
+        UART_WRITE_BYTE(8'h64, 115200, 500000000);
     end
 endmodule

@@ -63,6 +63,15 @@ Scripts and how to use them :
 `python3 pp_parser.py Path_to_waveform.out 1 -o Path_to_outputfolder -t name_of_csv:the_module_you_want_to_estimate_its_power_consumption`
 - Here is an example of those parts : 
     - hsdom_cpu:adam_unwrap/adam/genblk4_0__hsdom_cpu
+    - dnn_if_stage:adam_unwrap/adam/genblk4_0__hsdom_cpu/cv32e40p_top/core_i/if_stage_i
+    - dnn_lsu_stage:adam_unwrap/adam/genblk4_0__hsdom_cpu/cv32e40p_top/core_i/load_store_unit_i
+    - dnn_id_stage:adam_unwrap/adam/genblk4_0__hsdom_cpu/cv32e40p_top/core_i/id_stage_i
+    - dnn_ex_stage:adam_unwrap/adam/genblk4_0__hsdom_cpu/cv32e40p_top/core_i/ex_stage_i
+    - id_ictrl:adam_unwrap/adam/genblk4_0__hsdom_cpu/cv32e40p_top/core_i/id_stage_i/int_controller_i
+    - id_regfile:adam_unwrap/adam/genblk4_0__hsdom_cpu/cv32e40p_top/core_i/id_stage_i/register_file_i
+    - id_ctrl:adam_unwrap/adam/genblk4_0__hsdom_cpu/cv32e40p_top/core_i/id_stage_i/controller_i
+    - id_dcd:adam_unwrap/adam/genblk4_0__hsdom_cpu/cv32e40p_top/core_i/id_stage_i/decoder_i
+    - fpu:adam_unwrap/adam/genblk4_0__hsdom_cpu/cv32e40p_top/fpu_gen_fp_wrapper_i
     - lsdom_cpu:adam_unwrap/adam/genblk1_lsdom_lpcpu
     - total_fabric:adam_unwrap/adam/adam_fabric
     - lsdom_fabric:adam_unwrap/adam/adam_fabric/adam_fabric_lsdom

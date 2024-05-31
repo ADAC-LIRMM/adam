@@ -243,11 +243,51 @@ module ps_adam_tb;
     // end
     
     initial begin
-        $dumpfile("/scratch/k-romdhane/vcd_files/adam_setup.vcd");
+        $dumpfile("/scratch/k-romdhane/vcd_files/adam_seminar.vcd");
         $dumpvars(0 ,dut);
-        // Start Saving for 131 µs
         $dumpon;
         // #200000;
         // $dumpoff;
+    end
+
+    // Takes in input byte and serializes it 
+    task automatic UART_WRITE_BYTE(input [7:0] i_Data, input integer baudrate, input integer clk_freq);
+        // static integer c_BIT_PERIOD;
+        automatic integer ii;
+        begin
+        ii = 0;
+        // c_BIT_PERIOD = clk_freq / baudrate + 35;
+        lspa_uart_rx[0].i = 1'b1;
+        #160000
+        // Send Start Bit
+        lspa_uart_rx[0].i = 1'b0;
+        #(1s / baudrate);
+        #1000;
+
+        // Send Data Byte
+        for (ii=0; ii<8; ii=ii+1)
+        begin
+          lspa_uart_rx[0].i = i_Data[ii];
+          #(1s / baudrate);
+        end
+
+        // Send Stop Bit
+        lspa_uart_rx[0].i = 1'b1;
+        #(1s / baudrate);
+        end
+    endtask // UART_WRITE_BYTE
+
+    initial begin
+        #1000000
+        // write 'a' to UART
+        UART_WRITE_BYTE(8'h61, 115200, 500000000);
+        // write 'b' to UART
+        UART_WRITE_BYTE(8'h62, 115200, 500000000);
+        // write 'b' to UART
+        UART_WRITE_BYTE(8'h63, 115200, 500000000);
+        // write 'b' to UART
+        UART_WRITE_BYTE(8'h63, 115200, 500000000);
+        // write 's' to UART
+        UART_WRITE_BYTE(8'h64, 115200, 500000000);
     end
 endmodule
