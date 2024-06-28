@@ -475,3 +475,17 @@ static const ral_t RAL = {
         (ral_data_t *) 0x02000000,
     },
 };
+
+#define SYSCTRL_BASE (0x00008000)
+#define GPIO0_BASE   (0x00010000)
+#define SPI0_BASE    (0x00010400)
+#define TIMER0_BASE  (0x00010800)
+#define UART0_BASE   (0x00010C00)
+#define UART1_BASE   (0x00011000)
+
+#define SYSCTRL (*(ral_syscfg_t  *) SYSCTRL_BASE)
+#define GPIO0   (*(ral_gpio_t    *) GPIO0_BASE  )
+#define SPI0    (*(ral_spi_t     *) SPI0_BASE   )
+#define TIMER0  (*(ral_timer_t   *) TIMER0_BASE )
+#define UART0   (*(ral_uart_t    *) UART0_BASE  )
+#define UART1   (*(ral_uart_t    *) UART1_BASE  )

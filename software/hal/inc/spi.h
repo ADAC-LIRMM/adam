@@ -145,8 +145,7 @@ typedef struct
     SPI Functions
 */
 
-void SPI_Init(SPI_t *SPIx, SPI_Init_t *SPI_Init);
-uint32_t SPI_ReceiveData(SPI_t *SPIx);
-
+uint32_t SPI_ReceiveData();
+void SPI_Init(ral_spi_t *SPI_Init);
 
 #endif

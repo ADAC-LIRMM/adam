@@ -12,5 +12,9 @@ void delay_ms(ral_timer_t  *timer, uint32_t ms);
 void delay_us(ral_timer_t  *timer, uint32_t us);
 unsigned int get_timer_value(ral_timer_t  *timer);
 void timer_reset_value(ral_timer_t  *timer);
+void delay_16K(ral_timer_t *timer);
+void set_timer_ms(ral_timer_t  *TIMERx, uint32_t ms);
+void set_timer_us(ral_timer_t  *TIMERx, uint32_t ms);
+void set_timer_16k(ral_timer_t  *TIMERx);
 
 #endif

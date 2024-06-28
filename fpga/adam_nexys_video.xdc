@@ -46,3 +46,10 @@ set_max_delay -datapath_only -from [get_pins adam/adam_debug/dmi_jtag/i_dmi_cdc/
 set_max_delay -datapath_only -from [get_pins adam/adam_debug/dmi_jtag/i_dmi_cdc/i_cdc_resp/i_src/req_src_q_reg/C] -to [get_pins adam/adam_debug/dmi_jtag/i_dmi_cdc/i_cdc_resp/i_dst/req_dst_q_reg/D] 20.000
 set_max_delay -datapath_only -from [get_pins adam/adam_debug/dmi_jtag/i_dmi_cdc/i_cdc_req/i_dst/ack_dst_q_reg/C] -to [get_pins adam/adam_debug/dmi_jtag/i_dmi_cdc/i_cdc_req/i_src/ack_src_q_reg/D] 20.000
 
+
+# SPI ================================================================================================================
+
+set_property -dict {PACKAGE_PIN V9 IOSTANDARD LVCMOS33} [get_ports spi_ss]
+set_property -dict {PACKAGE_PIN V8 IOSTANDARD LVCMOS33} [get_ports spi_mosi]
+set_property -dict {PACKAGE_PIN V7 IOSTANDARD LVCMOS33} [get_ports spi_miso]
+set_property -dict {PACKAGE_PIN W7 IOSTANDARD LVCMOS33} [get_ports spi_sck]

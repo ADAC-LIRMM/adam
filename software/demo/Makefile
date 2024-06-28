@@ -34,11 +34,13 @@ ROM_TARGET 	= $(TARGET_DIR)/instr_rom.sv
 
 BASE_SRCS = \
     src/startup.s \
+	$(ADAM_DIR)/software/hal/src/utils.c \
 	$(ADAM_DIR)/software/hal/src/uart.c \
 	$(ADAM_DIR)/software/hal/src/cvt.c \
 	$(ADAM_DIR)/software/hal/src/print.c \
 	$(ADAM_DIR)/software/hal/src/timer.c \
 	$(ADAM_DIR)/software/hal/src/gpio.c \
+	$(ADAM_DIR)/software/hal/src/spi.c \
 	src/main.c \
 	
 FAST_SRCS = \
@@ -61,7 +63,7 @@ FAST_GFLAGS = -march=rv32imfc_zicsr \
               -mabi=ilp32f
 
 CFLAGS   = -g \
-           -O0 \
+		   -O0 \
            -Wall \
            -Wextra \
            -static \

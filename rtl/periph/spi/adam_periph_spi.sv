@@ -93,6 +93,7 @@ module adam_periph_spi #(
         .ss_n (ss_n)
     );
 
+
     always_comb begin
 
         // APB inputs

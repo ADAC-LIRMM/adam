@@ -12,31 +12,24 @@
   * @retval None
 **/
 
-void SPI_Init(SPI_t *SPIx, SPI_Init_t *SPI_Init)
+void SPI_Init(ral_spi_t *SPI_Init)
 {
-    // Check Parameters 
-    assert_param(IS_SPI_PERIPHERAL_ENABLE(SPI_Init->PeripheralEnable));
-    assert_param(IS_SPI_TRANSMIT_ENABLE(SPI_Init->TransmitEnable));
-    assert_param(IS_SPI_RECEIVE_ENABLE(SPI_Init->ReceiveEnable));
-    assert_param(IS_SPI_MODE(SPI_Init->ModeSelect));
-    assert_param(IS_SPI_CLOCK_PHASE(SPI_Init->ClockPhase));
-    assert_param(IS_SPI_CLOCK_POLARITY(SPI_Init->ClockPolarity));
-    assert_param(IS_SPI_DATA_ORDER(SPI_Init->DataOrder));
-    assert_param(IS_SPI_DATA_LENGTH(SPI_Init->DataLength));
-    assert_param(IS_SPI_BAUDRATE(SPI_Init->BaudRate));
+    ral_spi_t *SPIx = RAL.LSPA.SPI[0];
 
     // Configure the SPI peripheral
-    SPIx->CR = (SPI_Init->PeripheralEnable << SPI_CR_PE_Pos) |
-               (SPI_Init->TransmitEnable << SPI_CR_TE_Pos) |
-               (SPI_Init->ReceiveEnable << SPI_CR_RE_Pos) |
-               (SPI_Init->ModeSelect << SPI_CR_MS_Pos) |
-               (SPI_Init->ClockPhase << SPI_CR_CPHA_Pos) |
-               (SPI_Init->ClockPolarity << SPI_CR_CPOL_Pos) |
-               (SPI_Init->DataOrder << SPI_CR_DO_Pos) |
-               (SPI_Init->DataLength << SPI_CR_DATA_LENGTH_Pos);
+    SPIx->CR = (SPI_Init->PE << SPI_CR_PE_Pos) |
+               (SPI_Init->TE << SPI_CR_TE_Pos) |
+               (SPI_Init->RE << SPI_CR_RE_Pos) |
+               (SPI_Init->MS << SPI_CR_MS_Pos) |
+               (SPI_Init->CPHA << SPI_CR_CPHA_Pos) |
+               (SPI_Init->CPOL << SPI_CR_CPOL_Pos) |
+               (SPI_Init->DO << SPI_CR_DO_Pos) |
+               (SPI_Init->DL << SPI_CR_DATA_LENGTH_Pos);
 
     // Configure the SPI baud rate
-    SPIx->BRR = SPI_Init->BaudRate;
+    SPIx->BRR = SPI_Init->BRR;
+
+    
 }
 
 /*
@@ -49,12 +42,13 @@ void SPI_Init(SPI_t *SPIx, SPI_Init_t *SPI_Init)
   * @retval Received data
   * @note   This function is blocking and will wait until data is received.
 **/
-uint32_t SPI_ReceiveData(SPI_t *SPIx)
+uint32_t SPI_ReceiveData()
 {
-    // Wait until the receive buffer is full
-    while (!(SPIx->SR & (1U << SPI_SR_RBF_Pos)));
-    // Return the received data
-    return SPIx->DR;
+  uint32_t tmp = 0;
+  if(RAL.LSPA.SPI[0]->RBF == 1){
+    tmp = RAL.LSPA.SPI[0]->DR; 
+  }
+  return tmp;
 }
 
 
