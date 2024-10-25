@@ -108,6 +108,8 @@ ENV PATH="/adam/scripts:${PATH}"
 
 COPY ../ /adam
 
+RUN setup.bash --no-venv
+
 WORKDIR /adam
 
 RUN chmod 777 /adam
@@ -124,9 +126,7 @@ fi
 
 PS1="(adam) \$(pwd | sed 's|^/adam|~|') \\$ "
 
-export HOME="/adam"
+export HOME="/adam/work"
 
 git config --global --add safe.directory '*'
-
-setup.bash
 EOF
