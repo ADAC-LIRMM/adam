@@ -5,16 +5,17 @@
  *
  * This header was auto-generated using gen_ral.py.
  *
- * Date   : 2024-02-15 10:34:01 UTC
+ * Date   : 2024-11-03 13:28:43 UTC
  * Target : adam_nexys_video
- * Branch : fabric
- * Commit : dcf25be3fe56c9cae8cfb63749ee1d0440da26b8 (dirty)
+ * Branch : PFE
+ * Commit : 35ee1c2c4fc93ce33c0784ecf92efcb8466c9aa9 (dirty)
  *
  * It is not recommended to modify this this file. 
  * ============================================================================
  */
 
 #pragma once
+#define SYSTEM_CLOCK 25000000
 
 typedef volatile unsigned int ral_data_t;
 
@@ -257,7 +258,7 @@ typedef struct {
             };
             const ral_data_t reserved0;
             const ral_data_t reserved1;
-        } UART[2];
+        } UART[1];
     } LSPA;
     struct {
     } LSPB;
@@ -440,7 +441,7 @@ typedef struct {
         ral_gpio_t *GPIO[1];
         ral_spi_t *SPI[1];
         ral_timer_t *TIMER[1];
-        ral_uart_t *UART[2];
+        ral_uart_t *UART[1];
     } LSPA;
     struct {
         ral_gpio_t *GPIO[0];
@@ -466,10 +467,8 @@ static const ral_t RAL = {
         },
         .UART = {
             (ral_uart_t *) 0x00010C00,
-            (ral_uart_t *) 0x00011000,
         },
     },
-    .LSPB = {},
     .MEM = {
         (ral_data_t *) 0x01000000,
         (ral_data_t *) 0x02000000,

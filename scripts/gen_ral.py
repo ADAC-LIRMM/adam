@@ -458,7 +458,8 @@ if __name__ == '__main__':
 
     aw = cfg['addr_width']
     dw = cfg['data_width']
-
+    clk_period = cfg['clk_period']
+    clk_freq = int(1e9/clk_period)
     cw = CodeWritter()
 
     strb_width = clog2(dw//8)
@@ -473,8 +474,9 @@ if __name__ == '__main__':
         target=target
     ))
     cw.skip()
-
+    
     cw.put(f'#pragma once')
+    cw.put(f'#define SYSTEM_CLOCK {clk_freq}')
     cw.skip()
 
     cw.put(f'typedef volatile unsigned int ral_data_t;')

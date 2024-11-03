@@ -91,6 +91,20 @@ void delay_16K(ral_timer_t *timer) {
   // Reset the flag
   timer_interrupt_occurred = 0; 
 }
+void timer0_delay(uint32_t PSC, uint32_t ARR) {
+  ral_timer_t *timer = (ral_timer_t *)RAL.LSPA.TIMER[0];
+  timer->PE = 0;
+  timer->PR = PSC;
+  timer->VR = 0;
+  timer->ARR = ARR;
+  timer->IER = ~0;
+  timer->PE = 1;
+  while (timer->PE != 1);
+  // Wait for timer to finish
+  while (!timer_interrupt_occurred);
+  // Reset the flag
+  timer_interrupt_occurred = 0; 
+}
 
 unsigned int get_timer_value(ral_timer_t *timer) { return timer->VR; }
 

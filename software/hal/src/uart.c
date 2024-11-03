@@ -1,7 +1,7 @@
 
 #include "uart.h"
 
-#define SYSTEM_CLOCK 50000000 // Define your system clock frequency (e.g., 50MHz)
+// #define SYSTEM_CLOCK 50000000 // Define your system clock frequency (e.g., 50MHz)
 
 /**
   * @brief  Initializes the UART peripheral.
@@ -10,6 +10,7 @@
   * @param  baud_rate: Baud rate to be used.
   * @retval None
   */
+
 void uart_init(ral_uart_t *uart, uint32_t baudrate) {
     // Calculate the BRR value based on the system clock and desired baud rate
     uint32_t brr_value = SYSTEM_CLOCK / baudrate;

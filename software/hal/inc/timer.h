@@ -16,5 +16,7 @@ void delay_16K(ral_timer_t *timer);
 void set_timer_ms(ral_timer_t  *TIMERx, uint32_t ms);
 void set_timer_us(ral_timer_t  *TIMERx, uint32_t ms);
 void set_timer_16k(ral_timer_t  *TIMERx);
+void timer0_delay(uint32_t PSC, uint32_t ARR);
+
 
 #endif

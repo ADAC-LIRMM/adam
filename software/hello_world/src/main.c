@@ -27,7 +27,8 @@ int main() {
   while (1)
   {
     gpio_write(RAL.LSPA.GPIO[0], c, pin_state);
-    delay_ms(RAL.LSPA.TIMER[0], 1000);
+    timer0_delay(12499, 1000);
+    //delay_ms(RAL.LSPA.TIMER[0], 1000);
     if (c == 8) {
       c = 0;
       pin_state = !pin_state;

@@ -290,7 +290,7 @@ def atgen(*args, **kargs):
     
     yml_path = atgen_path / 'target.yml'
     pkg_path = atgen_path / 'adam_cfg_pkg.sv'
-    ral_path = atgen_path / 'adam_ral.h'
+    ral_path = adam_path/ 'software' / 'hal' / 'inc' / 'adam_ral.h'
 
     with open(yml_path, 'w') as file:
         yaml.dump(target, file)
