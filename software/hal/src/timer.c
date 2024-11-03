@@ -1,7 +1,7 @@
 
 #include "timer.h"
 #include "print.h"
-
+#include "gpio.h"
 extern volatile int timer_interrupt_occurred;
 
 void timer_init(ral_timer_t *timer, uint32_t presc, uint32_t val,
@@ -42,14 +42,12 @@ void set_timer_16k(ral_timer_t *TIMERx) {
 
 void timer_start(ral_timer_t *timer) {
   timer->PE = 1;
-  while (timer->PE != 1)
-    ;
+  while (timer->PE != 1);
 }
 
 void timer_stop(ral_timer_t *timer) {
   timer->PE = 0;
-  while (timer->PE != 0)
-    ;
+  while (timer->PE != 0);
 }
 
 void delay_ms(ral_timer_t *timer, uint32_t ms) {
@@ -59,12 +57,11 @@ void delay_ms(ral_timer_t *timer, uint32_t ms) {
   timer->ARR = ms;
   timer->IER = ~0;
   timer->PE = 1;
-  while (timer->PE != 1)
-    ;
+  while (timer->PE != 1);
   // Wait for timer to finish
-  while (!timer_interrupt_occurred)
-    ;                           // Wait for the interrupt to occur
-  timer_interrupt_occurred = 0; // Reset the flag
+  while (!timer_interrupt_occurred);
+  // Reset the flag
+  timer_interrupt_occurred = 0; 
 }
 
 void delay_us(ral_timer_t *timer, uint32_t us) {
@@ -74,12 +71,11 @@ void delay_us(ral_timer_t *timer, uint32_t us) {
   timer->ARR = us;
   timer->IER = ~0;
   timer->PE = 1;
-  while (timer->PE != 1)
-    ;
+  while (timer->PE != 1);
   // Wait for timer to finish
-  while (!timer_interrupt_occurred)
-    ;                           // Wait for the interrupt to occur
-  timer_interrupt_occurred = 0; // Reset the flag
+  while (!timer_interrupt_occurred);
+  // Reset the flag
+  timer_interrupt_occurred = 0; 
 }
 
 void delay_16K(ral_timer_t *timer) {
@@ -89,12 +85,11 @@ void delay_16K(ral_timer_t *timer) {
   timer->ARR = 1;
   timer->IER = ~0;
   timer->PE = 1;
-  while (timer->PE != 1)
-    ;
+  while (timer->PE != 1);
   // Wait for timer to finish
-  while (!timer_interrupt_occurred)
-    ;                           // Wait for the interrupt to occur
-  timer_interrupt_occurred = 0; // Reset the flag
+  while (!timer_interrupt_occurred);
+  // Reset the flag
+  timer_interrupt_occurred = 0; 
 }
 
 unsigned int get_timer_value(ral_timer_t *timer) { return timer->VR; }

@@ -108,7 +108,7 @@ ENV PATH="/adam/scripts:${PATH}"
 
 COPY ../ /adam
 
-RUN setup.bash --no-venv
+# RUN setup.bash --no-venv
 
 WORKDIR /adam
 

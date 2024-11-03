@@ -1,0 +1,1 @@
+This is a simple first application to run ADAM. It only uses the CPU and it utilizes the UART TX to display an initial message on a console and then uses both GPIOs and the TIMER to create a simple LED chase.

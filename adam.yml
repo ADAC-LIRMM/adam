@@ -39,7 +39,7 @@ default:
   no_lspa_gpios:  1
   no_lspa_spis:   1
   no_lspa_timers: 1
-  no_lspa_uarts:  2
+  no_lspa_uarts:  1
 
   no_lspb_gpios:  0
   no_lspb_spis:   0
@@ -128,11 +128,11 @@ fsets:
       - adam_rtl
       - adam_cv32e40p_rtl
       - adam_ibex_rtl
-      
+
     sources:
       - bhv/adam_clk_gate.sv
       - fpga/adam_nexys_video.sv
-      - rtl/instr_rom.sv
+      # - rtl/instr_rom.sv
 
   adam_bhv:
     requires:
