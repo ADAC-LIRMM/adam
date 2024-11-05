@@ -112,7 +112,7 @@ fsets:
       - adam_cv32e40p_rtl
       - adam_ibex_rtl
     sources:
-      - ./work/adam_nexys_video/atgen/adam_cfg_pkg.sv
+      - work/adam_nexys_video/atgen/adam_cfg_pkg.sv
       - bhv/adam_clk_gate.sv
       - bhv/adam_seq_bhv.sv
       - bhv/jtag/adam_jtag_mst_bhv.sv
@@ -125,7 +125,7 @@ fsets:
     requires:
       - adam_zybo_rtl
     sources:
-      - work/default/atgen/adam_cfg_pkg.sv
+      - work/adam_zybo/atgen/adam_cfg_pkg.sv
       - bhv/jtag/adam_jtag_mst_bhv.sv
       - sim/bhv/adam_zybo_tb.sv
 
