@@ -41,6 +41,7 @@ BASE_SRCS = \
 	$(ADAM_DIR)/software/hal/src/timer.c \
 	$(ADAM_DIR)/software/hal/src/gpio.c \
 	$(ADAM_DIR)/software/hal/src/spi.c \
+	$(ADAM_DIR)/software/hal/src/printf-stdarg.c \
 	src/main.c \
 	
 

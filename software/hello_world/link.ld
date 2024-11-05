@@ -5,14 +5,14 @@ OUTPUT_ARCH(riscv)
 /* Required to correctly link newlib nano */
 GROUP(-lnosys -lc_nano -lgcc -lsupc++)
 
-_stack_size = 32768;
-_heap_size  = 32768;
+_stack_size = 1024;
+_heap_size  = 1024;
 
 /* Memory */
 MEMORY
 {
-	ROM (rx)  : ORIGIN = 0x01000000, LENGTH = 524288
-    RAM (w)   : ORIGIN = 0x02000000, LENGTH = 524288
+	ROM (rx)  : ORIGIN = 0x01000000, LENGTH = 8192
+    RAM (w)   : ORIGIN = 0x02000000, LENGTH = 8192
 }
 
 _stack_ptr_size = 4; /* Size of stack pointer, 4 for 32-bit, 8 for 64-bit */

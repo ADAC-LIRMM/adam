@@ -20,14 +20,14 @@ int main() {
   hw_init();
   // Initialize UART0 at 115200 baud rate
   uart_init(RAL.LSPA.UART[0], 115200);
-  ee_printf("======================");
-  ee_printf("=====ADAM Online!=====");
-  ee_printf("======================");
+  // my_printf("======================");
+  // my_printf("=====ADAM Online!=====");
+  // my_printf("======================");
   gpio_write(RAL.LSPA.GPIO[0], 0, 1);
   while (1)
   {
     gpio_write(RAL.LSPA.GPIO[0], c, pin_state);
-    timer0_delay(12499, 1000);
+    timer0_delay(16250, 1);
     //delay_ms(RAL.LSPA.TIMER[0], 1000);
     if (c == 8) {
       c = 0;

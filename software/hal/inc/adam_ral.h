@@ -5,17 +5,17 @@
  *
  * This header was auto-generated using gen_ral.py.
  *
- * Date   : 2024-11-03 13:28:43 UTC
- * Target : adam_nexys_video
+ * Date   : 2024-11-04 13:27:07 UTC
+ * Target : default
  * Branch : PFE
- * Commit : 35ee1c2c4fc93ce33c0784ecf92efcb8466c9aa9 (dirty)
+ * Commit : 6b5c2f87256007ecb02a16d91a6990cad099ff01 (dirty)
  *
  * It is not recommended to modify this this file. 
  * ============================================================================
  */
 
 #pragma once
-#define SYSTEM_CLOCK 25000000
+#define SYSTEM_CLOCK 31250000
 
 typedef volatile unsigned int ral_data_t;
 
