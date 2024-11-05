@@ -6,6 +6,14 @@ targets:
 
     rtl_fsets: 
       - adam_nexys_video_rtl
+  
+  adam_zybo:
+    top: adam_zybo
+    part: xc7z020clg400-1
+    xdc: fpga/adam_zybo.xdc
+
+    rtl_fsets: 
+      - adam_zybo_rtl
 
 default:
   defines:
@@ -34,7 +42,7 @@ default:
   
   en_lpcpu: True
   en_lpmem: True
-  en_debug: True
+  en_debug: False
 
   no_lspa_gpios:  1
   no_lspa_spis:   1
@@ -68,7 +76,7 @@ default:
   mmap_hsp:   [0x00090000, 0x00098000, 0x00000400]
   mmap_mem:   [0x01000000, 0xFFFFFFFF, 0x01000000]
 
-  clk_period: 20 #ns
+  clk_period: 32 #ns
   rst_cycles: 5
   
   ta: 2  #ns
@@ -112,6 +120,14 @@ fsets:
       - rtl/adam_wrap.sv
       - rtl/instr_rom.sv
       - sim/bhv/my_adam_tb.sv
+      
+  adam_zybo_tb:
+    requires:
+      - adam_zybo_rtl
+    sources:
+      - work/default/atgen/adam_cfg_pkg.sv
+      - bhv/jtag/adam_jtag_mst_bhv.sv
+      - sim/bhv/adam_zybo_tb.sv
 
   adam_synth:
     requires:
@@ -133,6 +149,17 @@ fsets:
       - bhv/adam_clk_gate.sv
       - fpga/adam_nexys_video.sv
       # - rtl/instr_rom.sv
+
+  adam_zybo_rtl:
+    requires:
+      - adam_rtl
+      - adam_cv32e40p_rtl
+      - adam_ibex_rtl
+
+    sources:
+      - bhv/adam_clk_gate.sv
+      - fpga/adam_zybo.sv
+      - rtl/instr_rom.sv
 
   adam_bhv:
     requires:
