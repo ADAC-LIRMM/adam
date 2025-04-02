@@ -1,0 +1,17 @@
+image: python:3.9
+
+pages:
+  stage: deploy
+  script:
+    - pip install -U pip setuptools
+    - pip install -r requirements.txt
+    - cd docs
+    - make html
+    - mv build/html ../public
+
+  artifacts:
+    paths:
+      - public
+
+  only:
+    - main
