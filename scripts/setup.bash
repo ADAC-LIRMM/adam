@@ -52,6 +52,9 @@ else
   echo "Skipping virtual environment as --no-venv was specified"
 fi
 
+# Upgrade setuptools and pip
+pip install -U pip setuptools
+
 # Install requirements.txt
 pip3 install -r requirements.txt
 
