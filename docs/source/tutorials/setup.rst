@@ -77,7 +77,7 @@ With the prerequisites in place, proceed to clone ADAM's Git Repository:
 
 .. code-block:: bash
 
-   git clone git@gite.lirmm.fr:adac/adam.git
+   git clone git@gite.lirmm.fr:adac/adam/adam.git
    cd adam
 
 Building the Docker Image
