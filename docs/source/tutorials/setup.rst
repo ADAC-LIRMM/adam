@@ -38,9 +38,9 @@ Vivado
 
 .. code-block:: bash
 
-   $ export XILINX_PATH=/tools/Xilinx
+   export XILINX_PATH=/tools/Xilinx
 
-This is usually done in the ``.bashrc`` file, like the following:
+This is usually added to the ``.bashrc`` file, like the following:
 
 .. code-block:: bash
 
@@ -51,8 +51,16 @@ ModelSim
 
 .. note::
 
-   The Student Edition of ModelSim by Intel is also suitable.
-   
+   You may use **ModelSim** or **Questa** as your simulator.
+   The Student Edition by Intel of either is also suitable.
+   Regardless of which one you choose, the environment variable must be named
+   ``MODELSIM_PATH``.
+   For example, if you're using Questa:
+
+   .. code-block:: bash
+
+      export MODELSIM_PATH=/opt/questasim
+
 1. Go to the 
    `ModelSim <https://eda.sw.siemens.com/en-US/ic/modelsim/>`_ 
    website and follow the instructions to install ModelSim on your system.
@@ -62,9 +70,9 @@ ModelSim
 
 .. code-block:: bash
 
-   $ export MODELSIM_PATH=/opt/ModelSim
+   export MODELSIM_PATH=/opt/ModelSim
 
-This is usually done in the ``.bashrc`` file, like the following:
+This is usually added to the ``.bashrc`` file, like the following:
 
 .. code-block:: bash
 
