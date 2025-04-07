@@ -15,6 +15,8 @@ targets:
     rtl_fsets: 
       - adam_zybo_rtl
 
+    en_debug: False
+
 default:
   defines:
     - VERILATOR
@@ -42,7 +44,7 @@ default:
   
   en_lpcpu: True
   en_lpmem: True
-  en_debug: False
+  en_debug: True
 
   no_lspa_gpios:  1
   no_lspa_spis:   1
