@@ -8,6 +8,11 @@ for IoT and Edge Computing, while also enabling architectural explorations.
 .. _ADAM: https://gite.lirmm.fr/adac/adam/
 .. _ICOBS: https://gite.lirmm.fr/adac/icobs/
 
+.. figure:: images/adam.drawio.svg
+  :align: center
+
+  ADAM's Block Diagram
+
 - **Parametric**:
 
   ADAM supports extensive customization via a configuration file,
