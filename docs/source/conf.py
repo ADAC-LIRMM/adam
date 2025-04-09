@@ -14,7 +14,7 @@ author = 'LIRMM'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    'sphinx_rtd_theme',
+    'sphinx_rtd_dark_mode',
     #'sphinxcontrib.wavedrom'
 ]
 
