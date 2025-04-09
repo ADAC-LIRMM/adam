@@ -12,7 +12,31 @@ and taking your design from compilation to execution.
 Compiling an Application
 ========================
 
-TODO
+Before debugging your application, you must first compile it.
+As an example, we will use the **hello_world** application.
+
+1. Navigate to the application folder:
+
+.. code-block:: bash
+
+        (adam) ~ $ cd software/hello_world
+        
+2. Compile the application:
+
+.. code-block:: bash
+
+        (adam) ~/software/hello_world $ make
+        
+This process will generate several files, including **hello_world.elf**, which will later be used by GDB during the debugging process.
+You can find the generated .elf file at:
+
+.. code-block:: bash
+
+	~/software/hello_world/build/target/hello_world.elf
+
+
+You are now ready to continue with the hardware setup and begin debugging your application.
+
 
 Setting Up the Hardware
 =======================
