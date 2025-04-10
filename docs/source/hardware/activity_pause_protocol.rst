@@ -1,4 +1,3 @@
-
 .. _activity_pause_protocol:
 
 =======================
@@ -13,12 +12,6 @@ clock gating, power gating, and non-volatile exploration.
 Drawing inspiration from the AXI stream ``READY`` and ``VALID`` signals, this
 protocol offers a combination of control simplicity with minimal overhead.
 
-With the objective of devising an effective strategy for clock gating, power
-gating and non-volatile exploration, we converged on a protocol that was both
-simple and powerful.
-Taking inspiration from the AXI stream ``READY`` and ``VALID`` signals, this
-protocol merges ease of control with minimal overhead.
-
 .. note::
 
    It was later perceived that ADAM's Activity Pause Protocol closely resembles
@@ -30,47 +23,73 @@ protocol merges ease of control with minimal overhead.
 Signals
 =======
 
-Primary Signals:
+- ``clk`` (clock): Typically triggered on the positive edge.
+
+- ``rst`` (reset): A synchronous signal that initiates a reset operation. It
+  should not be assumed that it persists for more than one clock cycle.
 
 - ``req`` (request): Used by the master to indicate a wish to pause
   the slave's operations.
 
 - ``ack`` (acknowledge): Used to acknowledge the pause request.
 
-Additional Standardized Signals:
+States
+======
 
-While not rigidly defined by the protocol, the clock and reset signals are of
-course vital for any sequential module but are even more crucial to this
-protocol.
-Their states are instrumental in defining the low power mode a module will
-enter.
+The protocol defines three states for the slave:
 
-- ``clk`` (clock): Typically triggered on the positive edge.
+- **ACTIVE**:
+  Normal operational state; the slave's internal logic is active and can change
+  with every clock cycle.
+  The slave is in this state when ``req`` or ``ack`` is deasserted (0).
+  The ``rst`` signal should always be deasserted (0) in this state.
 
-- ``rst`` (reset): A synchronous signal that initiates a reset operation. It
-  should not be assumed that it persists for more than one clock cycle.
+- **PAUSE**:
+  Safe for clock gating (internal logic is held in a stable, paused condition).
+  The slave is in this state when both ``req`` and ``ack`` are asserted (1).
+  The ``rst`` signal should always be deasserted (0) in this state.
 
-Protocol Flow
-=============
+- **STOP**:
+  Safe for both clock gating and power gating (the slave's state can be lost).
+  The slave is in this state when ``rst``, ``req`` and ``ack`` are all
+  asserted (1).
 
-1. **Request**: The master asserts ``req`` and waits for the assertion of
-   ``ack`` by the slave.
-   Notably, ``ack`` could potentially be asserted already.
+Protocol Operation
+==================
 
-2. **Acknowledgement**: While ``req`` and ``ack`` are both
-   asserted the slave is said to be in a paused state.
-   In this state, the slave remains stable without any internal state changes.
+The following figure illustrates how the slave transitions among the three
+states (**STOP**, **ACTIVE**, and **PAUSE**).
+They need not occur in a strict sequential order;
+each transition can happen whenever its conditions are met.
 
-3. **Resume**: To resume operations, the master deasserts ``req`` and waits for
-   the slave to reciprocate by deasserting ``ack``.
+.. figure:: ./images/activity_pause_protocol.drawio.svg
+   :align: center
 
-The core objective behind introducing this protocol is to allow safe
-clock-gating and power-gating during a paused state or stopped state for a
-given module. 
+   Typical Timing Diagram of Activity Pause Protocol
+
+The following transitions describe how the slave moves between the three states.
+They need not occur in a strict sequential order, each transition can happen
+whenever its conditions are met.
+
+- **From STOP to ACTIVE**:
+  Deassert both ``rst`` and ``req``.
+  The slave responds by deasserting ``ack`` to confirm the transition.
+
+- **From ACTIVE to PAUSE**:
+  The master asserts ``req`` while ``rst = 0``.
+  The slave then asserts ``ack`` to indicate it is safely paused.
+
+- **From PAUSE to STOP**:
+  While paused (``rst = 0``, ``req = 1``, ``ack = 1``), assert ``rst = 1``.
+  The slave moves to the **STOP** state, allowing power gating.
+
+- **From PAUSE to ACTIVE**:
+  Deassert ``req`` while ``rst = 0``.
+  The slave deasserts ``ack`` to confirm a return to active operation.
 
 A typical design should keep the ``req`` and ``ack`` signals enabled during a
 reset.
-In others words, the initial state should be the paused state. 
+In other words, the initial state should be the PAUSE or STOP state.
 This ensures that even when a module is reset, it still adheres to this
 protocol.
 On the other hand, if a module wishes to indicate non-compliance or non-support
@@ -83,6 +102,6 @@ cannot be retracted post-assertion while the transaction remains incomplete,
 Conversely, ``ack`` doesn't carry this restriction, but only in a specific
 scenario.
 For instance, if ``ack`` is low and intends to transition high, it's
-permissible. 
+permissible.
 However, reversing this transition while paused isn't allowed, as it would
 inadvertently lead to a prohibited state change.
