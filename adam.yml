@@ -1,4 +1,20 @@
 targets:
+  basys3:
+    top: adam_basys3
+    part: xc7z020clg400-1
+    xdc: fpga/adam_basys3.xdc
+
+    rtl_fset:
+      requires:
+        - adam_rtl
+        - adam_cv32e40p_rtl
+        - adam_ibex_rtl
+
+      sources:
+        - bhv/adam_clk_gate.sv
+        - fpga/adam_basys3.sv
+        # - rtl/instr_rom.sv
+
   nexys_video:
     top: adam_nexys_video
     part: xc7a200tsbg484-1
