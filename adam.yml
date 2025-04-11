@@ -1,13 +1,18 @@
 targets:
   basys3:
     top: adam_basys3
-    part: xc7z020clg400-1
+    part: xc7a35tcpg236-1
     xdc: fpga/adam_basys3.xdc
+
+    defines:
+      ADAM_CORE_CPU: adam_core_ibex
+      ADAM_CORE_LPCPU: adam_core_ibex
+
+    gpio_width: 32
 
     rtl_fset:
       requires:
         - adam_rtl
-        - adam_cv32e40p_rtl
         - adam_ibex_rtl
 
       sources:

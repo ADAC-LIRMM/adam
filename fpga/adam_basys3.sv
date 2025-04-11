@@ -212,20 +212,36 @@ module adam_basys3 (
     ADAM_IO     lspa_gpio_io   [NO_LSPA_GPIOS*GPIO_WIDTH+1] ();
     logic [1:0] lspa_gpio_func [NO_LSPA_GPIOS*GPIO_WIDTH+1];
 
+    ADAM_IO lspa_spi_sclk [NO_LSPA_SPIS+1] ();
+    ADAM_IO lspa_spi_mosi [NO_LSPA_SPIS+1] ();
+    ADAM_IO lspa_spi_miso [NO_LSPA_SPIS+1] ();
+    ADAM_IO lspa_spi_ss_n [NO_LSPA_SPIS+1] ();
+
     ADAM_IO lspa_uart_tx [NO_LSPA_UARTS+1] ();
     ADAM_IO lspa_uart_rx [NO_LSPA_UARTS+1] ();
 
-    for (genvar i = 1; i < NO_LSPA_GPIOS*GPIO_WIDTH; i++) begin
-        `ADAM_IO_SLV_TIE_OFF(lspa_gpio_io[i]);
+    for (genvar i = 0; i < NO_LSPA_GPIOS*GPIO_WIDTH; i++) begin
+        assign lspa_gpio_func[i] = 2'b00;
+    end
+    for (genvar i = 0; i < 16; i++) begin
+        assign led[i] = lspa_gpio_io[i+1].o;
+    end
+    for (genvar i = 0; i < NO_LSPA_GPIOS*GPIO_WIDTH; i++) begin
+        assign lspa_gpio_io[i].i =
+            (i <= 16) ? sw[i] :
+            (i == 17) ? btn_u   :
+            (i == 18) ? btn_d   :
+            (i == 19) ? btn_r   :
+            '0;
     end
 
-    /* TODO */
-/*     for (genvar i = 1; i < NO_LSPA_SPIS; i++) begin
+    for (genvar i = 0; i < NO_LSPA_SPIS; i++) begin
         `ADAM_IO_SLV_TIE_OFF(lspa_spi_sclk[i]);
         `ADAM_IO_SLV_TIE_OFF(lspa_spi_mosi[i]);
         `ADAM_IO_SLV_TIE_OFF(lspa_spi_miso[i]);
         `ADAM_IO_SLV_TIE_OFF(lspa_spi_ss_n[i]);
-    end */
+    end
+
     assign lspa_uart_tx[0].i = 0;
     assign rs_tx = lspa_uart_tx[0].o;
     assign lspa_uart_rx[0].i = rs_rx;
@@ -234,28 +250,16 @@ module adam_basys3 (
         `ADAM_IO_SLV_TIE_OFF(lspa_uart_tx[i]);
         `ADAM_IO_SLV_TIE_OFF(lspa_uart_rx[i]);
     end
-    // Ground all lspa_gpio_func
-    for (genvar i = 0; i < NO_LSPA_GPIOS*GPIO_WIDTH; i++) begin
-        assign lspa_gpio_func[i] = 2'b00;
-    end
-    // Connect led[15:0] to lspa_gpio_io
-    for (genvar i = 0; i < 16; i++) begin
-        assign led[i] = lspa_gpio_io[i].o;
-    end
-    // Connect sw[15:0] to lspa_gpio_io
-    for (genvar i = 0; i < 16; i++) begin
-        assign lspa_gpio_io[i].i = sw[i];
-    end
-    // Connect btn to lspa_gpio_io
-    assign lspa_gpio_io[16].i  = btn_u;
-    assign lspa_gpio_io[17].i  = btn_d;
-    assign lspa_gpio_io[18].i = btn_l;
-    assign lspa_gpio_io[19].i = btn_r;
 
     // lspb io ================================================================
 
     ADAM_IO     lspb_gpio_io   [NO_LSPB_GPIOS*GPIO_WIDTH+1] ();
     logic [1:0] lspb_gpio_func [NO_LSPB_GPIOS*GPIO_WIDTH+1];
+
+    ADAM_IO lspb_spi_sclk [NO_LSPB_SPIS+1] ();
+    ADAM_IO lspb_spi_mosi [NO_LSPB_SPIS+1] ();
+    ADAM_IO lspb_spi_miso [NO_LSPB_SPIS+1] ();
+    ADAM_IO lspb_spi_ss_n [NO_LSPB_SPIS+1] ();
 
     ADAM_IO lspb_uart_tx [NO_LSPB_UARTS+1] ();
     ADAM_IO lspb_uart_rx [NO_LSPB_UARTS+1] ();
@@ -263,7 +267,12 @@ module adam_basys3 (
     for (genvar i = 0; i < NO_LSPB_GPIOS; i++) begin
         `ADAM_IO_SLV_TIE_OFF(lspb_gpio_io[i]);
     end
-
+    for (genvar i = 1; i < NO_LSPB_SPIS; i++) begin
+        `ADAM_IO_SLV_TIE_OFF(lspb_spi_sclk[i]);
+        `ADAM_IO_SLV_TIE_OFF(lspb_spi_mosi[i]);
+        `ADAM_IO_SLV_TIE_OFF(lspb_spi_miso[i]);
+        `ADAM_IO_SLV_TIE_OFF(lspb_spi_ss_n[i]);
+    end
     for (genvar i = 0; i < NO_LSPB_UARTS; i++) begin
         `ADAM_IO_SLV_TIE_OFF(lspb_uart_tx[i]);
         `ADAM_IO_SLV_TIE_OFF(lspb_uart_rx[i]);
@@ -274,7 +283,7 @@ module adam_basys3 (
     ADAM_JTAG jtag ();
 
     assign jtag.trst_n = !rst;
-    
+
     assign jtag.tck = jtag_tck;
     assign jtag.tms = jtag_tms;
     assign jtag.tdi = jtag_tdi;
@@ -304,27 +313,27 @@ module adam_basys3 (
         .hsdom_mem_rst   (hsdom_mem_rst),
         .hsdom_mem_pause (hsdom_mem_pause),
         .hsdom_mem_axil  (hsdom_mem_axil),
-        
+
         .jtag (jtag),
 
         .lspa_gpio_io   (lspa_gpio_io),
         .lspa_gpio_func (lspa_gpio_func),
 
-        /*.lspa_spi_sclk (lspa_spi_sclk),
+        .lspa_spi_sclk (lspa_spi_sclk),
         .lspa_spi_mosi (lspa_spi_mosi),
         .lspa_spi_miso (lspa_spi_miso),
-        .lspa_spi_ss_n (lspa_spi_ss_n),*/
+        .lspa_spi_ss_n (lspa_spi_ss_n),
 
         .lspa_uart_tx (lspa_uart_tx),
         .lspa_uart_rx (lspa_uart_rx),
-        
+
         .lspb_gpio_io   (lspb_gpio_io),
         .lspb_gpio_func (lspb_gpio_func),
 
-        /*.lspb_spi_sclk (lspb_spi_sclk),
+        .lspb_spi_sclk (lspb_spi_sclk),
         .lspb_spi_mosi (lspb_spi_mosi),
         .lspb_spi_miso (lspb_spi_miso),
-        .lspb_spi_ss_n (lspb_spi_ss_n),*/
+        .lspb_spi_ss_n (lspb_spi_ss_n),
 
         .lspb_uart_tx (lspb_uart_tx),
         .lspb_uart_rx (lspb_uart_rx)
