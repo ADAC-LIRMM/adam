@@ -11,11 +11,11 @@ module adam_basys3 (
     output logic dp,
     output logic an[3:0],   
 
-    input  logic btnC,        //rstn        // 
-    input  logic btnU,   
-    input  logic btnL,
-    input  logic btnR,
-    input  logic btnD,
+    input  logic btn_c,        //rstn        // 
+    input  logic btn_u,   
+    input  logic btn_l,
+    input  logic btn_r,
+    input  logic btn_d,
 
     //output logic vgaRED[3:0],
     //output logic vgaGREEN[3:0],
@@ -23,14 +23,14 @@ module adam_basys3 (
     //output logic hsync,
     //output logic vsync,
 
-    input  logic RsRx,                      //
-    output logic RsTx,                      //
+    input  logic rs_rx,                      //
+    output logic rs_tx,                      //
 
-    input  logic PS2Clk,
-    input  logic PS2Data,
+    input  logic ps2_clk,
+    input  logic ps2_data,
 
-    input  logic QspiDB[3:0],
-    output logic QspiCSn,
+    input  logic qspi_db[3:0],
+    output logic qspi_csn,
 
     input  logic jtag_tck,
     input  logic jtag_tms,
@@ -52,7 +52,7 @@ module adam_basys3 (
 
 
     always_ff @(posedge clk) begin
-        if (!btnC) begin
+        if (!btn_c) begin
             counter <= 0;
             rst <= 1;
         end
@@ -229,10 +229,10 @@ module adam_basys3 (
     for (genvar i = 0; i < NO_LSPA_GPIOS*GPIO_WIDTH; i++) begin
         assign lspa_gpio_io[i].i =
             (i <= 16) ? sw[i] :
-            (i == 17) ? btnU   :
-            (i == 18) ? btnD   :
-            (i == 19) ? btnR   :
-            (i == 19) ? btnL   :
+            (i == 17) ? btn_u   :
+            (i == 18) ? btn_d   :
+            (i == 19) ? btn_r   :
+            (i == 20) ? btn_l   :
             '0;
     end
 
@@ -244,8 +244,8 @@ module adam_basys3 (
     end
 
     assign lspa_uart_tx[0].i = 0;
-    assign RsTx = lspa_uart_tx[0].o;
-    assign lspa_uart_rx[0].i = RsRx;
+    assign rs_tx = lspa_uart_tx[0].o;
+    assign lspa_uart_rx[0].i = rs_rx;
 
     for (genvar i = 1; i < NO_LSPA_UARTS; i++) begin
         `ADAM_IO_SLV_TIE_OFF(lspa_uart_tx[i]);

@@ -111,16 +111,16 @@ set_property IOSTANDARD LVCMOS33 [get_ports {an[3]}]
 
 # Buttons ====================================================================================================================
 
-set_property PACKAGE_PIN U18 [get_ports btnC]						
-set_property IOSTANDARD LVCMOS33 [get_ports btnC]
-set_property PACKAGE_PIN T18 [get_ports btnU]						
-set_property IOSTANDARD LVCMOS33 [get_ports btnU]
-set_property PACKAGE_PIN W19 [get_ports btnL]						
-set_property IOSTANDARD LVCMOS33 [get_ports btnL]
-set_property PACKAGE_PIN T17 [get_ports btnR]						
-set_property IOSTANDARD LVCMOS33 [get_ports btnR]
-set_property PACKAGE_PIN U17 [get_ports btnD]						
-set_property IOSTANDARD LVCMOS33 [get_ports btnD]
+set_property PACKAGE_PIN U18 [get_ports btn_c]						
+set_property IOSTANDARD LVCMOS33 [get_ports btn_c]
+set_property PACKAGE_PIN T18 [get_ports btn_u]						
+set_property IOSTANDARD LVCMOS33 [get_ports btn_u]
+set_property PACKAGE_PIN W19 [get_ports btn_l]						
+set_property IOSTANDARD LVCMOS33 [get_ports btn_l]
+set_property PACKAGE_PIN T17 [get_ports btn_r]						
+set_property IOSTANDARD LVCMOS33 [get_ports btn_r]
+set_property PACKAGE_PIN U17 [get_ports btn_d]						
+set_property IOSTANDARD LVCMOS33 [get_ports btn_d]
  
 
 
@@ -289,34 +289,34 @@ set_max_delay -datapath_only -from [get_pins adam/adam_debug/dmi_jtag/i_dmi_cdc/
 
 # USB-RS232 Interface ========================================================================================================
 
-set_property PACKAGE_PIN B18 [get_ports RsRx]						
-set_property IOSTANDARD LVCMOS33 [get_ports RsRx]
-set_property PACKAGE_PIN A18 [get_ports RsTx]						
-set_property IOSTANDARD LVCMOS33 [get_ports RsTx]
+set_property PACKAGE_PIN B18 [get_ports rs_rx]						
+set_property IOSTANDARD LVCMOS33 [get_ports rs_rx]
+set_property PACKAGE_PIN A18 [get_ports rs_tx]						
+set_property IOSTANDARD LVCMOS33 [get_ports rs_tx]
 
 
 # USB HID (PS/2) =============================================================================================================
 
-set_property PACKAGE_PIN C17 [get_ports PS2Clk]						
-set_property IOSTANDARD LVCMOS33 [get_ports PS2Clk]
-set_property PULLUP true [get_ports PS2Clk]
-set_property PACKAGE_PIN B17 [get_ports PS2Data]					
-set_property IOSTANDARD LVCMOS33 [get_ports PS2Data]	
-set_property PULLUP true [get_ports PS2Data]
+set_property PACKAGE_PIN C17 [get_ports ps2_clk]						
+set_property IOSTANDARD LVCMOS33 [get_ports ps2_clk]
+set_property PULLUP true [get_ports ps2_clk]
+set_property PACKAGE_PIN B17 [get_ports ps2_data]					
+set_property IOSTANDARD LVCMOS33 [get_ports ps2_data]	
+set_property PULLUP true [get_ports ps2_data]
 
 
 # Quad SPI Flash =============================================================================================================
 ##Note that CCLK_0 cannot be placed in 7 series devices. You can access it using the
 ##STARTUPE2 primitive.
 
-set_property PACKAGE_PIN D18 [get_ports {QspiDB[0]}]				
-set_property IOSTANDARD LVCMOS33 [get_ports {QspiDB[0]}]
-set_property PACKAGE_PIN D19 [get_ports {QspiDB[1]}]				
-set_property IOSTANDARD LVCMOS33 [get_ports {QspiDB[1]}]
-set_property PACKAGE_PIN G18 [get_ports {QspiDB[2]}]				
-set_property IOSTANDARD LVCMOS33 [get_ports {QspiDB[2]}]
-set_property PACKAGE_PIN F18 [get_ports {QspiDB[3]}]				
-set_property IOSTANDARD LVCMOS33 [get_ports {QspiDB[3]}]
-set_property PACKAGE_PIN K19 [get_ports QspiCSn]					
-set_property IOSTANDARD LVCMOS33 [get_ports QspiCSn]
+set_property PACKAGE_PIN D18 [get_ports {qspi_db[0]}]				
+set_property IOSTANDARD LVCMOS33 [get_ports {qspi_db[0]}]
+set_property PACKAGE_PIN D19 [get_ports {qspi_db[1]}]				
+set_property IOSTANDARD LVCMOS33 [get_ports {qspi_db[1]}]
+set_property PACKAGE_PIN G18 [get_ports {qspi_db[2]}]				
+set_property IOSTANDARD LVCMOS33 [get_ports {qspi_db[2]}]
+set_property PACKAGE_PIN F18 [get_ports {qspi_db[3]}]				
+set_property IOSTANDARD LVCMOS33 [get_ports {qspi_db[3]}]
+set_property PACKAGE_PIN K19 [get_ports qspi_csn]					
+set_property IOSTANDARD LVCMOS33 [get_ports qspi_csn]
 
