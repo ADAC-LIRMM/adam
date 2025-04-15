@@ -40,6 +40,14 @@ RUN dpkg --add-architecture i386 && \
         libusb-1.0-0-dev \
         libxft2 libxft2:i386 \
         zlib1g-dev \
+        libxtst6 \
+        libxrender1 \
+        libxi6 \
+        libxrandr2 \
+        libfreetype6 \
+        libxinerama1 \
+        libxfixes3 \
+        libxcursor1 \
     && \
     ln -sf /usr/bin/python3 /usr/bin/python && \
     ln -sf /usr/bin/pip3 /usr/bin/pip && \
