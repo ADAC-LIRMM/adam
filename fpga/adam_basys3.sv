@@ -11,26 +11,26 @@ module adam_basys3 (
     output logic dp,
     output logic an[3:0],   
 
-    input  logic btn_c,        //rstn        // 
-    input  logic btn_u,   
-    input  logic btn_l,
-    input  logic btn_r,
-    input  logic btn_d,
+    input  logic btnC,        //rstn        // 
+    input  logic btnU,   
+    input  logic btnL,
+    input  logic btnR,
+    input  logic btnD,
 
-    output logic vga_red[3:0],
-    output logic vga_green[3:0],
-    output logic vga_blue[3:0],
-    output logic hsync,
-    output logic vsync,
+    //output logic vgaRED[3:0],
+    //output logic vgaGREEN[3:0],
+    //output logic vgaBlue[3:0],
+    //output logic hsync,
+    //output logic vsync,
 
-    input  logic rs_rx,                      //
-    output logic rs_tx,                      //
+    input  logic RsRx,                      //
+    output logic RsTx,                      //
 
-    input  logic ps2_clk,
-    input  logic ps2_data,
+    input  logic PS2Clk,
+    input  logic PS2Data,
 
-    input  logic qspi_db[3:0],
-    output logic qspi_csn,
+    input  logic QspiDB[3:0],
+    output logic QspiCSn,
 
     input  logic jtag_tck,
     input  logic jtag_tms,
@@ -43,7 +43,7 @@ module adam_basys3 (
     localparam integer LPMEM_SIZE = 1024;
 
     localparam integer MEM_SIZE [NO_MEMS+1] = 
-        '{524288, 524288, 0};
+        '{4096, 4096, 0};
 
     // rst ====================================================================
 
@@ -52,7 +52,7 @@ module adam_basys3 (
 
 
     always_ff @(posedge clk) begin
-        if (!btn_c) begin
+        if (!btnC) begin
             counter <= 0;
             rst <= 1;
         end
@@ -229,9 +229,10 @@ module adam_basys3 (
     for (genvar i = 0; i < NO_LSPA_GPIOS*GPIO_WIDTH; i++) begin
         assign lspa_gpio_io[i].i =
             (i <= 16) ? sw[i] :
-            (i == 17) ? btn_u   :
-            (i == 18) ? btn_d   :
-            (i == 19) ? btn_r   :
+            (i == 17) ? btnU   :
+            (i == 18) ? btnD   :
+            (i == 19) ? btnR   :
+            (i == 19) ? btnL   :
             '0;
     end
 
@@ -243,8 +244,8 @@ module adam_basys3 (
     end
 
     assign lspa_uart_tx[0].i = 0;
-    assign rs_tx = lspa_uart_tx[0].o;
-    assign lspa_uart_rx[0].i = rs_rx;
+    assign RsTx = lspa_uart_tx[0].o;
+    assign lspa_uart_rx[0].i = RsRx;
 
     for (genvar i = 1; i < NO_LSPA_UARTS; i++) begin
         `ADAM_IO_SLV_TIE_OFF(lspa_uart_tx[i]);
