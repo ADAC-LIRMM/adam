@@ -236,6 +236,7 @@ module adam #(
             .debug_req     (hsdom_debug_req[i+1]),
             .debug_unavail (hsdom_debug_unavail[i+1])
         );
+
     end
 
     // hsdom - dma ============================================================
