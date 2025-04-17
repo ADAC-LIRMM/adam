@@ -3,27 +3,17 @@
 module adam_basys3 (
     input  logic clk,
 
-    input  logic sw[15:0],
+    output  logic gpio_io[15:0],
 
-    output logic led[15:0],
-
-    output logic seg[6:0],
-    output logic dp,
-    output logic an[3:0],
-
-    input  logic btn_c,
-    input  logic btn_u,
-    input  logic btn_l,
-    input  logic btn_r,
-    input  logic btn_d,
+    input logic rstn,
 
     input  logic rs_rx,
-    output logic rs_tx,
+    output logic rs_tx
 
-    input  logic jtag_tck,
-    input  logic jtag_tms,
-    input  logic jtag_tdi,
-    output logic jtag_tdo
+    // input  logic jtag_tck,
+    // input  logic jtag_tms,
+    // input  logic jtag_tdi,
+    // output logic jtag_tdo
 );
 
     `ADAM_CFG_LOCALPARAMS;
@@ -31,16 +21,21 @@ module adam_basys3 (
     localparam integer LPMEM_SIZE = 1024;
 
     localparam integer MEM_SIZE [NO_MEMS+1] =
-        '{4096, 4096, 0};
+        '{8192, 8192, 0};
 
     // rst ====================================================================
 
     logic rst;
     logic [3:0] counter;
+    logic jtag_tck;
+    logic jtag_tms;
+    logic jtag_tdi;
+    logic jtag_tdo;
+
 
 
     always_ff @(posedge clk) begin
-        if (!btn_c) begin
+        if (rstn) begin
             counter <= 0;
             rst <= 1;
         end
@@ -64,7 +59,7 @@ module adam_basys3 (
     assign src_seq.rst = rst;
 
     adam_clk_div #(
-        .WIDTH (1)
+        .WIDTH (2)
     ) lsdom_clk_div (
         .slv (src_seq),
         .mst (lsdom_seq)
@@ -165,20 +160,20 @@ module adam_basys3 (
         );
     end
 
-    // instr_rom #(
-    //     `ADAM_CFG_PARAMS_MAP
-    // ) instr_rom (
-    //     .seq (hsdom_mem_seq[0]),
+    instr_rom #(
+        `ADAM_CFG_PARAMS_MAP
+    ) instr_rom (
+        .seq (hsdom_mem_seq[0]),
 
-    //     .req   (hsdom_mem_req[0]),
-    //     .addr  (hsdom_mem_addr[0]),
-    //     .we    (hsdom_mem_we[0]),
-    //     .be    (hsdom_mem_be[0]),
-    //     .wdata (hsdom_mem_wdata[0]),
-    //     .rdata (hsdom_mem_rdata[0])
-    // );
+        .req   (hsdom_mem_req[0]),
+        .addr  (hsdom_mem_addr[0]),
+        .we    (hsdom_mem_we[0]),
+        .be    (hsdom_mem_be[0]),
+        .wdata (hsdom_mem_wdata[0]),
+        .rdata (hsdom_mem_rdata[0])
+    );
 
-    for (genvar i = 0; i < NO_MEMS; i++) begin
+    for (genvar i = 1; i < NO_MEMS; i++) begin
         adam_mem #(
             `ADAM_CFG_PARAMS_MAP,
 
@@ -208,28 +203,28 @@ module adam_basys3 (
     ADAM_IO lspa_uart_tx [NO_LSPA_UARTS+1] ();
     ADAM_IO lspa_uart_rx [NO_LSPA_UARTS+1] ();
 
-    for (genvar i = 0; i < NO_LSPA_GPIOS*GPIO_WIDTH; i++) begin
-        assign lspa_gpio_func[i] = 2'b00;
-    end
-    for (genvar i = 0; i < 16; i++) begin
-        assign led[i] = lspa_gpio_io[i+1].o;
-    end
-    for (genvar i = 0; i < NO_LSPA_GPIOS*GPIO_WIDTH; i++) begin
-        assign lspa_gpio_io[i].i =
-            (i <= 16) ? sw[i] :
-            (i == 17) ? btn_u   :
-            (i == 18) ? btn_d   :
-            (i == 19) ? btn_r   :
-            (i == 20) ? btn_l   :
-            '0;
+    for (genvar i = 1; i < NO_LSPA_GPIOS*GPIO_WIDTH; i++) begin
+        `ADAM_IO_SLV_TIE_OFF(lspa_gpio_io[i]);
     end
 
-    for (genvar i = 0; i < NO_LSPA_SPIS; i++) begin
+    assign lspa_spi_mosi[0].i = 0;
+    // assign spi_mosi = lspa_spi_mosi[0].o;
+    
+    assign lspa_spi_ss_n[0].i = 0;
+    // assign spi_ss = lspa_spi_ss_n[0].o;
+    
+    assign lspa_spi_sclk[0].i = 0;
+    // assign spi_sck = lspa_spi_sclk[0].o;
+
+    // assign lspa_spi_miso[0].i = spi_miso;
+    
+    /* TODO */
+/*     for (genvar i = 1; i < NO_LSPA_SPIS; i++) begin
         `ADAM_IO_SLV_TIE_OFF(lspa_spi_sclk[i]);
         `ADAM_IO_SLV_TIE_OFF(lspa_spi_mosi[i]);
         `ADAM_IO_SLV_TIE_OFF(lspa_spi_miso[i]);
         `ADAM_IO_SLV_TIE_OFF(lspa_spi_ss_n[i]);
-    end
+    end */
 
     assign lspa_uart_tx[0].i = 0;
     assign rs_tx = lspa_uart_tx[0].o;
@@ -238,6 +233,15 @@ module adam_basys3 (
     for (genvar i = 1; i < NO_LSPA_UARTS; i++) begin
         `ADAM_IO_SLV_TIE_OFF(lspa_uart_tx[i]);
         `ADAM_IO_SLV_TIE_OFF(lspa_uart_rx[i]);
+    end
+
+    // Ground all lspa_gpio_func
+    for (genvar i = 0; i < NO_LSPA_GPIOS*GPIO_WIDTH; i++) begin
+        assign lspa_gpio_func[i] = 2'b00;
+    end
+    // Connect gpio_io to lspa_gpio_io
+    for (genvar i = 0; i < NO_LSPA_GPIOS*GPIO_WIDTH; i++) begin
+        assign gpio_io[i] = lspa_gpio_io[i].o;
     end
 
     // lspb io ================================================================
