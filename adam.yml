@@ -8,9 +8,12 @@ targets:
       ADAM_CORE_CPU: adam_core_ibex
       ADAM_CORE_LPCPU: adam_core_ibex
 
-    gpio_width: 32
-    en_lpcpu: False
-    en_lpmem: False
+    gpio_width: 16
+    en_debug: False
+    no_lspa_spis:   0
+    no_lspa_uarts:  0
+    en_lpcpu: True
+    en_lpmem: True
 
     rtl_fset:
       requires:
@@ -20,6 +23,7 @@ targets:
       sources:
         - bhv/adam_clk_gate.sv
         - fpga/adam_basys3.sv
+        - software/hello_world_basys3/build/target/instr_rom.sv
         # - rtl/instr_rom.sv
 
   nexys_video:
