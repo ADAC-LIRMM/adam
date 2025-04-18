@@ -17,7 +17,7 @@ extern void sleep(void);
 // Drivers inc
 #include "gpio.h"
 // #include "spi.h"
-// #include "uart.h"
+#include "uart.h"
 #include "timer.h"
 #include "sysctrl.h"
 

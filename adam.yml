@@ -9,9 +9,8 @@ targets:
       ADAM_CORE_LPCPU: adam_core_ibex
 
     gpio_width: 16
-    en_debug: False
+    en_debug: True
     no_lspa_spis:   0
-    no_lspa_uarts:  0
     en_lpcpu: True
     en_lpmem: True
 

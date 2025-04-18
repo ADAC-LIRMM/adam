@@ -19,10 +19,10 @@ int main() {
   // Resume Hardware Modules (Stopped by default)
   hw_init();
   // Initialize UART0 at 115200 baud rate
-  // uart_init(RAL.LSPA.UART[0], 115200);
-  // my_printf("======================");
-  // my_printf("=====ADAM Online!=====");
-  // my_printf("======================");
+  uart_init(RAL.LSPA.UART[0], 9600);
+  my_printf("======================");
+  my_printf("=====ADAM Online!=====");
+  my_printf("======================");
   gpio_write(RAL.LSPA.GPIO[0], 0, 1);
   while (1)
   {
@@ -39,8 +39,8 @@ int main() {
 
 void hw_init(void) {
   // Resume UART0
-  // RAL.SYSCFG->LSPA.UART[0].MR = 1;
-  // while (RAL.SYSCFG->LSPA.UART[0].MR);
+  RAL.SYSCFG->LSPA.UART[0].MR = 1;
+  while (RAL.SYSCFG->LSPA.UART[0].MR);
 
   // Resume TIMER0
   RAL.SYSCFG->LSPA.TIMER[0].MR = 1;

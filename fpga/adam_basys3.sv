@@ -8,12 +8,12 @@ module adam_basys3 (
     input logic rstn,
 
     input  logic rs_rx,
-    output logic rs_tx
+    output logic rs_tx,
 
-    // input  logic jtag_tck,
-    // input  logic jtag_tms,
-    // input  logic jtag_tdi,
-    // output logic jtag_tdo
+    input  logic jtag_tck,
+    input  logic jtag_tms,
+    input  logic jtag_tdi,
+    output logic jtag_tdo
 );
 
     `ADAM_CFG_LOCALPARAMS;
@@ -27,10 +27,10 @@ module adam_basys3 (
 
     logic rst;
     logic [3:0] counter;
-    logic jtag_tck;
-    logic jtag_tms;
-    logic jtag_tdi;
-    logic jtag_tdo;
+    // logic jtag_tck;
+    // logic jtag_tms;
+    // logic jtag_tdi;
+    // logic jtag_tdo;
 
 
 
