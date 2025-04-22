@@ -138,7 +138,9 @@ module adam #(
         );
     end
     else begin
-        // TODO: tie off
+        `ADAM_PAUSE_SLV_TIE_OFF(lsdom_lpcpu_pause);
+        `ADAM_AXIL_SLV_TIE_OFF (lsdom_lpcpu_axil[0]);
+        `ADAM_AXIL_SLV_TIE_OFF (lsdom_lpcpu_axil[1]);
     end
 
     assign hsdom_debug_unavail[0] = '1; // LPCPU doesn't support debug

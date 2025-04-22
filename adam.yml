@@ -11,7 +11,7 @@ targets:
     gpio_width: 16
     en_debug: True
     no_lspa_spis:   0
-    en_lpcpu: True
+    en_lpcpu: False
     en_lpmem: True
 
     rtl_fset:
