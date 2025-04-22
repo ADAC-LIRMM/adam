@@ -90,6 +90,8 @@ targets:
         # - rtl/instr_rom.sv
 
     en_debug: False
+    clk_period: 32 #ns
+
 
 default:
   defines:
@@ -155,7 +157,7 @@ default:
   mmap_hsp:   [0x00090000, 0x00098000, 0x00000400]
   mmap_mem:   [0x01000000, 0xFFFFFFFF, 0x01000000]
 
-  clk_period: 32 #ns
+  clk_period: 40 #ns
   rst_cycles: 5
 
   ta: 2  #ns

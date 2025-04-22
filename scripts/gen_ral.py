@@ -26,7 +26,7 @@ header_template = """
  * Branch : {branch}
  * Commit : {commit}
  *
- * It is not recommended to modify this this file. 
+ * It is not recommended to modify this file. 
  * ============================================================================
  */
 """

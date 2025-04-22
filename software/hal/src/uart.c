@@ -11,6 +11,16 @@
   * @retval None
   */
 
+/* 
+ * UART Configuration for PUTTY:
+ * -----------------------------
+ * Baud Rate   : 115200
+ * Data Bits   : 8
+ * Parity      : None
+ * Stop Bits   : 1
+ * Flow Control: None
+ */
+
 void uart_init(ral_uart_t *uart, uint32_t baudrate) {
     // Calculate the BRR value based on the system clock and desired baud rate
     uint32_t brr_value = SYSTEM_CLOCK / baudrate;
