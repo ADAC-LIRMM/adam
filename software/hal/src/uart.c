@@ -14,7 +14,6 @@
 /* 
  * UART Configuration for PUTTY:
  * -----------------------------
- * Baud Rate   : 115200
  * Data Bits   : 8
  * Parity      : None
  * Stop Bits   : 1

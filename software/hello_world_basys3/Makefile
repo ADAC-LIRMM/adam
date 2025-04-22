@@ -21,7 +21,7 @@ OBJ_DIR = $(BUILD_DIR)/obj
 DEP_DIR = $(BUILD_DIR)/dep
 TARGET_DIR = $(BUILD_DIR)/target
 
-PROJECT = hello_world
+PROJECT = hello_world_basys3
 
 HEX_TARGET  = $(TARGET_DIR)/$(PROJECT).hex
 BIN_TARGET  = $(TARGET_DIR)/$(PROJECT).bin
