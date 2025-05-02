@@ -13,12 +13,12 @@ module adam_fabric_hsdom_tb;
 
     localparam NO_MSTS = 2*NO_CPUS + NO_DMAS + EN_DEBUG + 1;
     localparam NO_SLVS = NO_MEMS + NO_HSPS + EN_DEBUG + 1;
-    
+
     // seq and pause ==========================================================
 
     ADAM_SEQ   seq   ();
     ADAM_PAUSE pause ();
-    
+
     adam_seq_bhv #(
         `ADAM_BHV_CFG_PARAMS_MAP
     ) adam_seq_bhv (
@@ -34,7 +34,7 @@ module adam_fabric_hsdom_tb;
         .seq   (seq),
         .pause (pause)
     );
-    
+
     // Masters ================================================================
 
     `ADAM_AXIL_I cpu [2*NO_CPUS+1] ();
@@ -83,7 +83,7 @@ module adam_fabric_hsdom_tb;
 
     MMAP_T addr_map [NO_SLVS+1];
 
-    generate  
+    generate
         localparam MEM_S = 0;
         localparam MEM_E = MEM_S + NO_MEMS;
 
@@ -188,7 +188,7 @@ module adam_fabric_hsdom_tb;
     ) dut (
         .seq   (seq),
         .pause (pause),
-        
+
         .cpu        (cpu),
         .dma        (dma),
         .debug_slv  (debug_mst),
@@ -199,9 +199,9 @@ module adam_fabric_hsdom_tb;
         .debug_mst (debug_slv),
         .to_lsdom  (to_lsdom)
     );
-    
+
     // Test ===================================================================
-      
+
     `TEST_SUITE begin
         `TEST_CASE("test") begin
             ADDR_T addr;
@@ -211,7 +211,7 @@ module adam_fabric_hsdom_tb;
             RESP_T resp_r;
 
             `ADAM_UNTIL(!seq.rst);
-            
+
             for (int i = 0; i < NO_MSTS; i++) begin
                 for (int j = 0; j < NO_SLVS; j++) begin
                     for (int k = 0; k < 2; k++) begin

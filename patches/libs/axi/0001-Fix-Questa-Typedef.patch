@@ -1,0 +1,36 @@
+From fab6c22a1bae576667c1ca8244e4270aa69ea075 Mon Sep 17 00:00:00 2001
+From: Felipe PAIVA ALENCAR <alencar.felipe.paiva@gmail.com>
+Date: Fri, 2 May 2025 15:48:04 +0200
+Subject: [PATCH] fix: replace typedef with localparam to resolve Questa bug
+
+---
+ src/axi_lite_demux.sv | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/src/axi_lite_demux.sv b/src/axi_lite_demux.sv
+index 5513fb44..d4d5e1d1 100644
+--- a/src/axi_lite_demux.sv
++++ b/src/axi_lite_demux.sv
+@@ -59,14 +59,15 @@ module axi_lite_demux #(
+   //--------------------------------------
+   // Typedefs for the spill registers
+   //--------------------------------------
+-  typedef struct packed {
++  localparam type aw_chan_select_t = struct packed {
+     aw_chan_t aw;
+     select_t  select;
+-  } aw_chan_select_t;
+-  typedef struct packed {
++  };
++
++  localparam type ar_chan_select_t = struct packed {
+     ar_chan_t ar;
+     select_t  select;
+-  } ar_chan_select_t;
++  };
+ 
+   if (NoMstPorts == 32'd1) begin : gen_no_demux
+     // degenerate case, connect slave to master port
+-- 
+2.39.5
+

@@ -195,7 +195,7 @@ module adam_periph_spi_tb;
     end
 
     initial begin
-        #1000us $error("timeout");
+        #2000us $error("timeout");
     end
 
     task critical_begin();

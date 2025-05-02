@@ -116,10 +116,10 @@ module adam #(
     `ADAM_AXIL_I lsdom_lpcpu_axil [2] ();
 
     assign lsdom_lpcpu_seq.clk = lsdom_seq.clk;
-    assign lsdom_lpcpu_seq.rst = lsdom_seq.rst || lsdom_lpcpu_rst; 
-    
+    assign lsdom_lpcpu_seq.rst = lsdom_seq.rst || lsdom_lpcpu_rst;
+
     if (EN_LPCPU) begin
-        adam_core_ibex #(
+        `ADAM_CORE_LPCPU #(
             `ADAM_CFG_PARAMS_MAP
         ) lsdom_lpcpu (
             .seq   (lsdom_lpcpu_seq),
@@ -155,12 +155,12 @@ module adam #(
             .NO_UARTS  (NO_LSPA_UARTS)
         ) adam_periph_lspa (
             .seq   (lsdom_seq),
-            
+
             .periph_rst   (lsdom_lspa_rst),
             .periph_pause (lsdom_lspa_pause),
             .periph_apb   (lsdom_lspa_apb),
             .periph_irq   (lsdom_lspa_irq),
-            
+
             .gpio_io   (lspa_gpio_io),
             .gpio_func (lspa_gpio_func),
 
@@ -190,7 +190,7 @@ module adam #(
         ) adam_periph_lspb (
             .seq   (lsdom_seq),
             .pause (lsdom_lspb_pause),
-            
+
             .periph_rst   (lsdom_lspb_rst),
             .periph_pause (lsdom_lspb_pause),
             .periph_apb   (lsdom_lspb_apb),
@@ -217,9 +217,9 @@ module adam #(
     for (genvar i = 0; i < NO_CPUS; i++) begin
 
         assign hsdom_cpu_seq[i].clk = hsdom_seq.clk;
-        assign hsdom_cpu_seq[i].rst = hsdom_seq.rst || hsdom_cpu_rst[i]; 
+        assign hsdom_cpu_seq[i].rst = hsdom_seq.rst || hsdom_cpu_rst[i];
 
-        adam_core_cv32e40p #(
+        adam_core_cv32e40x #(
             `ADAM_CFG_PARAMS_MAP
         ) hsdom_cpu (
             .seq   (hsdom_cpu_seq[i]),
@@ -232,7 +232,7 @@ module adam #(
             .axil_data (hsdom_cpu_axil[2*i + 1]),
 
             .irq (hsdom_cpu_irq[i]),
-            
+
             .debug_req     (hsdom_debug_req[i+1]),
             .debug_unavail (hsdom_debug_unavail[i+1])
         );
@@ -280,7 +280,7 @@ module adam #(
     // lsdom - syscfg =========================================================
 
     `ADAM_PAUSE_MST_TIE_ON(lsdom_syscfg_pause);
-    
+
     adam_syscfg #(
         `ADAM_CFG_PARAMS_MAP
     ) adam_syscfg (
@@ -292,21 +292,21 @@ module adam #(
         .lsdom_rst   (lsdom_rst),
         .lsdom_pause (lsdom_pause),
 
-        .hsdom_rst   (hsdom_rst), 
-        .hsdom_pause (hsdom_pause), 
+        .hsdom_rst   (hsdom_rst),
+        .hsdom_pause (hsdom_pause),
 
         .fab_lsdom_rst   (fab_lsdom_rst),
         .fab_lsdom_pause (fab_lsdom_pause),
 
         .fab_hsdom_rst   (fab_hsdom_rst),
         .fab_hsdom_pause (fab_hsdom_pause),
-    
+
         .fab_lspa_rst   (fab_lspa_rst),
         .fab_lspa_pause (fab_lspa_pause),
-    
+
         .fab_lspb_rst   (fab_lspb_rst),
         .fab_lspb_pause (fab_lspb_pause),
-    
+
         .lpcpu_rst       (lsdom_lpcpu_rst),
         .lpcpu_pause     (lsdom_lpcpu_pause),
         .lpcpu_boot_addr (lsdom_lpcpu_boot_addr),
@@ -315,19 +315,19 @@ module adam #(
         .lpmem_rst   (lsdom_lpmem_rst),
         .lpmem_pause (lsdom_lpmem_pause),
 
-        .cpu_rst       (hsdom_cpu_rst), 
-        .cpu_pause     (hsdom_cpu_pause), 
-        .cpu_boot_addr (hsdom_cpu_boot_addr), 
-        .cpu_irq       (hsdom_cpu_irq), 
+        .cpu_rst       (hsdom_cpu_rst),
+        .cpu_pause     (hsdom_cpu_pause),
+        .cpu_boot_addr (hsdom_cpu_boot_addr),
+        .cpu_irq       (hsdom_cpu_irq),
 
-        .dma_rst   (hsdom_dma_rst), 
-        .dma_pause (hsdom_dma_pause), 
-        .dma_irq   (hsdom_dma_irq), 
+        .dma_rst   (hsdom_dma_rst),
+        .dma_pause (hsdom_dma_pause),
+        .dma_irq   (hsdom_dma_irq),
 
-        .mem_rst   (hsdom_mem_rst), 
-        .mem_pause (hsdom_mem_pause), 
+        .mem_rst   (hsdom_mem_rst),
+        .mem_pause (hsdom_mem_pause),
 
-        .lspa_rst   (lsdom_lspa_rst), 
+        .lspa_rst   (lsdom_lspa_rst),
         .lspa_pause (lsdom_lspa_pause),
         .lspa_irq   (lsdom_lspa_irq),
 
@@ -335,9 +335,9 @@ module adam #(
         .lspb_pause (lsdom_lspb_pause),
         .lspb_irq   (lsdom_lspb_irq),
 
-        .hsp_rst   (hsdom_hsp_rst), 
-        .hsp_pause (hsdom_hsp_pause), 
-        .hsp_irq   (hsdom_hsp_irq) 
+        .hsp_rst   (hsdom_hsp_rst),
+        .hsp_pause (hsdom_hsp_pause),
+        .hsp_irq   (hsdom_hsp_irq)
     );
 
     // adam_fabric ============================================================
@@ -349,7 +349,7 @@ module adam #(
         .lsdom_pause      (fab_lsdom_pause),
         .lsdom_pause_lspa (fab_lspa_pause),
         .lsdom_pause_lspb (fab_lspb_pause),
-        
+
         .lsdom_lpcpu (lsdom_lpcpu_axil),
 
         .lsdom_lpmem  (lsdom_lpmem_axil),

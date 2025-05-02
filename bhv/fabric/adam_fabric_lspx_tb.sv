@@ -7,17 +7,17 @@ module adam_fabric_lspx_tb;
     import adam_axil_mst_bhv::*;
 
     `ADAM_BHV_CFG_LOCALPARAMS;
-    
+
     localparam MAX_TRANS = FAB_MAX_TRANS;
 
     localparam NO_SLVS = 8;
     localparam INC     = 1024;
 
     // seq and pause ==========================================================
-    
+
     ADAM_SEQ   seq   ();
     ADAM_PAUSE pause ();
-    
+
     adam_seq_bhv #(
         `ADAM_BHV_CFG_PARAMS_MAP
     ) adam_seq_bhv (
@@ -48,7 +48,8 @@ module adam_fabric_lspx_tb;
         for (genvar i = 0; i < NO_SLVS; i++) begin
             assign addr_map[i] = '{
                 start : INC*i,
-                end_  : INC*(i+1)
+                end_  : INC*(i+1),
+                inc   : 0
             };
 
             assign slv[i].pready  = '1;
@@ -56,18 +57,18 @@ module adam_fabric_lspx_tb;
             assign slv[i].pslverr = '0;
         end
     endgenerate
-    
+
     // DUT ====================================================================
 
     adam_fabric_lspx #(
         `ADAM_CFG_PARAMS_MAP,
-        
+
         .NO_MSTS (NO_SLVS),
         .INC     (INC)
     ) dut (
         .seq   (seq),
         .pause (pause),
-        
+
         .slv (mst),
         .mst (slv)
     );
@@ -101,7 +102,7 @@ module adam_fabric_lspx_tb;
                         mst_bhv.recv_r(rdata, rresp);
                     join
 
-                    assert(wresp == axi_pkg::RESP_OKAY); 
+                    assert(wresp == axi_pkg::RESP_OKAY);
                     assert(rresp == axi_pkg::RESP_OKAY);
                     assert(rdata == wdata);
                 end

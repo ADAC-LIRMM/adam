@@ -33,7 +33,7 @@ module adam_axil_apb_bridge_tb;
     logic  pslverr [NO_MSTS+1];
 
     `ADAM_AXIL_I axil ();
-    
+
     `ADAM_AXIL_DV_I axil_dv (seq.clk);
 
     `AXI_LITE_ASSIGN(axil, axil_dv);
@@ -49,8 +49,9 @@ module adam_axil_apb_bridge_tb;
     always_comb begin
         for (int i = 0; i < NO_MSTS; i++) begin
             addr_map[i] = '{
-                start : i << 16,
-                end_  : (i + 1) << 16
+                start : (i << 16),
+                end_  : ((i + 1) << 16),
+                inc   : 0
             };
         end
     end
@@ -75,7 +76,7 @@ module adam_axil_apb_bridge_tb;
         `ADAM_CFG_PARAMS_MAP,
 
         .NO_MSTS (NO_MSTS),
-    
+
         .RULE_T (RULE_T)
     ) dut (
         .seq   (seq),
@@ -96,7 +97,7 @@ module adam_axil_apb_bridge_tb;
             assign pwrite [i] = apb[i].pwrite;
             assign pwdata [i] = apb[i].pwdata;
             assign pstrb  [i] = apb[i].pstrb;
-            
+
             assign apb[i].pready  = pready [i];
             assign apb[i].prdata  = prdata [i];
             assign apb[i].pslverr = pslverr[i];

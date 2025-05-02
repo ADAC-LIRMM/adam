@@ -14,14 +14,14 @@ module adam_syscfg_tgt #(
 
     input  DATA_T irq_vec,
 
-    output logic      tgt_rst,        
+    output logic      tgt_rst,
     ADAM_PAUSE.Master tgt_pause,
     output ADDR_T     tgt_boot_addr,
     output logic      tgt_irq
 );
-  
+
     typedef enum logic [3:0] {
-        IDLE   = 0, // No Action (Default) 
+        IDLE   = 0, // No Action (Default)
         RESUME = 1,
         PAUSE  = 2,
         STOP   = 3,
@@ -29,21 +29,16 @@ module adam_syscfg_tgt #(
     } action_t;
 
     // Registers ==============================================================
-    
+
     DATA_T mr;  // Maestro Register
     DATA_T sr;  // Status Register
     DATA_T bar; // Boot Address Register
     DATA_T ier; // Interrupt Enable Register
 
-    generate
-        if (!EN_BOOT_ADDR) assign bar = '0;
-        if (!EN_IRQ)       assign ier = '0;
-    endgenerate
-
     assign tgt_boot_addr = bar;
 
     // Flags ==================================================================
-    
+
     action_t action;
     logic    paused;
     logic    stopped;
@@ -54,7 +49,7 @@ module adam_syscfg_tgt #(
     action_t state;
 
     // Interrupt Logic ========================================================
-    
+
     generate
         if (EN_IRQ) begin
             always_comb begin
@@ -94,7 +89,7 @@ module adam_syscfg_tgt #(
         pwrite  = slv.pwrite;
         pwdata  = slv.pwdata;
         pstrb   = slv.pstrb;
-        
+
         // APB outputs
         slv.pready  = pready;
         slv.prdata  = prdata;
@@ -105,7 +100,7 @@ module adam_syscfg_tgt #(
 
         // APB strobe
         for (int i = 0; i < DATA_WIDTH/8; i++) begin
-            mask[i*8 +: 8] = (slv.pstrb[i]) ? 8'hFF : 8'h00; 
+            mask[i*8 +: 8] = (slv.pstrb[i]) ? 8'hFF : 8'h00;
         end
     end
 
@@ -134,7 +129,7 @@ module adam_syscfg_tgt #(
             // Pause or resume
             apb_pause.ack <= apb_pause.req;
         end
-        else if (psel && !pready) case (index)    
+        else if (psel && !pready) case (index)
             // Handle APB transaction
 
             default: begin // Error: Invalid address
@@ -146,13 +141,13 @@ module adam_syscfg_tgt #(
                 if (pwrite) begin
                     // Error: Read-only.
                     pslverr <= '1;
-                    pready  <= '1;  
+                    pready  <= '1;
                 end
                 else begin
                     // Read
                     prdata <= sr;
                     pready <= '1;
-                end             
+                end
             end
 
             12'h001: begin // Maestro Register (MR)
@@ -199,7 +194,7 @@ module adam_syscfg_tgt #(
                     // Error: Invalid Address
                     pslverr <= '1;
                     pready  <= '1;
-                end              
+                end
             end
 
             12'h003: begin // Interrupt Enable Register (IER)
@@ -214,12 +209,12 @@ module adam_syscfg_tgt #(
                         prdata <= ier;
                         pready <= '1;
                     end
-                end   
+                end
                 else begin
                     // Error: Invalid Address
                     pslverr <= '1;
                     pready  <= '1;
-                end  
+                end
             end
         endcase
         else if (psel && penable && pready) begin
@@ -230,6 +225,9 @@ module adam_syscfg_tgt #(
 
             action <= IDLE;
         end
+
+        if (!EN_BOOT_ADDR) bar <= '0;
+        if (!EN_IRQ)       ier <= '0;
     end
 
     // Maestro Logic ==========================================================
@@ -263,7 +261,7 @@ module adam_syscfg_tgt #(
                 state <= action;
             end
 
-            RESUME: begin 
+            RESUME: begin
                 if (!tgt_pause.req && !tgt_pause.ack) begin
                     paused  <= '0;
                     stopped <= '0;
@@ -274,7 +272,7 @@ module adam_syscfg_tgt #(
                 tgt_pause.req <= '0;
             end
 
-            PAUSE: begin 
+            PAUSE: begin
                 if (tgt_pause.req && tgt_pause.ack) begin
                     paused <= '1;
                     state  <= IDLE;
@@ -283,7 +281,7 @@ module adam_syscfg_tgt #(
                 tgt_pause.req <= '1;
             end
 
-            STOP: begin 
+            STOP: begin
                 if (tgt_pause.req && tgt_pause.ack) begin
                     tgt_rst <= '1;
                     paused  <= '1;
@@ -294,7 +292,7 @@ module adam_syscfg_tgt #(
                 tgt_pause.req <= '1;
             end
 
-            RESET: begin 
+            RESET: begin
                 if (tgt_pause.req && tgt_pause.ack) begin
                     tgt_rst <= '1;
                     paused  <= '1;

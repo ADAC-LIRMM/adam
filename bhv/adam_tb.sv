@@ -6,11 +6,11 @@ module adam_tb;
     import adam_jtag_mst_bhv::*;
 
     `ADAM_BHV_CFG_LOCALPARAMS;
-    
+
     localparam integer LPMEM_SIZE = 1024;
 
-    localparam integer MEM_SIZE [NO_MEMS+1] = 
-        '{32768, 32768, 32768, 0};
+    localparam integer MEM_SIZE [NO_MEMS+1] =
+        '{32768, 32768, 0};
 
     // seq and pause ==========================================================
 
@@ -87,12 +87,12 @@ module adam_tb;
     end
 
     // mem ====================================================================
-    
+
     logic        hsdom_mem_rst   [NO_MEMS+1];
     ADAM_SEQ     hsdom_mem_seq   [NO_MEMS+1] ();
     ADAM_PAUSE   hsdom_mem_pause [NO_MEMS+1] ();
     `ADAM_AXIL_I hsdom_mem_axil  [NO_MEMS+1] ();
-    
+
     logic  hsdom_mem_req   [NO_MEMS+1];
     ADDR_T hsdom_mem_addr  [NO_MEMS+1];
     logic  hsdom_mem_we    [NO_MEMS+1];
@@ -150,7 +150,7 @@ module adam_tb;
             .rdata (hsdom_mem_rdata[i])
         );
     end
-    
+    //
     // lspa io ================================================================
 
     ADAM_IO     lspa_gpio_io   [NO_LSPA_GPIOS*GPIO_WIDTH+1] ();
@@ -208,9 +208,9 @@ module adam_tb;
     // debug ==================================================================
 
     ADAM_JTAG jtag ();
-
+    //
     adam_jtag_mst_bhv #(
-        `ADAM_BHV_CFG_PARAMS_MAP
+       `ADAM_BHV_CFG_PARAMS_MAP
     ) jtag_bhv;
 
     // dut ====================================================================
@@ -231,7 +231,7 @@ module adam_tb;
         .hsdom_mem_rst   (hsdom_mem_rst),
         .hsdom_mem_pause (hsdom_mem_pause),
         .hsdom_mem_axil  (hsdom_mem_axil),
-        
+
         .jtag (jtag),
 
         .lspa_gpio_io   (lspa_gpio_io),
@@ -244,7 +244,7 @@ module adam_tb;
 
         .lspa_uart_tx (lspa_uart_tx),
         .lspa_uart_rx (lspa_uart_rx),
-        
+
         .lspb_gpio_io   (lspb_gpio_io),
         .lspb_gpio_func (lspb_gpio_func),
 
@@ -260,10 +260,10 @@ module adam_tb;
     // test ===================================================================
 
     localparam W_IR = 5;
-    
+
     localparam IDLE  = 1;
     localparam ABITS = 7;
-    
+
     localparam A_IDCODE = 'h01;
     localparam A_DTMCS  = 'h10;
     localparam A_DMI    = 'h11;
@@ -281,38 +281,6 @@ module adam_tb;
     typedef logic[ABITS-1:0] dmaddr_t;
     typedef logic[31:0]      dmdata_t;
 
-    `TEST_SUITE begin
-        `TEST_CASE("minimal") begin
-            jtag_bhv = new(jtag);
-            #10us;
-        end
-
-        `TEST_CASE("debug") begin
-            ADDR_T  addr;
-            DATA_T  wdata;
-            DATA_T  rdata;
-
-            addr  = 32'h0100_0000;
-            wdata = 32'hDEAD_BEEF;
-
-            jtag_bhv = new(jtag);
-
-            if (EN_DEBUG) begin
-                dtm_init();
-                dm_init();          
-                dm_select('d1); // HART 1 aka CPU0
-                dm_halt();
-                
-                if (EN_BOOTSTRAP_MEM0) begin
-                    dm_sb_write(addr, wdata);
-                    dm_sb_read(addr, rdata);
-                    assert (rdata == wdata);
-                end
-
-                dm_resume();
-            end
-        end
-    end
 
     initial begin
         #1000us $error("timeout");
@@ -339,7 +307,7 @@ module adam_tb;
 
     task dm_init();
         $display("dm_init start");
-        
+
         dm_write(A_DMCONTROL, '1); // set dmactive
 
         $display("dm_init end");
@@ -405,9 +373,9 @@ module adam_tb;
 
         // clear resumereq
         dmcontrol[30] = '0;
-        dm_write(A_DMCONTROL, dmcontrol);  
+        dm_write(A_DMCONTROL, dmcontrol);
 
-        $display("dm_resume end");      
+        $display("dm_resume end");
     endtask
 
     task dm_sb_write(
@@ -442,7 +410,7 @@ module adam_tb;
 
         // set sbreadonaddr
         dm_read(A_SBCS, sbcs);
-        sbcs[20] = '1; 
+        sbcs[20] = '1;
         dm_write(A_SBCS, sbcs);
 
         // write to address0
@@ -465,17 +433,17 @@ module adam_tb;
 
     task dm_read(
         input  dmaddr_t addr,
-        output dmdata_t data 
+        output dmdata_t data
     );
         logic [W_DMI-1:0] dmi;
-        
+
         dmi[ABITS+33:34] = addr;
-        dmi[33:2] = '0; 
+        dmi[33:2] = '0;
         dmi[1:0] = 'd1;
         jtag_bhv.tap_reg_write(A_DMI, W_IR, dmi, W_DMI);
-        
+
         repeat (IDLE-1) jtag_bhv.tap_nop();
-        
+
         jtag_bhv.tap_reg_read(A_DMI, W_IR, dmi, W_DMI);
         assert(dmi[1:0] == '0);
         data = dmi[33:2];
@@ -483,20 +451,53 @@ module adam_tb;
 
     task dm_write(
         input dmaddr_t addr,
-        input dmdata_t data 
+        input dmdata_t data
     );
         logic [31:0] idcode;
         logic [ABITS+33:0] dmi;
-        
+
         dmi[ABITS+33:34] = addr;
-        dmi[33:2] = data; 
+        dmi[33:2] = data;
         dmi[1:0] = 'd2;
         jtag_bhv.tap_reg_write(A_DMI, W_IR, dmi, W_DMI);
-        
+
         repeat (IDLE-1) jtag_bhv.tap_nop();
-        
+
         jtag_bhv.tap_reg_read (A_DMI, W_IR, dmi, W_DMI);
         assert(dmi[1:0] == 0); // check if op is 0
     endtask
+
+    `TEST_SUITE begin
+        `TEST_CASE("minimal") begin
+            jtag_bhv = new(jtag);
+            #10us;
+        end
+        `TEST_CASE("debug") begin
+            ADDR_T  addr;
+            DATA_T  wdata;
+            DATA_T  rdata;
+
+            addr  = 32'h0100_0000;
+            wdata = 32'hDEAD_BEEF;
+
+            jtag_bhv = new(jtag);
+
+            if (EN_DEBUG) begin
+                dtm_init();
+                dm_init();
+                dm_select('d1); // HART 1 aka CPU0
+                dm_halt();
+
+                if (EN_BOOTSTRAP_MEM0) begin
+                    dm_sb_write(addr, wdata);
+                    dm_sb_read(addr, rdata);
+                    assert (rdata == wdata);
+                end
+
+                dm_resume();
+            end
+        end
+    end
+
 
 endmodule

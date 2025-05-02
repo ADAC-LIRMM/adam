@@ -18,7 +18,7 @@ module adam_fabric_lsdom_tb;
 
     ADAM_SEQ   seq   ();
     ADAM_PAUSE pause ();
-    
+
     adam_seq_bhv #(
         `ADAM_BHV_CFG_PARAMS_MAP
     ) adam_seq_bhv (
@@ -59,7 +59,7 @@ module adam_fabric_lsdom_tb;
     endgenerate
 
     // Slaves =================================================================
-    
+
     `ADAM_AXIL_I lpmem ();
     `ADAM_AXIL_I syscfg ();
     `ADAM_AXIL_I lspa ();
@@ -87,7 +87,8 @@ module adam_fabric_lsdom_tb;
         for (genvar i = LPMEM_S; i < LPMEM_E; i++) begin
             assign addr_map[i] = '{
                 start : MMAP_LPMEM.start,
-                end_  : MMAP_LPMEM.end_
+                end_  : MMAP_LPMEM.end_,
+                inc   : 0
             };
 
             adam_axil_slv_simple_bhv #(
@@ -107,7 +108,8 @@ module adam_fabric_lsdom_tb;
         for (genvar i = SYSCFG_S; i < SYSCFG_E; i++) begin
             assign addr_map[i] = '{
                 start : MMAP_SYSCFG.start,
-                end_  : MMAP_SYSCFG.end_
+                end_  : MMAP_SYSCFG.end_,
+                inc   : 0
             };
 
             adam_axil_slv_simple_bhv #(
@@ -127,7 +129,8 @@ module adam_fabric_lsdom_tb;
         for (genvar i = LSPA_S; i < LSPA_E; i++) begin
             assign addr_map[i] = '{
                 start : MMAP_LSPA.start,
-                end_  : MMAP_LSPA.end_
+                end_  : MMAP_LSPA.end_,
+                inc   : 0
             };
 
             adam_axil_slv_simple_bhv #(
@@ -147,7 +150,8 @@ module adam_fabric_lsdom_tb;
         for (genvar i = LSPB_S; i < LSPB_E; i++) begin
             assign addr_map[i] = '{
                 start : MMAP_LSPB.start,
-                end_  : MMAP_LSPB.end_
+                end_  : MMAP_LSPB.end_,
+                inc   : 0
             };
 
             adam_axil_slv_simple_bhv #(
@@ -167,7 +171,8 @@ module adam_fabric_lsdom_tb;
         for (genvar i = TO_HSDOM_S; i < TO_HSDOM_E; i++) begin
             assign addr_map[i] = '{
                 start : MMAP_BOUNDRY,
-                end_  : {ADDR_WIDTH{1'b1}}
+                end_  : {ADDR_WIDTH{1'b1}},
+                inc   : 0
             };
 
             adam_axil_slv_simple_bhv #(
@@ -186,13 +191,13 @@ module adam_fabric_lsdom_tb;
     endgenerate
 
     // DUT ====================================================================
-    
+
     adam_fabric_lsdom #(
         `ADAM_CFG_PARAMS_MAP
     ) dut (
         .seq   (seq),
         .pause (pause),
-        
+
         .lpcpu      (lpcpu),
         .from_hsdom (from_hsdom),
 
@@ -214,7 +219,7 @@ module adam_fabric_lsdom_tb;
             RESP_T resp_r;
 
             `ADAM_UNTIL(!seq.rst);
-            
+
             for (int i = 0; i < NO_MSTS; i++) begin
                 for (int j = 0; j < NO_SLVS; j++) begin
                     for (int k = 0; k < 2; k++) begin
@@ -248,5 +253,5 @@ module adam_fabric_lsdom_tb;
     task cycle_end();
         @(posedge seq.clk);
     endtask
-    
+
 endmodule
