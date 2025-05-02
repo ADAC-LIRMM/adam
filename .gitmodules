@@ -25,3 +25,6 @@
 [submodule "hal/examples/sensemark/coremark"]
 	path = hal/examples/sensemark/coremark
 	url = https://github.com/eembc/coremark.git
+[submodule "libs/cv32e40x"]
+	path = libs/cv32e40x
+	url = https://github.com/openhwgroup/cv32e40x.git
