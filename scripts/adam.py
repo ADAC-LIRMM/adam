@@ -22,14 +22,14 @@ dirty = False
 logger = None
 
 loggers = {
-    'flow' : None,
-    'atgen' : None,
-    'vunit' : None,
-    'bitst' : None,
-    'synth' : None,
-    'pssim' : None,
-    'prpwr' : None,
-    'plink' : None
+    'flow': None,
+    'atgen': None,
+    'vunit': None,
+    'bitst': None,
+    'synth': None,
+    'pssim': None,
+    'prpwr': None,
+    'plink': None
 }
 
 vunit_template = Template("""
@@ -176,7 +176,7 @@ set search_path	". \\
     $CMOS28FDSOI_PATH/C28SOI_SC_12_CORE_LL/5.1-05/libs "
 set target_library "C28SOI_SC_12_CORE_LL_tt28_0.90V_0.00V_0.00V_0.00V_125C.db"
 # set symbol_library "C28SOI_SC_12_CORE_LL.sdb"
-# set synthetic_library dw_foundation.sldb 
+# set synthetic_library dw_foundation.sldb
 set link_library "* $target_library "
 
 # Include Directories
@@ -219,19 +219,19 @@ current_design {{top}}
 # Synthesis Settings
 # =============================================================================
 # Avoid 'assign' statements in output netlist
-set verilogout_no_tri true                
+set verilogout_no_tri true
 
 # Prefix for unconnected nets
-set verilogout_unconnected_prefix "UNCONNECTED"  
+set verilogout_unconnected_prefix "UNCONNECTED"
 
 # Keep vectored ports intact
-set verilogout_single_bit false           
+set verilogout_single_bit false
 
 # Define clock settings
 create_clock -name "clk" -period 20 -waveform { 10 20 }  { clk }
 
 # Area optimization directive
-set_max_area 0                            
+set_max_area 0
 
 # Uncomment if input/output and wire load constraints are needed
 # =============================================================================
@@ -246,7 +246,7 @@ set_max_area 0
 # Compile and Save the Design
 # =============================================================================
 compile
-write -format verilog -hierarchy -out synth.v {{top}}  
+write -format verilog -hierarchy -out synth.v {{top}}
 write -format ddc -hierarchy -output synth.ddc
 report_area -hierarchy > area_report.txt
 
@@ -264,9 +264,10 @@ check_design
 # link
 
 # Exit design compiler
-exit   
+exit
 
 """)
+
 
 def atgen(*args, **kargs):
     target_name = kargs['target_name']
@@ -280,17 +281,17 @@ def atgen(*args, **kargs):
 
     if clean and not dirty:
         safe_rm(atgen_path)
-    
+
     atgen_path.mkdir(parents=True, exist_ok=True)
 
     target = compile_target(target, default)
 
     gen_pkg_path = adam_path / 'scripts' / 'gen_pkg.py'
     gen_ral_path = adam_path / 'scripts' / 'gen_ral.py'
-    
+
     yml_path = atgen_path / 'target.yml'
     pkg_path = atgen_path / 'adam_cfg_pkg.sv'
-    ral_path = adam_path/ 'software' / 'hal' / 'inc' / 'adam_ral.h'
+    ral_path = adam_path / 'software' / 'hal' / 'inc' / 'adam_ral.h'
 
     with open(yml_path, 'w') as file:
         yaml.dump(target, file)
@@ -300,6 +301,7 @@ def atgen(*args, **kargs):
 
     cmd = ['python', gen_ral_path, yml_path, '-o', ral_path, '-t', target_name]
     exec_cmd(cmd, atgen_path, loggers['atgen'])
+
 
 def vunit(*args, **kargs):
     target = kargs['target']
@@ -314,7 +316,7 @@ def vunit(*args, **kargs):
 
     if clean and not dirty:
         safe_rm(vunit_path)
-    
+
     vunit_path.mkdir(parents=True, exist_ok=True)
 
     target = compile_target(target, default)
@@ -323,7 +325,7 @@ def vunit(*args, **kargs):
     py_data = {}
 
     py_data['adam'] = adam_path
-    
+
     incs, srcs = compile_fsets(target['bhv_fsets'], fsets)
 
     adam_cfg_pkg_path = (atgen_path / 'adam_cfg_pkg.sv').relative_to(adam_path)
@@ -332,25 +334,27 @@ def vunit(*args, **kargs):
     py_data['includes'] = incs
     py_data['sources'] = srcs
 
-    defines = {}
-    for define in target.get('defines', []):
-        k, v, *_ = define.strip().split("=") + ['']
-        defines[k] = v
+    defines = dict(target.get('defines', {}))
+    for key, value in defines.items():
+        if value is None:
+            defines[key] = ''
+
     py_data['defines'] = defines
 
     py_path = vunit_path / 'run.py'
     py_raw = vunit_template.render(**py_data)
-    
+
     with open(py_path, 'w') as file:
         file.write(py_raw)
 
     cmd = ['python', py_path, '-o', vunit_path]
     cmd += ['-g'] if gui else []
-    
+
     if top:
         cmd += [f'lib.{top}' if '.' in top else f'lib.{top}.*']
- 
+
     exec_cmd(cmd, vunit_path, loggers['vunit'])
+
 
 def bitst(*args, **kargs):
     target = kargs['target']
@@ -365,7 +369,7 @@ def bitst(*args, **kargs):
 
     if clean and not dirty:
         safe_rm(bitst_path)
-    
+
     bitst_path.mkdir(parents=True, exist_ok=True)
 
     target = compile_target(target, default)
@@ -373,7 +377,7 @@ def bitst(*args, **kargs):
     tcl_data = {}
 
     tcl_data['adam'] = Path(adam_path).resolve()
-    tcl_data['part'] = target['part'] 
+    tcl_data['part'] = target['part']
     tcl_data['top'] = target['top']
 
     incs, srcs = compile_fsets(target['rtl_fsets'], fsets)
@@ -385,18 +389,24 @@ def bitst(*args, **kargs):
     tcl_data['includes'] = incs
     tcl_data['sources'] = srcs
     tcl_data['constrs'] = cons
-    
-    defines = target.get('defines', [])
-    tcl_data['defines'] = defines
+
+    defines = dict(target.get('defines', {}))
+    tcl_data['defines'] = [
+        key if value is None else f'{key}={value}'
+        for key, value in defines.items()
+    ]
 
     tcl_path = bitst_path / 'bitst.tcl'
     tcl_raw = bitst_template.render(**tcl_data)
-    
+
     with open(tcl_path, 'w') as file:
         file.write(tcl_raw)
 
-    exec_cmd(['vivado', '-mode', 'batch', '-source', tcl_path],
-        bitst_path, loggers['bitst'])
+    exec_cmd(
+        ['vivado', '-mode', 'batch', '-source', tcl_path],
+        bitst_path,
+        loggers['bitst']
+    )
 
 
 def synth(*args, **kargs):
@@ -412,7 +422,7 @@ def synth(*args, **kargs):
 
     if clean and not dirty:
         safe_rm(synth_path)
-    
+
     synth_path.mkdir(parents=True, exist_ok=True)
 
     target = compile_target(target, default)
@@ -436,8 +446,11 @@ def synth(*args, **kargs):
     with open(tcl_path, 'w') as f:
         f.write(tcl_raw)
 
-    exec_cmd(['dc_shell', '-f', tcl_path],
-        synth_path, loggers['synth']) 
+    exec_cmd(
+        ['dc_shell', '-f', tcl_path],
+        synth_path,
+        loggers['synth']
+    )
 
 
 def test_flow(*args, **kargs):
@@ -448,9 +461,10 @@ def test_flow(*args, **kargs):
     if clean and not dirty:
         safe_rm(atgen_path)
         safe_rm(vunit_path)
-    
+
     atgen(*args, **kargs)
     vunit(*args, **kargs)
+
 
 def fpga_flow(*args, **kargs):
     atgen_path = kargs['atgen_path']
@@ -460,9 +474,10 @@ def fpga_flow(*args, **kargs):
     if clean and not dirty:
         safe_rm(atgen_path)
         safe_rm(bitst_path)
-    
+
     atgen(*args, **kargs)
     bitst(*args, **kargs)
+
 
 def exec_cmd(cmd, work_path, logger):
     if dry_run:
@@ -473,8 +488,8 @@ def exec_cmd(cmd, work_path, logger):
 
     process = subprocess.Popen(
         cmd,
-        stdout=subprocess.PIPE, 
-        stderr=subprocess.STDOUT, 
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
         cwd=work_path.resolve(),
         encoding='utf8'
     )
@@ -493,20 +508,24 @@ def setup_log(log_path):
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.INFO)
 
-    formatter = logging.Formatter('%(asctime)s %(tag)-5s | %(message)s',
-        "%Y-%m-%d %H:%M:%S")
+    formatter = logging.Formatter(
+        '%(asctime)s %(tag)-5s | %(message)s',
+        '%Y-%m-%d %H:%M:%S'
+    )
 
     stdout_handler = logging.StreamHandler(sys.stdout)
     stdout_handler.setFormatter(formatter)
     root_logger.addHandler(stdout_handler)
 
     file_handler = logging.FileHandler(log_path, mode='a')
-    file_handler.setFormatter(formatter)    
+    file_handler.setFormatter(formatter)
     root_logger.addHandler(file_handler)
 
     for key in loggers:
-        loggers[key] = logging.LoggerAdapter(root_logger,
-            extra={'tag':key.upper()})
+        loggers[key] = logging.LoggerAdapter(
+            root_logger,
+            extra={'tag': key.upper()}
+        )
 
     logger = loggers['flow']
 
@@ -530,6 +549,7 @@ def safe_rm(path):
         else:
             raise RuntimeError('Abort.')
 
+
 def compile_fsets(fset_names, fsets):
     incs = []
     srcs = []
@@ -540,6 +560,7 @@ def compile_fsets(fset_names, fsets):
         srcs += part_srcs
 
     return incs, srcs
+
 
 def compile_fset(fset_name, fsets, solved=None):
     incs = []
@@ -557,7 +578,7 @@ def compile_fset(fset_name, fsets, solved=None):
             x, y = compile_fset(req, fsets, solved=solved)
             incs += x
             srcs += y
-        
+
     root = Path(fset.get('root', '.'))
     incs += [root/inc for inc in fset.get('includes', [])]
     srcs += [root/src for src in fset.get('sources', [])]
@@ -566,10 +587,12 @@ def compile_fset(fset_name, fsets, solved=None):
 
     return incs, srcs
 
+
 def compile_target(target, default):
     res = deepcopy(default)
     recursive_update(res, target)
     return res
+
 
 def recursive_update(d, u):
     for k, v in u.items():
@@ -579,6 +602,7 @@ def recursive_update(d, u):
             d[k] = v
     return d
 
+
 def list_as_none(d):
     for key, value in d.items():
         if value is None:
@@ -586,6 +610,7 @@ def list_as_none(d):
         elif isinstance(value, dict):
             list_as_none(value)
     return d
+
 
 def main():
     global dry_run
@@ -596,22 +621,44 @@ def main():
     global loggers
 
     parser = argparse.ArgumentParser(
-        description='Orchestrates the execution of all flows.')
+        description='Orchestrates the execution of all flows.'
+    )
 
-    parser.add_argument('-p', '--project', type=Path,
-        help='The ADAM path.')
-    parser.add_argument('-w', '--work', type=Path,
-        help='The work path.') 
-    parser.add_argument('-t', '--target', type=str,
-        help='The ADAM target.')                        
-    parser.add_argument('-d', '--dry-run', action='store_true',
-        help='Perform a dry run (only generate scripts).')
-    parser.add_argument('-y', '--assume-yes', action='store_true',
-        help='Assume "yes" for all prompts.')
-    parser.add_argument('-g', '--gui', action='store_true',
-        help='Open GUIs. (when supported)')
-    parser.add_argument('--dirty', action='store_true',
-        help='Does not clean work directories.')
+    parser.add_argument(
+        '-p', '--project',
+        type=Path,
+        help='The ADAM path.'
+    )
+    parser.add_argument(
+        '-w', '--work',
+        type=Path,
+        help='The work path.'
+    )
+    parser.add_argument(
+        '-t', '--target',
+        type=str,
+        help='The ADAM target.'
+    )
+    parser.add_argument(
+        '-d', '--dry-run',
+        action='store_true',
+        help='Perform a dry run (only generate scripts).'
+    )
+    parser.add_argument(
+        '-y', '--assume-yes',
+        action='store_true',
+        help='Assume "yes" for all prompts.'
+    )
+    parser.add_argument(
+        '-g', '--gui',
+        action='store_true',
+        help='Open GUIs. (when supported)'
+    )
+    parser.add_argument(
+        '--dirty',
+        action='store_true',
+        help='Does not clean work directories.'
+    )
 
     # Add subparsers for the subcommands
     subparsers = parser.add_subparsers(
@@ -620,60 +667,88 @@ def main():
     )
 
     # Define the 'atgen' command
-    atgen_parser = subparsers.add_parser('atgen',
+    subparsers.add_parser(
+        'atgen',
         description='Generates automatically generated code',
-        help='Code generators')
+        help='Code generators'
+    )
 
     # Define the 'vunit' command
-    vunit_parser = subparsers.add_parser('vunit',
+    vunit_parser = subparsers.add_parser(
+        'vunit',
         description='Perform VUnit tests.',
-        help='VUnit')
-    vunit_parser.add_argument('--top', type=str,
-        help='Top module')
+        help='VUnit'
+    )
+    vunit_parser.add_argument(
+        '--top',
+        type=str,
+        help='Top module'
+    )
 
     # Define the 'bitst' command
-    bitst_parser = subparsers.add_parser('bitst',
+    subparsers.add_parser(
+        'bitst',
         description='Perform bitstream generation using Vivado.',
-        help='Bitstream')
+        help='Bitstream'
+    )
 
     # Define the 'synth' command
-    synth_parser = subparsers.add_parser('synth',
+    subparsers.add_parser(
+        'synth',
         description='Perform synthesis using Design Compiler.',
-        help='Synthesis')
-    
+        help='Synthesis'
+    )
+
     # Define the 'pssim' command
-    pssim_parser = subparsers.add_parser('pssim',
+    subparsers.add_parser(
+        'pssim',
         description='Executes the simulation step using ModelSim.',
-        help='Post-synthesis Simulation')
+        help='Post-synthesis Simulation'
+    )
 
     # Define the 'prpwr' command
-    prpwr_parser = subparsers.add_parser('prpwr',
+    subparsers.add_parser(
+        'prpwr',
         description='Executes PowerPrime.',
-        help='PrimePower')
+        help='PrimePower'
+    )
 
     # Define the 'plink' command
-    plink_parser = subparsers.add_parser('plink',
+    subparsers.add_parser(
+        'plink',
         description='Executes power_linker.py',
-        help='power_linker.py')
+        help='power_linker.py'
+    )
 
     # Define the 'test_flow' command
-    test_flow_parser = subparsers.add_parser('test_flow',
+    test_flow_parser = subparsers.add_parser(
+        'test_flow',
         description='Executes all commands for design verification.',
-        help='Test Flow')
-    test_flow_parser.add_argument('--top', type=str,
-        help='Top module')
+        help='Test Flow'
+    )
+    test_flow_parser.add_argument(
+        '--top',
+        type=str,
+        help='Top module'
+    )
 
     # Define the 'fpga_flow' command
-    fpga_flow_parser = subparsers.add_parser('fpga_flow',
+    subparsers.add_parser(
+        'fpga_flow',
         description='Executes all commands for FPGA bitstream generation.',
-        help='FPGA Flow')
+        help='FPGA Flow'
+    )
 
     # Define the 'power_flow' command
-    power_flow_parser = subparsers.add_parser('power_flow',
+    power_flow_parser = subparsers.add_parser(
+        'power_flow',
         description='Executes all commands for Power Analysis.',
-        help='Power Analysis Flow')
-    power_flow_parser.add_argument('--fifo', action='store_true',
-        help='use FIFO for intermediary files when supported')
+        help='Power Analysis Flow'
+    )
+    power_flow_parser.add_argument(
+        '--fifo', action='store_true',
+        help='use FIFO for intermediary files when supported'
+    )
 
     args = parser.parse_args()
 
@@ -713,7 +788,7 @@ def main():
 
     target_path = work_path / target_name
     target_path.mkdir(parents=True, exist_ok=True)
-    
+
     atgen_path = target_path / 'atgen'
     vunit_path = target_path / 'vunit'
     bitst_path = target_path / 'bitst'
@@ -731,18 +806,18 @@ def main():
     logger.info('Hello.')
 
     common_kargs = {
-        'target_name' : target_name,
-        'target' : target,
-        'default' : default,
-        'fsets' : fsets,
-        'adam_path' : adam_path,
-        'atgen_path' : atgen_path,
-        'vunit_path' : vunit_path,
-        'bitst_path' : bitst_path,
-        'synth_path' : synth_path,
-        'pssim_path' : pssim_path,
-        'prpwr_path' : prpwr_path,
-        'plink_path' : plink_path
+        'target_name': target_name,
+        'target': target,
+        'default': default,
+        'fsets': fsets,
+        'adam_path': adam_path,
+        'atgen_path': atgen_path,
+        'vunit_path': vunit_path,
+        'bitst_path': bitst_path,
+        'synth_path': synth_path,
+        'pssim_path': pssim_path,
+        'prpwr_path': prpwr_path,
+        'plink_path': plink_path
     }
 
     if command == 'atgen':
@@ -767,6 +842,7 @@ def main():
         print("Invalid command.")
         parser.print_help()
         exit(-1)
+
 
 if __name__ == '__main__':
     main()

@@ -19,9 +19,9 @@ targets:
 
 default:
   defines:
-    - VERILATOR
-    - ADAM_CORE_CPU=adam_core_cv32e40x
-    - ADAM_CORE_LPCPU=adam_core_ibex
+    VERILATOR:
+    ADAM_CORE_CPU: adam_core_cv32e40x
+    ADAM_CORE_LPCPU: adam_core_ibex
 
   rtl_fsets:
     - adam_cv32e40x_rtl
