@@ -219,7 +219,7 @@ module adam #(
         assign hsdom_cpu_seq[i].clk = hsdom_seq.clk;
         assign hsdom_cpu_seq[i].rst = hsdom_seq.rst || hsdom_cpu_rst[i];
 
-        adam_core_cv32e40x #(
+        `ADAM_CORE_CPU #(
             `ADAM_CFG_PARAMS_MAP
         ) hsdom_cpu (
             .seq   (hsdom_cpu_seq[i]),

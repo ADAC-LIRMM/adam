@@ -306,7 +306,7 @@ def atgen(*args, **kargs):
 def vunit(*args, **kargs):
     target = kargs['target']
     default = kargs['default']
-    fsets = kargs['fsets']
+    fset_dict = kargs['fsets']
     adam_path = kargs['adam_path']
     atgen_path = kargs['atgen_path']
     vunit_path = kargs['vunit_path']
@@ -326,7 +326,9 @@ def vunit(*args, **kargs):
 
     py_data['adam'] = adam_path
 
-    incs, srcs = compile_fsets(target['bhv_fsets'], fsets)
+    fset_dict = deepcopy(fset_dict)
+    fset_dict['rtl_fset'] = target['rtl_fset']
+    incs, srcs = compile_fset(target['bhv_fset'], fset_dict)
 
     adam_cfg_pkg_path = (atgen_path / 'adam_cfg_pkg.sv').relative_to(adam_path)
     srcs = [adam_cfg_pkg_path] + srcs
@@ -359,7 +361,7 @@ def vunit(*args, **kargs):
 def bitst(*args, **kargs):
     target = kargs['target']
     default = kargs['default']
-    fsets = kargs['fsets']
+    fset_dict = kargs['fsets']
     adam_path = kargs['adam_path']
     atgen_path = kargs['atgen_path']
     bitst_path = kargs['bitst_path']
@@ -380,7 +382,7 @@ def bitst(*args, **kargs):
     tcl_data['part'] = target['part']
     tcl_data['top'] = target['top']
 
-    incs, srcs = compile_fsets(target['rtl_fsets'], fsets)
+    incs, srcs = compile_fset(target['rtl_fset'], fset_dict)
     cons = [target['xdc']]
 
     adam_cfg_pkg_path = (atgen_path / 'adam_cfg_pkg.sv').relative_to(adam_path)
@@ -412,7 +414,7 @@ def bitst(*args, **kargs):
 def synth(*args, **kargs):
     target = kargs['target']
     default = kargs['default']
-    fsets = kargs['fsets']
+    fset_dict = kargs['fsets']
     adam_path = kargs['adam_path']
     atgen_path = kargs['atgen_path']
     synth_path = kargs['synth_path']
@@ -432,7 +434,7 @@ def synth(*args, **kargs):
     tcl_data['adam'] = Path(adam_path).resolve()
     tcl_data['top'] = target['top']
 
-    incs, srcs = compile_fsets(target['rtl_fsets'], fsets)
+    incs, srcs = compile_fset(target['rtl_fsets'], fset_dict)
 
     adam_cfg_pkg_path = (atgen_path / 'adam_cfg_pkg.sv').relative_to(adam_path)
     srcs = [adam_cfg_pkg_path] + srcs
@@ -550,40 +552,30 @@ def safe_rm(path):
             raise RuntimeError('Abort.')
 
 
-def compile_fsets(fset_names, fsets):
+def compile_fset(fset, fset_dict, resolved=None):
     incs = []
     srcs = []
 
-    for name in fset_names:
-        part_incs, part_srcs = compile_fset(name, fsets)
-        incs += part_incs
-        srcs += part_srcs
+    if resolved is None:
+        resolved = []
 
-    return incs, srcs
+    for key in fset.get('requires', []):
+        if key in resolved:
+            continue
 
+        if key not in fset_dict:
+            raise RuntimeError(f'compile_fset: "{key}" does not exist.')
 
-def compile_fset(fset_name, fsets, solved=None):
-    incs = []
-    srcs = []
+        value = fset_dict[key]
+        x, y = compile_fset(value, fset_dict, resolved)
+        resolved.append(key)
 
-    if solved is None:
-        solved = []
-
-    if fset_name not in fsets:
-        raise RuntimeError(f'compile_fset: "{fset_name}" does not exist.')
-
-    fset = fsets[fset_name]
-    for req in fset.get('requires', []):
-        if req not in solved:
-            x, y = compile_fset(req, fsets, solved=solved)
-            incs += x
-            srcs += y
+        incs += x
+        srcs += y
 
     root = Path(fset.get('root', '.'))
     incs += [root/inc for inc in fset.get('includes', [])]
     srcs += [root/src for src in fset.get('sources', [])]
-
-    solved += [fset_name]
 
     return incs, srcs
 

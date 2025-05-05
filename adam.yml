@@ -4,10 +4,25 @@ targets:
     part: xc7a200tsbg484-1
     xdc: fpga/adam_nexys_video.xdc
 
-    rtl_fsets:
-      - adam_cv32e40p_rtl
-      - adam_ibex_rtl
-      - adam_nexys_video_rtl
+    defines:
+      ADAM_CORE_CPU: adam_core_cv32e40p
+      ADAM_CORE_LPCPU: adam_core_ibex
+
+    rtl_fset:
+      requires:
+        - adam_rtl
+        - adam_cv32e40p_rtl
+        - adam_ibex_rtl
+
+      sources:
+        - bhv/adam_clk_gate.sv
+        - fpga/adam_nexys_video.sv
+        # - rtl/instr_rom.sv
+
+    bhv_fset:
+      requires:
+        - rtl_fset
+        - adam_bhv
 
   nexys_video_cv32e40x:
     top: adam_nexys_video
@@ -16,37 +31,56 @@ targets:
 
     defines:
       ADAM_CORE_CPU: adam_core_cv32e40x
+      ADAM_CORE_LPCPU: adam_core_ibex
 
-    rtl_fsets:
-      - adam_cv32e40x_rtl
-      - adam_ibex_rtl
-      - adam_nexys_video_rtl
+    rtl_fset:
+      requires:
+        - adam_rtl
+        - adam_cv32e40x_rtl
+        - adam_ibex_rtl
+
+      sources:
+        - bhv/adam_clk_gate.sv
+        - fpga/adam_nexys_video.sv
 
   zybo:
     top: adam_zybo
     part: xc7z020clg400-1
     xdc: fpga/adam_zybo.xdc
 
-    rtl_fsets:
-      - adam_zybo_rtl
+    defines:
+      ADAM_CORE_CPU: adam_core_cv32e40p
+      ADAM_CORE_LPCPU: adam_core_ibex
+
+    rtl_fset:
+      requires:
+        - adam_rtl
+        - adam_cv32e40p_rtl
+        - adam_ibex_rtl
+
+      sources:
+        - bhv/adam_clk_gate.sv
+        - fpga/adam_zybo.sv
+        # - rtl/instr_rom.sv
 
     en_debug: False
 
 default:
   defines:
     VERILATOR:
-    ADAM_CORE_CPU: adam_core_cv32e40x
+    ADAM_CORE_CPU: adam_core_cv32e40p
     ADAM_CORE_LPCPU: adam_core_ibex
 
-  rtl_fsets:
-    - adam_cv32e40x_rtl
-    - adam_ibex_rtl
-    - adam_rtl
+  rtl_fset:
+    requires:
+      - adam_rtl
+      - adam_cv32e40p_rtl
+      - adam_ibex_rtl
 
-  bhv_fsets:
-    - adam_cv32e40x_rtl
-    - adam_ibex_rtl
-    - adam_bhv
+  bhv_fset:
+    requires:
+      - rtl_fset
+      - adam_bhv
 
   addr_width: 32
   data_width: 32
@@ -161,26 +195,6 @@ fsets:
       - ./work/adam_nexys_video/atgen/adam_cfg_pkg.sv
       - bhv/adam_clk_gate.sv
       - rtl/adam_unwrap.sv
-
-  adam_nexys_video_rtl:
-    requires:
-      - adam_rtl
-
-    sources:
-      - bhv/adam_clk_gate.sv
-      - fpga/adam_nexys_video.sv
-      # - rtl/instr_rom.sv
-
-  adam_zybo_rtl:
-    requires:
-      - adam_rtl
-      - adam_cv32e40p_rtl
-      - adam_ibex_rtl
-
-    sources:
-      - bhv/adam_clk_gate.sv
-      - fpga/adam_zybo.sv
-      - rtl/instr_rom.sv
 
   adam_bhv:
     requires:
