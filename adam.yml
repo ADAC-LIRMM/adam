@@ -1,13 +1,28 @@
 targets:
-  adam_nexys_video:
+  nexys_video:
     top: adam_nexys_video
     part: xc7a200tsbg484-1
     xdc: fpga/adam_nexys_video.xdc
 
     rtl_fsets:
+      - adam_cv32e40p_rtl
+      - adam_ibex_rtl
       - adam_nexys_video_rtl
 
-  adam_zybo:
+  nexys_video_cv32e40x:
+    top: adam_nexys_video
+    part: xc7a200tsbg484-1
+    xdc: fpga/adam_nexys_video.xdc
+
+    defines:
+      ADAM_CORE_CPU: adam_core_cv32e40x
+
+    rtl_fsets:
+      - adam_cv32e40x_rtl
+      - adam_ibex_rtl
+      - adam_nexys_video_rtl
+
+  zybo:
     top: adam_zybo
     part: xc7z020clg400-1
     xdc: fpga/adam_zybo.xdc
@@ -92,6 +107,7 @@ fsets:
       - ./include/
       - ./libs/axi/include/
       - ./libs/apb/include/
+
     sources:
       - ./work/adam_nexys_video/atgen/adam_cfg_pkg.sv
       - ./libs/axi/src/axi_pkg.sv
@@ -115,6 +131,7 @@ fsets:
       - adam_rtl
       - adam_cv32e40p_rtl
       - adam_ibex_rtl
+
     sources:
       - work/adam_nexys_video/atgen/adam_cfg_pkg.sv
       - bhv/adam_clk_gate.sv
@@ -128,6 +145,7 @@ fsets:
   adam_zybo_tb:
     requires:
       - adam_zybo_rtl
+
     sources:
       - work/adam_zybo/atgen/adam_cfg_pkg.sv
       - bhv/jtag/adam_jtag_mst_bhv.sv
@@ -138,6 +156,7 @@ fsets:
       - adam_rtl
       - adam_cv32e40p_rtl
       - adam_ibex_rtl
+
     sources:
       - ./work/adam_nexys_video/atgen/adam_cfg_pkg.sv
       - bhv/adam_clk_gate.sv
@@ -146,8 +165,6 @@ fsets:
   adam_nexys_video_rtl:
     requires:
       - adam_rtl
-      - adam_cv32e40p_rtl
-      - adam_ibex_rtl
 
     sources:
       - bhv/adam_clk_gate.sv
