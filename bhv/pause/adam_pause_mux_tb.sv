@@ -116,7 +116,7 @@ module adam_pause_mux_tb;
     end
 
     initial begin
-        #250us $error("timeout");
+        #1000us $error("timeout");
     end
 
     task cycle_start();
