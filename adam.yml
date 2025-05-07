@@ -70,6 +70,25 @@ targets:
         - bhv/adam_clk_gate.sv
         - fpga/adam_nexys_video.sv
 
+  nexys_video_gmsv:
+    top: adam_nexys_video
+    part: xc7a200tsbg484-1
+    xdc: fpga/adam_nexys_video.xdc
+
+    defines:
+      ADAM_CORE_CPU: adam_core_gmsv
+      ADAM_CORE_LPCPU: adam_core_ibex
+
+    rtl_fset:
+      requires:
+        - adam_rtl
+        - adam_gmsv_rtl
+        - adam_ibex_rtl
+
+      sources:
+        - bhv/adam_clk_gate.sv
+        - fpga/adam_nexys_video.sv
+
   zybo:
     top: adam_zybo
     part: xc7z020clg400-1
@@ -396,6 +415,17 @@ fsets:
     root: rtl/
     sources:
       - cores/ibex/adam_core_ibex.sv
+
+  adam_gmsv_rtl:
+    requires:
+      - adam_rtl
+      - cv32e40x_rtl
+      - gmsv_rtl
+
+    root: rtl/
+    sources:
+      - cores/cv32e40x/cv32e40x_clock_gate.sv
+      - cores/gmsv/adam_core_gmsv.sv
 
   axi_bhv:
     requires:
@@ -888,3 +918,35 @@ fsets:
       - lowrisc_ibex_ibex_top_0.1/rtl/ibex_register_file_latch.sv
       - lowrisc_ibex_ibex_top_0.1/rtl/ibex_lockstep.sv
       - lowrisc_ibex_ibex_top_0.1/rtl/ibex_top.sv
+
+  gmsv_rtl:
+    root: libs/gemmini-sv/rtl
+    sources:
+      - gmsv_pkg.sv
+      - gmsv_isa_pkg.sv
+      - gmsv_ram.sv
+      - gmsv_shifter.sv
+      - gmsv_mac.sv
+      - gmsv_pe.sv
+      - gmsv_tile.sv
+      - gmsv_mesh.sv
+      - gmsv_mesh_decoupled.sv
+      - gmsv_queue.sv
+      - gmsv_skid.sv
+      - gmsv_req_rsp_demux.sv
+      - gmsv_req_rsp_mux.sv
+      - gmsv_req_rsp_xbar.sv
+      - gmsv_dma.sv
+      - gmsv_dma_aw_ar.sv
+      - gmsv_dma_w_r.sv
+      - gmsv_dma_controller.sv
+      - gmsv_dma_loader.sv
+      - gmsv_matmul.sv
+      - gmsv_matmul_loader.sv
+      - gmsv_matmul_storer.sv
+      - gmsv_matmul_controller.sv
+      - gmsv_transposer.sv
+      - gmsv_spad_bank.sv
+      - gmsv_spad.sv
+      - gmsv_decoder.sv
+      - gmsv.sv
