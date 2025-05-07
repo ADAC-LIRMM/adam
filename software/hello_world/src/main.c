@@ -38,16 +38,6 @@ int main() {
 }
 
 void hw_init(void) {
-  // Resume LPMEM
-  RAL.SYSCFG->LPMEM.MR = 1;
-  while (RAL.SYSCFG->LPMEM.MR);
-
-  // Resume MEMs
-  for (int i = 0; i < 3; i++) {
-    RAL.SYSCFG->MEM[i].MR = 1;
-    while (RAL.SYSCFG->MEM[i].MR);
-  }
-
   // Resume UART0
   RAL.SYSCFG->LSPA.UART[0].MR = 1;
   while (RAL.SYSCFG->LSPA.UART[0].MR);
@@ -59,10 +49,6 @@ void hw_init(void) {
   // Resume GPIO0
   RAL.SYSCFG->LSPA.GPIO[0].MR = 1;
   while (RAL.SYSCFG->LSPA.GPIO[0].MR);
-
-  // Resume SPI
-  RAL.SYSCFG->LSPA.SPI[0].MR = 1;
-  while (RAL.SYSCFG->LSPA.SPI[0].MR);
 
   // Enable CPU Interrupt
   RAL.SYSCFG->CPU[0].IER = ~0;

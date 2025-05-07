@@ -9,6 +9,8 @@ targets:
       ADAM_CORE_LPCPU: adam_core_ibex
 
     gpio_width: 32
+    en_lpcpu: False
+    en_lpmem: False
 
     rtl_fset:
       requires:

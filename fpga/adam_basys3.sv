@@ -1,36 +1,24 @@
 `include "adam/macros.svh"
 
 module adam_basys3 (
-    input  logic clk,                       //
+    input  logic clk,
 
-    input  logic sw[15:0],                  //
+    input  logic sw[15:0],
 
-    output logic led[15:0],                 //
+    output logic led[15:0],
 
     output logic seg[6:0],
     output logic dp,
-    output logic an[3:0],   
+    output logic an[3:0],
 
-    input  logic btn_c,        //rstn        // 
-    input  logic btn_u,   
+    input  logic btn_c,
+    input  logic btn_u,
     input  logic btn_l,
     input  logic btn_r,
     input  logic btn_d,
 
-    //output logic vgaRED[3:0],
-    //output logic vgaGREEN[3:0],
-    //output logic vgaBlue[3:0],
-    //output logic hsync,
-    //output logic vsync,
-
-    input  logic rs_rx,                      //
-    output logic rs_tx,                      //
-
-    input  logic ps2_clk,
-    input  logic ps2_data,
-
-    input  logic qspi_db[3:0],
-    output logic qspi_csn,
+    input  logic rs_rx,
+    output logic rs_tx,
 
     input  logic jtag_tck,
     input  logic jtag_tms,
@@ -39,10 +27,10 @@ module adam_basys3 (
 );
 
     `ADAM_CFG_LOCALPARAMS;
-    
+
     localparam integer LPMEM_SIZE = 1024;
 
-    localparam integer MEM_SIZE [NO_MEMS+1] = 
+    localparam integer MEM_SIZE [NO_MEMS+1] =
         '{4096, 4096, 0};
 
     // rst ====================================================================
@@ -67,7 +55,7 @@ module adam_basys3 (
     end
 
     // seq ====================================================================
-    
+
     ADAM_SEQ src_seq   ();
     ADAM_SEQ lsdom_seq ();
     // ADAM_SEQ hsdom_seq ();
@@ -143,12 +131,12 @@ module adam_basys3 (
     end
 
     // mem ====================================================================
-    
+
     logic        hsdom_mem_rst   [NO_MEMS+1];
     ADAM_SEQ     hsdom_mem_seq   [NO_MEMS+1] ();
     ADAM_PAUSE   hsdom_mem_pause [NO_MEMS+1] ();
     `ADAM_AXIL_I hsdom_mem_axil  [NO_MEMS+1] ();
-    
+
     logic  hsdom_mem_req   [NO_MEMS+1];
     ADDR_T hsdom_mem_addr  [NO_MEMS+1];
     logic  hsdom_mem_we    [NO_MEMS+1];
