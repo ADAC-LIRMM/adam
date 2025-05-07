@@ -28,3 +28,6 @@
 [submodule "libs/cv32e40x"]
 	path = libs/cv32e40x
 	url = https://github.com/openhwgroup/cv32e40x.git
+[submodule "libs/gemmini-sv"]
+	path = libs/gemmini-sv
+	url = git@gite.lirmm.fr:adac/adam/gemmini-sv.git
