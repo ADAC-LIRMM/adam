@@ -7,7 +7,6 @@
 #include <stdint.h>
 #include <stdarg.h>
 
-extern void sleep(void);
 
 #define _WFI() {asm volatile("wfi");}
 

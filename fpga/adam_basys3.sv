@@ -21,7 +21,7 @@ module adam_basys3 (
     localparam integer LPMEM_SIZE = 1024;
 
     localparam integer MEM_SIZE [NO_MEMS+1] =
-        '{8192, 8192, 0};
+        '{8192, 81920, 8192, 0};
 
     // rst ====================================================================
 

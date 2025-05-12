@@ -9,6 +9,7 @@ targets:
       ADAM_CORE_LPCPU: adam_core_ibex
 
     gpio_width: 16
+    no_mems: 3
     en_debug: True
     no_lspa_spis:   0
     en_lpcpu: False
@@ -22,8 +23,8 @@ targets:
       sources:
         - bhv/adam_clk_gate.sv
         - fpga/adam_basys3.sv
-        - software/hello_world_basys3/build/target/instr_rom.sv
-        # - rtl/instr_rom.sv
+        - bootloader/build/target/instr_rom.sv
+        #- software/hello_world_basys3/build/target/instr_rom.sv
 
   nexys_video:
     top: adam_nexys_video
@@ -223,6 +224,40 @@ fsets:
       - ./work/adam_nexys_video/atgen/adam_cfg_pkg.sv
       - bhv/adam_clk_gate.sv
       - rtl/adam_unwrap.sv
+
+  adam_basys3_rtl:
+    requires:
+      - adam_rtl
+      - adam_cv32e40p_rtl
+      - adam_ibex_rtl
+
+    sources:
+      - bhv/adam_clk_gate.sv
+      - fpga/adam_basys3.sv
+      - bootloader/build/target/instr_rom.sv
+      #- software/hello_world_basys3/build/target/instr_rom.sv
+
+  adam_nexys_video_rtl:
+    requires:
+      - adam_rtl
+      - adam_cv32e40p_rtl
+      - adam_ibex_rtl
+
+    sources:
+      - bhv/adam_clk_gate.sv
+      - fpga/adam_nexys_video.sv
+      # - rtl/instr_rom.sv
+
+  adam_zybo_rtl:
+    requires:
+      - adam_rtl
+      - adam_cv32e40p_rtl
+      - adam_ibex_rtl
+
+    sources:
+      - bhv/adam_clk_gate.sv
+      - fpga/adam_zybo.sv
+      - rtl/instr_rom.sv
 
   adam_bhv:
     requires:

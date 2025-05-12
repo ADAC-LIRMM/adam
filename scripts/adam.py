@@ -288,10 +288,11 @@ def atgen(*args, **kargs):
 
     gen_pkg_path = adam_path / 'scripts' / 'gen_pkg.py'
     gen_ral_path = adam_path / 'scripts' / 'gen_ral.py'
-
+    gen_mem_path = adam_path / 'scripts' / 'mem_map_gen.py'
+    
     yml_path = atgen_path / 'target.yml'
     pkg_path = atgen_path / 'adam_cfg_pkg.sv'
-    ral_path = adam_path / 'software' / 'hal' / 'inc' / 'adam_ral.h'
+    ral_path = adam_path/ 'software' / 'hal' / 'inc' / 'adam_ral.h'
 
     with open(yml_path, 'w') as file:
         yaml.dump(target, file)
@@ -301,7 +302,6 @@ def atgen(*args, **kargs):
 
     cmd = ['python', gen_ral_path, yml_path, '-o', ral_path, '-t', target_name]
     exec_cmd(cmd, atgen_path, loggers['atgen'])
-
 
 def vunit(*args, **kargs):
     target = kargs['target']

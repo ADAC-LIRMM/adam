@@ -37,3 +37,17 @@ void uart_init(ral_uart_t *uart, uint32_t baudrate) {
     // PC, PS, and SB are already 0 (parity disabled, even parity, 1 stop bit)
     uart->CR |= (8 << 8); // DL: 8 data bits
 }
+
+void uart_putc(ral_uart_t *uart, uint8_t c)
+{
+    // Attendre que le buffer de transmission soit vide
+    while (!(uart->TBE)); // TXE (Transmit data register empty)
+    uart->DR = c;
+}
+
+uint8_t uart_getc(ral_uart_t *uart)
+{
+    // Attendre que des données soient reçues
+    while (!(uart->RBF)); // RXNE (Read data register not empty)
+    return (uint8_t)(uart->DR);
+}
