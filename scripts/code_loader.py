@@ -2,6 +2,12 @@
 """
 code-loader is a command-line tool used for loading code onto a target device.
 This version sends the ELF file in blocks similar to gen_rom.py.
+Usage:
+    code-loader.py <elf_file> [options]
+Options:
+    -p, --port <port>        Serial port to use (default: /dev/ttyUSB0).
+    -b, --baud-rate <rate>   Baud rate for serial communication (default: 115200).
+    -h, --help              Show this help message and exit.
 """
 
 import argparse
