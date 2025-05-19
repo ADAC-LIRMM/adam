@@ -1,6 +1,8 @@
 `include "adam/macros.svh"
 
-module adam_core_gmsv #(
+module adam_core_gmsv
+    import gmsv_pkg::*;
+#(
     `ADAM_CFG_PARAMS
 ) (
     ADAM_SEQ.Slave   seq,
@@ -53,7 +55,7 @@ module adam_core_gmsv #(
     assign debug_unavail = pause.req || pause.ack;
 
     cv32e40x_core #(
-        .X_EXT (0)
+        .X_EXT (1)
     ) i_cv32e40x_core (
         // Clock and reset
         .rst_ni       (!seq.rst),
@@ -157,13 +159,15 @@ module adam_core_gmsv #(
         .rdata  (inst_rdata)
     );
 
+    `ADAM_AXIL_I axil_data_core ();
+
     adam_obi_to_axil #(
         `ADAM_CFG_PARAMS_MAP
     ) data_adam_obi_to_axil (
         .seq   (seq),
         .pause (pause_data),
 
-        .axil (axil_data),
+        .axil (axil_data_core),
 
         .req    (data_req),
         .gnt    (data_gnt),
@@ -174,6 +178,154 @@ module adam_core_gmsv #(
         .rvalid (data_rvalid),
         .rready (data_rready),
         .rdata  (data_rdata)
+    );
+
+    // gmsv ===================================================================
+
+    dec_req_t dec_req;
+    logic     dec_req_valid;
+    logic     dec_req_ready;
+
+    dec_rsp_t dec_rsp;
+    logic     dec_rsp_valid;
+    logic     dec_rsp_ready;
+
+    exe_req_t exe_req;
+    logic     exe_req_valid;
+    logic     exe_req_ready;
+
+    exe_req_t exe_rsp;
+    logic     exe_rsp_valid;
+    logic     exe_rsp_ready;
+
+    axi_aw_t axi_aw;
+    logic    axi_aw_valid;
+    logic    axi_aw_ready;
+
+    axi_w_t axi_w;
+    logic   axi_w_valid;
+    logic   axi_w_ready;
+
+    axi_b_t axi_b;
+    logic   axi_b_valid;
+    logic   axi_b_ready;
+
+    axi_ar_t axi_ar;
+    logic    axi_ar_valid;
+    logic    axi_ar_ready;
+
+    axi_r_t axi_r;
+    logic   axi_r_valid;
+    logic   axi_r_ready;
+
+    gmsv i_gmsv (
+        .clk_i (seq.clk),
+        .rst_i (seq.rst),
+
+        .dec_req_i       (dec_req),
+        .dec_req_valid_i (dec_req_valid),
+        .dec_req_ready_o (dec_req_ready),
+
+        .dec_rsp_o       (dec_rsp),
+        .dec_rsp_valid_o (dec_rsp_valid),
+        .dec_rsp_ready_i (dec_rsp_ready),
+
+        .exe_req_i       (exe_req),
+        .exe_req_valid_i (exe_req_valid),
+        .exe_req_ready_o (exe_req_ready),
+
+        .exe_rsp_o       (exe_rsp),
+        .exe_rsp_valid_o (exe_rsp_valid),
+        .exe_rsp_ready_i (exe_rsp_ready),
+
+        .axi_aw_o       (axi_aw),
+        .axi_aw_valid_o (axi_aw_valid),
+        .axi_aw_ready_i (axi_aw_ready),
+
+        .axi_w_o       (axi_w),
+        .axi_w_valid_o (axi_w_valid),
+        .axi_w_ready_i (axi_w_ready),
+
+        .axi_b_i       (axi_b),
+        .axi_b_valid_i (axi_b_valid),
+        .axi_b_ready_o (axi_b_ready),
+
+        .axi_ar_o       (axi_ar),
+        .axi_ar_valid_o (axi_ar_valid),
+        .axi_ar_ready_i (axi_ar_ready),
+
+        .axi_r_i       (axi_r),
+        .axi_r_valid_i (axi_r_valid),
+        .axi_r_ready_o (axi_r_ready)
+    );
+
+    `ADAM_AXIL_I axil_data_gmsv ();
+
+    assign axil_data_gmsv.aw_addr = axi_aw.addr;
+    assign axil_data_gmsv.aw_prot = axi_aw.prot;
+    assign axil_data_gmsv.aw_valid = axi_aw_valid;
+    assign axi_aw_ready = axil_data_gmsv.aw_ready;
+
+    assign axil_data_gmsv.w_data = axi_w.data;
+    assign axil_data_gmsv.w_strb = axi_w.strb;
+    assign axil_data_gmsv.w_valid = axi_w_valid;
+    assign axi_w_ready = axil_data_gmsv.w_ready;
+
+    assign axi_b.resp = axil_data_gmsv.b_resp;
+    assign axi_b_valid = axil_data_gmsv.b_valid;
+    assign axil_data_gmsv.b_ready = axi_b_ready;
+
+    assign axil_data_gmsv.ar_addr = axi_ar.addr;
+    assign axil_data_gmsv.ar_prot = axi_ar.prot;
+    assign axil_data_gmsv.ar_valid = axi_ar_valid;
+    assign axi_ar_ready = axil_data_gmsv.ar_ready;
+
+    assign axi_r.resp = axil_data_gmsv.r_resp;
+    assign axi_r_valid = axil_data_gmsv.r_valid;
+    assign axil_data_gmsv.r_ready = axi_r_ready;
+
+    adam_core_gmsv_cvx_bridge i_cvx_bridge (
+        .clk_i (seq.clk),
+        .rst_i (seq.rst),
+
+        .dec_req_o       (dec_req),
+        .dec_req_valid_o (dec_req_valid),
+        .dec_req_ready_i (dec_req_ready),
+
+        .dec_rsp_i       (dec_rsp),
+        .dec_rsp_valid_i (dec_rsp_valid),
+        .dec_rsp_ready_o (dec_rsp_ready),
+
+        .exe_req_o       (exe_req),
+        .exe_req_valid_o (exe_req_valid),
+        .exe_req_ready_i (exe_req_ready),
+
+        .exe_rsp_i       (exe_rsp),
+        .exe_rsp_valid_i (exe_rsp_valid),
+        .exe_rsp_ready_o (exe_rsp_ready),
+
+        .xif_compressed_if (xif),
+        .xif_issue_if      (xif),
+        .xif_commit_if     (xif),
+        .xif_mem_if        (xif),
+        .xif_mem_result_if (xif),
+        .xif_result_if     (xif)
+    );
+
+    // axi mux ================================================================
+
+    axi_lite_mux_intf #(
+        .AxiAddrWidth (ADDR_WIDTH),
+        .AxiDataWidth (DATA_WIDTH),
+        .NoSlvPorts   (2),
+        .MaxTrans     (7)
+    ) i_axi_mux (
+        .clk_i  (seq.clk),
+        .rst_ni (!seq.rst),
+        .test_i (0),
+
+        .slv    ({axil_data_core, axil_data_gmsv}),
+        .mst    (axil_data)
     );
 
     // pause ==================================================================

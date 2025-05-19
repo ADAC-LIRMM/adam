@@ -88,6 +88,7 @@ targets:
       sources:
         - bhv/adam_clk_gate.sv
         - fpga/adam_nexys_video.sv
+        - software/gemmini-sv/build/target/instr_rom.sv
 
   zybo:
     top: adam_zybo
@@ -425,6 +426,7 @@ fsets:
     root: rtl/
     sources:
       - cores/cv32e40x/cv32e40x_clock_gate.sv
+      - cores/gmsv/adam_core_gmsv_cvx_bridge.sv
       - cores/gmsv/adam_core_gmsv.sv
 
   axi_bhv:
@@ -932,15 +934,18 @@ fsets:
       - gmsv_mesh.sv
       - gmsv_mesh_decoupled.sv
       - gmsv_queue.sv
-      - gmsv_skid.sv
+      - gmsv_flow.sv
+      - gmsv_flow_cut.sv
+      - gmsv_flow_pass.sv
+      - gmsv_flow_skid.sv
       - gmsv_req_rsp_demux.sv
       - gmsv_req_rsp_mux.sv
       - gmsv_req_rsp_xbar.sv
-      - gmsv_dma.sv
+      - gmsv_csr.sv
       - gmsv_dma_aw_ar.sv
-      - gmsv_dma_w_r.sv
       - gmsv_dma_controller.sv
-      - gmsv_dma_loader.sv
+      - gmsv_dma_w_r.sv
+      - gmsv_dma.sv
       - gmsv_matmul.sv
       - gmsv_matmul_loader.sv
       - gmsv_matmul_storer.sv

@@ -83,6 +83,8 @@ for source in sources:
         defines=defines
     )
 
+VU.set_sim_option("modelsim.vsim_flags.gui", ["-voptargs=+acc"])
+
 VU.main()
 
 """)

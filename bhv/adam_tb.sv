@@ -121,20 +121,20 @@ module adam_tb;
         );
     end
 
-    // sensemark #(
-    //     `ADAM_CFG_PARAMS_MAP
-    // ) sensemark (
-    //     .seq (hsdom_mem_seq[0]),
+    instr_rom #(
+        `ADAM_CFG_PARAMS_MAP
+    ) i_instr_rom (
+        .seq (hsdom_mem_seq[0]),
 
-    //     .req   (hsdom_mem_req[0]),
-    //     .addr  (hsdom_mem_addr[0]),
-    //     .we    (hsdom_mem_we[0]),
-    //     .be    (hsdom_mem_be[0]),
-    //     .wdata (hsdom_mem_wdata[0]),
-    //     .rdata (hsdom_mem_rdata[0])
-    // );
+        .req   (hsdom_mem_req[0]),
+        .addr  (hsdom_mem_addr[0]),
+        .we    (hsdom_mem_we[0]),
+        .be    (hsdom_mem_be[0]),
+        .wdata (hsdom_mem_wdata[0]),
+        .rdata (hsdom_mem_rdata[0])
+    );
 
-    for (genvar i = 0; i < NO_MEMS; i++) begin
+    for (genvar i = 1; i < NO_MEMS; i++) begin
         adam_mem #(
             `ADAM_CFG_PARAMS_MAP,
 
@@ -470,7 +470,7 @@ module adam_tb;
     `TEST_SUITE begin
         `TEST_CASE("minimal") begin
             jtag_bhv = new(jtag);
-            #10us;
+            #1000us;
         end
         `TEST_CASE("debug") begin
             ADDR_T  addr;

@@ -143,8 +143,6 @@ module adam #(
         `ADAM_AXIL_SLV_TIE_OFF (lsdom_lpcpu_axil[1]);
     end
 
-    assign hsdom_debug_unavail[0] = '1; // LPCPU doesn't support debug
-
     // lsdom - lspa ===========================================================
 
     if (EN_LSPA) begin
