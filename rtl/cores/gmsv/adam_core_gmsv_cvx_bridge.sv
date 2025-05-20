@@ -46,8 +46,6 @@ module adam_core_gmsv_cvx_bridge
         logic      issue_done;
         logic      commit_done;
         logic      result_done;
-        logic      dec_req_done;
-        logic      dec_rsp_done;
         logic      exe_req_done;
         logic      exe_rsp_done;
     } state_t;
@@ -55,8 +53,7 @@ module adam_core_gmsv_cvx_bridge
     state_t [SbLen-1:0] sb_d, sb_q;
 
     always_comb begin
-        automatic id_t id = '0;
-        automatic logic accept = 0;
+        automatic id_t    id     = '0;
 
         dec_req_o       = '0;
         dec_req_valid_o = '0;
@@ -82,11 +79,26 @@ module adam_core_gmsv_cvx_bridge
         );
 
         if (xif_issue_if.issue_valid && xif_issue_if.issue_ready) begin
-            sb_d[id].instr    = xif_issue_if.issue_req.instr;
+            automatic instr_t instr  = xif_issue_if.issue_req.instr;
+            automatic info_t  info   = get_info(instr);
+            automatic logic   accept = 0;
+
+            sb_d[id].instr    = instr;
             sb_d[id].rs1_data = xif_issue_if.issue_req.rs[0];
             sb_d[id].rs2_data = xif_issue_if.issue_req.rs[1];
 
-            accept = (get_info(sb_d[id].instr).opcode === OpcodeGmsv);
+            if(info.opcode === OpcodeGmsv) begin
+                accept = 1;
+            end
+            else if(
+                info.opcode === OpcodeCsr &&
+                info.csr[11:8] === 'b1000
+            ) begin
+                accept = 1;
+            end
+            else begin
+                accept = 0;
+            end
 
             xif_issue_if.issue_resp.accept = accept;
 
@@ -109,33 +121,6 @@ module adam_core_gmsv_cvx_bridge
             else begin
                 sb_d[id].commit_done = 1;
             end
-        end
-
-        // dec req ============================================================
-
-        for (size_t i = 0; i < SbLen; i++) begin
-            id = id_t'(i);
-            if (sb_d[id].commit_done && !sb_d[id].dec_req_done) begin
-                dec_req_o.id    = id;
-                dec_req_o.instr = sb_d[id].instr;
-                dec_req_valid_o = 1;
-
-                if (dec_req_valid_o && dec_req_ready_i) begin
-                    sb_d[id].dec_req_done = 1;
-                end
-
-                break;
-            end
-        end
-
-        // dec rsp ============================================================
-
-        id = dec_rsp_i.id;
-
-        dec_rsp_ready_o = !sb_d[id].dec_rsp_done;
-
-        if (dec_rsp_valid_i && dec_rsp_ready_o) begin
-            sb_d[id].dec_rsp_done = 1;
         end
 
         // exe req ============================================================
@@ -198,8 +183,6 @@ module adam_core_gmsv_cvx_bridge
                 sb_d[id].issue_done &&
                 sb_d[id].commit_done &&
                 sb_d[id].result_done &&
-                sb_d[id].dec_req_done &&
-                sb_d[id].dec_rsp_done &&
                 sb_d[id].exe_req_done &&
                 sb_d[id].exe_rsp_done
             ) begin

@@ -280,6 +280,7 @@ module adam_core_gmsv
     assign axil_data_gmsv.ar_valid = axi_ar_valid;
     assign axi_ar_ready = axil_data_gmsv.ar_ready;
 
+    assign axi_r.data = axil_data_gmsv.r_data;
     assign axi_r.resp = axil_data_gmsv.r_resp;
     assign axi_r_valid = axil_data_gmsv.r_valid;
     assign axil_data_gmsv.r_ready = axi_r_ready;

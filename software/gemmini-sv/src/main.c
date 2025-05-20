@@ -3,75 +3,59 @@
 
 #include "system.h"
 
-static inline void csr_write(uint32_t csr, uint32_t value) {
-    asm volatile (
-        "csrrw x0, %0, %1"
-        :
-        : "i"(csr), "r"(value)
-    );
-}
+#define CSR_WRITE(CSR, VALUE) \
+    asm volatile ("csrrw x0, " #CSR ", %0" :: "r"(VALUE))
 
-static inline void mvin(void *rs1, uint32_t rs2, uint32_t cfg)
-{
-    asm volatile (
-        ".insn r CUSTOM_0, 0, %c[imm], x0, %0, %1"
-        :
-        : "r"(rs1), "r"(rs2), [imm] "i" (((0 & 0x3) << 5) | 0)
-    );
-}
+#define MVIN(RS1, RS2, CFG) \
+    asm volatile ( \
+        ".insn r CUSTOM_0, 0, %c0, x0, %1, %2" :: \
+        "i"(((CFG) & 0x3) << 5), "r"(RS1), "r"(RS2))
 
-static inline void mvout(void *rs1, uint32_t rs2, uint32_t cfg)
-{
-    asm volatile (
-        ".insn r CUSTOM_0, 0, %c[imm], x0, %0, %1"
-        :
-        : "r"(rs1), "r"(rs2), [imm] "i" (((0 & 0x3) << 5) | 1)
-    );
-}
+#define MVOUT(RS1, RS2, CFG) \
+    asm volatile ( \
+        ".insn r CUSTOM_0, 0, %c0, x0, %1, %2" :: \
+        "i"((((CFG) & 0x3) << 5) | 1), "r"(RS1), "r"(RS2))
 
-static inline void fence(uint32_t cfg)
-{
-    asm volatile (
-        ".insn r CUSTOM_0, 0, %c[imm], x0, x0, x0"
-        :
-        : [imm] "i" (((cfg & 0x3) << 5) | 1)
-    );
-}
+#define FENCE(CFG) \
+    asm volatile ( \
+        ".insn r CUSTOM_0, 0, %c0, x0, x0, x0" :: \
+        "i"((((CFG) & 0x3) << 5) | 1))
 
-static inline void matmul_preload(uint32_t rs1, uint32_t rs2, uint32_t cfg)
-{
-    asm volatile (
-        ".insn r CUSTOM_0, 1, %c[imm], x0, %0, %1"
-        :
-        : "r"(rs1), "r"(rs2), [imm] "i" (((0 & 0x3) << 5) | 0)
-    );
-}
+#define MATMUL_PRELOAD(RS1, RS2, CFG) \
+    asm volatile ( \
+        ".insn r CUSTOM_0, 1, %c0, x0, %1, %2" :: \
+        "i"(((CFG) & 0x3) << 5), "r"(RS1), "r"(RS2))
 
-static inline void matmul_compute(
-    uint32_t rs1,
-    uint32_t rs2,
-    uint32_t end,
-    uint32_t cfg
-)
-{
-    uint32_t funct7 = (((0 & 0x3) << 5) | (((1 & 0x1) << 2) | 1));
-    asm volatile (
-        ".insn r CUSTOM_0, 1, %c[imm], x0, %0, %1"
-        :
-        : "r"(rs1), "r"(rs2), [imm] "i"((((0 & 0x3) << 5) | (((1 & 0x1) << 2) | 1)))
-    );
-}
+#define MATMUL_COMPUTE(RS1, RS2, END, CFG) \
+    asm volatile ( \
+        ".insn r CUSTOM_0, 1, %c0, x0, %1, %2" :: \
+        "i"(((((CFG) & 0x3) << 5) | (((END) & 0x1) << 2) | 1)), \
+        "r"(RS1), "r"(RS2))
 
-static inline void matmul(
-    uint32_t mat_a,
-    uint32_t mat_b,
-    uint32_t mat_c,
-    uint32_t mat_r,
-    uint32_t cfg
-)
-{
-    matmul_preload(mat_c, mat_r, cfg);
-    matmul_compute(mat_a, mat_b, 1, cfg);
+#define MATMUL(MAT_A, MAT_B, MAT_C, MAT_R, CFG) \
+    do { \
+        MATMUL_PRELOAD(MAT_C, MAT_R, CFG); \
+        MATMUL_COMPUTE(MAT_A, MAT_B, 1, CFG); \
+    } while (0)
+
+static void print_matrix(uint8_t mat[4][4]) {
+    printf("{\n");
+    for (int i = 0; i < 4; i++) {
+        printf("    {");
+        for (int j = 0; j < 4; j++) {
+            printf("%u", mat[i][j]);
+            if (j < 3) {
+                printf(", ");
+            }
+        }
+        printf("}");
+        if (i < 3) {
+            printf(",\n");
+        } else {
+            printf("\n");
+        }
+    }
+    printf("}\n");
 }
 
 static void hw_init(void) {
@@ -139,14 +123,37 @@ uint32_t spad_c = 0x10;
 uint32_t spad_r = 0x18;
 
 int main() {
-  hw_init();
+    hw_init();
+    uart_init(RAL.LSPA.UART[0], SYSTEM_CLOCK/2);
 
-  mvin(mat_a, spad_a, 0);
-  mvin(mat_b, spad_b, 0);
-  mvin(mat_c, spad_c, 0);
-  matmul(spad_a, spad_b, spad_c, spad_r, 0);
+    CSR_WRITE(0x800, 0);
+    CSR_WRITE(0x801, 4);
+    CSR_WRITE(0x802, 4);
+    CSR_WRITE(0x803, 4);
 
-  for(volatile int i = 0; i < 100; i++);
+    // printf("Hello, World!\n");
 
-  mvout(mat_r, spad_r, 0);
+    MVIN(mat_a, spad_a, 0);
+    MVIN(mat_b, spad_b, 0);
+    MVIN(mat_c, spad_c, 0);
+    MATMUL(spad_a, spad_b, spad_c, spad_r, 0);
+
+    for(volatile int i = 0; i < 100; i++);
+
+    MVOUT(mat_r, spad_r, 0);
+
+    print_matrix(mat_r);
 }
+
+int _write(int file, char* buf, int nbytes) {
+    ral_uart_t *uart = RAL.LSPA.UART[0];
+
+    for (int i = 0; i < nbytes; i++) {
+        while(!uart->TBE);
+        uart->DR = *buf;
+        buf++;
+    }
+
+  return nbytes;
+}
+

@@ -36,12 +36,9 @@ BASE_SRCS = \
     src/startup.s \
 	$(ADAM_DIR)/software/hal/src/utils.c \
 	$(ADAM_DIR)/software/hal/src/uart.c \
-	$(ADAM_DIR)/software/hal/src/cvt.c \
-	$(ADAM_DIR)/software/hal/src/print.c \
 	$(ADAM_DIR)/software/hal/src/timer.c \
 	$(ADAM_DIR)/software/hal/src/gpio.c \
 	$(ADAM_DIR)/software/hal/src/spi.c \
-	$(ADAM_DIR)/software/hal/src/printf-stdarg.c \
 	src/main.c \
 	
 
@@ -85,7 +82,6 @@ CXXFLAGS = -g \
 
 LDFLAGS  =	-Wl,--gc-sections \
 			-Wl,-Map=$(MAP_TARGET) \
-			-nostdlib \
 			-nostartfiles \
 			-lgcc \
 			-lc_nano \
