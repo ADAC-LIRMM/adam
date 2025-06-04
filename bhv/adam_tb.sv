@@ -30,6 +30,19 @@ module adam_tb;
         .seq (hsdom_seq)
     );
 
+    din_t hsdom_din;
+    logic hsdom_din_valid;
+    logic hsdom_din_ready;
+
+    assign hsdom_din = 'hDEAD_BEEF;
+    assign hsdom_din_valid = 1;
+
+    dout_t hsdom_dout;
+    logic  hsdom_dout_valid;
+    logic  hsdom_dout_ready;
+
+    assign hsdom_dout_ready = 1;
+
     // lspa io ================================================================
 
     ADAM_IO     lspa_gpio_io   [NO_LSPA_GPIOS*GPIO_WIDTH+1] ();
@@ -101,6 +114,14 @@ module adam_tb;
         .lsdom_pause_ext (lsdom_pause_ext),
 
         .hsdom_seq (hsdom_seq),
+
+        .hsdom_din_i       (hsdom_din),
+        .hsdom_din_valid_i (hsdom_din_valid),
+        .hsdom_din_ready_o (hsdom_din_ready),
+
+        .hsdom_dout_o       (hsdom_dout),
+        .hsdom_dout_valid_o (hsdom_dout_valid),
+        .hsdom_dout_ready_i (hsdom_dout_ready),
 
         .jtag (jtag),
 
@@ -340,7 +361,7 @@ module adam_tb;
     `TEST_SUITE begin
         `TEST_CASE("minimal") begin
             jtag_bhv = new(jtag);
-            #10us;
+            #1000us;
         end
         `TEST_CASE("debug") begin
             ADDR_T  addr;

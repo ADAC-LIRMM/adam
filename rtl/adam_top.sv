@@ -8,6 +8,14 @@ module adam_top #(
     input  logic clk_i,
     input  logic rst_i,
 
+    input  din_t hsdom_din_i,
+    input  logic hsdom_din_valid_i,
+    output logic hsdom_din_ready_o,
+
+    output dout_t hsdom_dout_o,
+    output logic  hsdom_dout_valid_o,
+    input  logic  hsdom_dout_ready_i,
+
     // jtag ===================================================================
 
     input  logic jtag_tck_i,
@@ -205,6 +213,14 @@ module adam_top #(
         .lsdom_pause_ext  (lsdom_pause_ext),
 
         .hsdom_seq (lsdom_seq),
+
+        .hsdom_din_i       (hsdom_din_i),
+        .hsdom_din_valid_i (hsdom_din_valid_i),
+        .hsdom_din_ready_o (hsdom_din_ready_o),
+
+        .hsdom_dout_o       (hsdom_dout_o),
+        .hsdom_dout_valid_o (hsdom_dout_valid_o),
+        .hsdom_dout_ready_i (hsdom_dout_ready_i),
 
         .jtag (jtag),
 

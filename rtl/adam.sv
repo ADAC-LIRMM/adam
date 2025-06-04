@@ -14,6 +14,14 @@ module adam #(
 
     ADAM_SEQ.Slave hsdom_seq,
 
+    input  din_t hsdom_din_i,
+    input  logic hsdom_din_valid_i,
+    output logic hsdom_din_ready_o,
+
+    output dout_t hsdom_dout_o,
+    output logic  hsdom_dout_valid_o,
+    input  logic  hsdom_dout_ready_i,
+
     // jtag ===================================================================
 
     ADAM_JTAG.Slave jtag,
@@ -387,9 +395,71 @@ module adam #(
         end
     end
 
-    // hsdom - hsp ============================================================
+    // hsdom - hsp ===========================================================
 
-    for (genvar i = 0; i < NO_HSPS; i++) begin
+    ADAM_SEQ hsdom_hsp_seq ();
+    ADAM_PAUSE fix_me ();
+
+    logic  req;
+    logic  gnt;
+    ADDR_T addr;
+    logic  we;
+    STRB_T be;
+    DATA_T wdata;
+    logic  rvalid;
+    logic  rready;
+    DATA_T rdata;
+
+    assign hsdom_hsp_seq.clk = lsdom_seq.clk;
+    assign hsdom_hsp_seq.rst = lsdom_seq.rst;
+
+    `ADAM_PAUSE_MST_TIE_ON(fix_me);
+    `ADAM_PAUSE_SLV_TIE_ON(hsdom_hsp_pause[0]);
+
+    adam_obi_from_axil #(
+        `ADAM_CFG_PARAMS_MAP
+    ) i_adam_obi_from_axil (
+        .seq   (hsdom_hsp_seq),
+        .pause (fix_me),
+
+        .axil (hsdom_hsp_axil[0]),
+
+        .req    (req),
+        .gnt    (gnt),
+        .addr   (addr),
+        .we     (we),
+        .be     (be),
+        .wdata  (wdata),
+        .rvalid (rvalid),
+        .rready (rready),
+        .rdata  (rdata)
+    );
+
+    adam_periph_hawkeye #(
+        `ADAM_CFG_PARAMS_MAP
+    ) i_adam_hawkeye_periph (
+        .seq (hsdom_hsp_seq),
+
+        .req_i    (req),
+        .gnt_o    (gnt),
+        .addr_i   (addr),
+        .we_i     (we),
+        .be_i     (be),
+        .wdata_i  (wdata),
+        .rvalid_o (rvalid),
+        .rready_i (rready),
+        .rdata_o  (rdata),
+
+        .din_i       (hsdom_din_i),
+        .din_valid_i (hsdom_din_valid_i),
+        .din_ready_o (hsdom_din_ready_o),
+
+        .dout_o       (hsdom_dout_o),
+        .dout_valid_o (hsdom_dout_valid_o),
+        .dout_ready_i (hsdom_dout_ready_i)
+    );
+
+    for (genvar i = 1; i < NO_HSPS; i++) begin
         `ADAM_PAUSE_SLV_TIE_OFF(hsdom_hsp_pause[i]);
         `ADAM_AXIL_SLV_TIE_OFF (hsdom_hsp_axil [i]);
     end

@@ -56,6 +56,7 @@ package {{name}};
 
         int NO_CPUS;
         int NO_DMAS;
+        int NO_HSPS;
         int NO_MEMS;
 
         bit EN_LPCPU;
@@ -109,6 +110,7 @@ package {{name}};
 
         NO_CPUS : {{no_cpus}},
         NO_DMAS : {{no_dmas}},
+        NO_HSPS : {{no_hsps}},
         NO_MEMS : {{no_mems}},
 
         EN_LPCPU : {{en_lpcpu}},

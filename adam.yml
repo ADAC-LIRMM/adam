@@ -114,12 +114,28 @@ targets:
     clk_period: 32 #ns
 
 
+  hello_world:
+    defines:
+      ADAM_ROM: instr_rom
+
+    rtl_fset:
+      requires:
+        - adam_rtl
+        - adam_cv32e40p_rtl
+        - adam_ibex_rtl
+
+      sources:
+        - bhv/adam_clk_gate.sv
+        - software/hello_world/build/target/instr_rom.sv
+
+    mem_size: [0, 524288]
+
 default:
   defines:
     VERILATOR:
     ADAM_CORE_CPU: adam_core_cv32e40p
     ADAM_CORE_LPCPU: adam_core_ibex
-    ADAM_ROM: adam_mem
+    ADAM_ROM: adam_ram
 
   rtl_fset:
     requires:
@@ -141,6 +157,7 @@ default:
 
   no_cpus: 1
   no_dmas: 1
+  no_hsps: 1
   no_mems: 2
 
   en_lpcpu: True
@@ -380,6 +397,7 @@ fsets:
       - periph/uart/adam_periph_uart_tx.sv
       - periph/uart/adam_periph_uart.sv
       - periph/adam_periph.sv
+      - periph/adam_periph_hawkeye.sv
 
       - syscfg/adam_syscfg_tgt.sv
       - syscfg/adam_syscfg.sv

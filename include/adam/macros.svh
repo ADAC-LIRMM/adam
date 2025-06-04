@@ -12,6 +12,11 @@
     __opt type CFG_T  = adam_cfg_pkg::CFG_T __sep \
     __opt CFG_T CFG   = adam_cfg_pkg::CFG __sep \
     \
+    __opt DinWidth = 64 __sep \
+    __opt DoutWidth = 72 __sep \
+    __opt type din_t = logic [DinWidth-1:0] __sep \
+    __opt type dout_t = logic [DoutWidth-1:0] __sep \
+    \
     __opt ADDR_WIDTH   = CFG.ADDR_WIDTH __sep \
     __opt DATA_WIDTH   = CFG.DATA_WIDTH __sep \
     __opt STRB_WIDTH   = DATA_WIDTH/8 __sep \
@@ -34,6 +39,7 @@
     \
     __opt NO_CPUS = CFG.NO_CPUS __sep \
     __opt NO_DMAS = CFG.NO_DMAS __sep \
+    __opt NO_HSPS = CFG.NO_HSPS __sep \
     __opt NO_MEMS = CFG.NO_MEMS __sep \
     \
     __opt EN_LPCPU = CFG.EN_LPCPU __sep \
@@ -86,8 +92,7 @@
     \
     __opt EN_LSPB = (NO_LSPBS > 0) __sep \
     \
-    __opt NO_HSPS = 0 __sep \
-    __opt EN_HSP  = 0
+    __opt EN_HSP  = (NO_HSPS > 0)
 
 `define ADAM_CFG_PARAMS \
     `ADAM_CFG_PARAMS_GENERIC(parameter, `ADAM_COMMA)
