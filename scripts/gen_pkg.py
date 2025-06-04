@@ -8,7 +8,6 @@ from the adam.yml file.
 import argparse
 import os
 import subprocess
-import sys
 import yaml
 
 from datetime import datetime
@@ -27,17 +26,19 @@ template = Template("""
  * Branch : {{branch}}
  * Commit : {{commit}}
  *
- * It is not recommended to modify this this file. 
+ * It is not recommended to modify this this file.
  * ============================================================================
  */
 
-`ifndef SYNTHESIS 
+`ifndef SYNTHESIS
     `timescale 1ns/1ps
 `endif
 
 package {{name}};
-    
+
     typedef logic [{{addr_width-1}}:0] ADDR_T;
+
+    typedef ADDR_T [0:{{no_mems}}] MEM_SIZE_T;
 
     typedef struct {
         ADDR_T start;
@@ -48,7 +49,7 @@ package {{name}};
     typedef struct {
         int ADDR_WIDTH;
         int DATA_WIDTH;
-        
+
         int GPIO_WIDTH;
 
         ADDR_T RST_BOOT_ADDR;
@@ -60,6 +61,10 @@ package {{name}};
         bit EN_LPCPU;
         bit EN_LPMEM;
         bit EN_DEBUG;
+
+        int LPMEM_SIZE;
+
+        MEM_SIZE_T MEM_SIZE;
 
         int NO_LSPA_GPIOS;
         int NO_LSPA_SPIS;
@@ -79,7 +84,7 @@ package {{name}};
         logic [31:0] DEBUG_IDCODE;
         ADDR_T       DEBUG_ADDR_HALT;
         ADDR_T       DEBUG_ADDR_EXCEPTION;
-        
+
         int FAB_MAX_TRANS;
 
         MMAP_T MMAP_LPMEM;
@@ -99,17 +104,20 @@ package {{name}};
         DATA_WIDTH : {{data_width}},
 
         GPIO_WIDTH : {{gpio_width}},
-        
+
         RST_BOOT_ADDR : {{rst_boot_addr}},
 
         NO_CPUS : {{no_cpus}},
         NO_DMAS : {{no_dmas}},
         NO_MEMS : {{no_mems}},
-        
+
         EN_LPCPU : {{en_lpcpu}},
         EN_LPMEM : {{en_lpmem}},
         EN_DEBUG : {{en_debug}},
-        
+
+        LPMEM_SIZE : {{lpmem_size}},
+        MEM_SIZE : {{mem_size}},
+
         NO_LSPA_GPIOS  : {{no_lspa_gpios}},
         NO_LSPA_SPIS   : {{no_lspa_spis}},
         NO_LSPA_TIMERS : {{no_lspa_timers}},
@@ -127,8 +135,8 @@ package {{name}};
 
         DEBUG_IDCODE         : {{debug_idcode}},
         DEBUG_ADDR_HALT      : {{debug_addr_halt}},
-        DEBUG_ADDR_EXCEPTION : {{debug_addr_exception}}, 
-        
+        DEBUG_ADDR_EXCEPTION : {{debug_addr_exception}},
+
         FAB_MAX_TRANS : {{fab_max_trans}},
 
         MMAP_LPMEM  : {{mmap_lpmem}},
@@ -140,10 +148,10 @@ package {{name}};
 
         MMAP_DEBUG : {{mmap_debug}},
         MMAP_HSP   : {{mmap_hsp}},
-        MMAP_MEM   : {{mmap_mem}}     
+        MMAP_MEM   : {{mmap_mem}}
     };
 
-`ifndef SYNTHESIS    
+`ifndef SYNTHESIS
 
     typedef struct {
         time CLK_PERIOD;
@@ -158,7 +166,7 @@ package {{name}};
         RST_CYCLES : {{rst_cycles}},
 
         TA : {{ta}}ns,
-        TT : {{tt}}ns // CLK_PERIOD - TA       
+        TT : {{tt}}ns // CLK_PERIOD - TA
     };
 
 `endif
@@ -166,19 +174,45 @@ package {{name}};
 endpackage
 """)
 
-bool_fields = ['en_lpcpu', 'en_lpmem', 'en_debug', 'en_bootstrap_cpu0',
-    'en_bootstrap_mem0', 'en_bootstrap_lpcpu', 'en_bootstrap_lpmem']
+bool_fields = [
+    'en_lpcpu',
+    'en_lpmem',
+    'en_debug',
+    'en_bootstrap_cpu0',
+    'en_bootstrap_mem0',
+    'en_bootstrap_lpcpu',
+    'en_bootstrap_lpmem'
+]
 
-hex_fields = ['rst_boot_addr', 'debug_idcode', 'debug_addr_halt',
-    'debug_addr_exception', 'mmap_boundry']
+hex_fields = [
+    'rst_boot_addr',
+    'debug_idcode',
+    'debug_addr_halt',
+    'debug_addr_exception',
+    'mmap_boundry'
+]
 
-mmap_fields = ['mmap_lpmem', 'mmap_syscfg', 'mmap_lspa', 'mmap_lspb',
-    'mmap_debug', 'mmap_hsp', 'mmap_mem'] 
+mmap_fields = [
+    'mmap_lpmem',
+    'mmap_syscfg',
+    'mmap_lspa',
+    'mmap_lspb',
+    'mmap_debug',
+    'mmap_hsp',
+    'mmap_mem'
+]
+
 
 def format_hex(value, width):
     hex_digits = (width+3) // 4
     hex_value = f"{value:0{hex_digits}x}"
     return f"{width}'h{hex_value}"
+
+
+def format_mem_size(array, width):
+    array = array + [0]
+    formatted_array = [format_hex(item, width) for item in array]
+    return "'{" + ", ".join(formatted_array) + "}"
 
 
 def format_mmap(array, width):
@@ -190,10 +224,11 @@ def format_mmap(array, width):
 
 def get_git_info():
     cwd = os.path.dirname(os.path.abspath(__file__))
-    
+
     # Get the current branch name
-    branch = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref',
-        'HEAD'], cwd=cwd)
+    branch = subprocess.check_output(
+        ['git', 'rev-parse', '--abbrev-ref', 'HEAD'], cwd=cwd
+    )
     branch = branch.decode('utf-8').strip()
 
     # Get the last commit hash
@@ -201,18 +236,20 @@ def get_git_info():
     commit = commit.decode('utf-8').strip()
 
     # Check if the repository is in a dirty state, ignoring submodules
-    if subprocess.check_output(['git', 'status', '--porcelain',
-        '--ignore-submodules'], cwd=cwd):
+    if subprocess.check_output(
+        ['git', 'status', '--porcelain', '--ignore-submodules'], cwd=cwd
+    ):
         commit += " (dirty)"
 
     return branch, commit
+
 
 def gen_pkg(input_file, output_file, name='adam_cfg_pkg', target=None):
     with open(input_file, 'r') as file:
         params = yaml.safe_load(file)
 
     params['name'] = name
-    
+
     params['date'] = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
     params['branch'], params['commit'] = get_git_info()
     params['target'] = target
@@ -228,25 +265,37 @@ def gen_pkg(input_file, output_file, name='adam_cfg_pkg', target=None):
     for key in mmap_fields:
         params[key] = format_mmap(params[key], width)
 
+    params['mem_size'] = format_mem_size(params['mem_size'], width)
+
     rendered = template.render(**params)
 
     with open(output_file, 'w') as f:
         f.write(rendered)
 
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__.strip())
-    parser.add_argument('input', type=str,
-        help='Input YAML configuration file.')
-    parser.add_argument('-o', '--output', type=str, required=True,
-        help='Output SystemVerilog file.')
-    parser.add_argument('-n', '--name', type=str, default='adam_cfg_pkg',
-        help='SystemVerilog package name (default: adam_cfg_pkg).')
-    parser.add_argument('-t', '--target', type=str, default='default',
-        help='The ADAM target.')  
+    parser.add_argument(
+        'input', type=str,
+        help='Input YAML configuration file.'
+    )
+    parser.add_argument(
+        '-o', '--output', type=str, required=True,
+        help='Output SystemVerilog file.'
+    )
+    parser.add_argument(
+        '-n', '--name', type=str, default='adam_cfg_pkg',
+        help='SystemVerilog package name (default: adam_cfg_pkg).'
+    )
+    parser.add_argument(
+        '-t', '--target', type=str, default='default',
+        help='The ADAM target.'
+    )
 
     args = parser.parse_args()
 
     gen_pkg(args.input, args.output, args.name, args.target)
+
 
 if __name__ == "__main__":
     main()

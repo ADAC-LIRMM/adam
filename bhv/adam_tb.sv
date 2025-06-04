@@ -7,16 +7,9 @@ module adam_tb;
 
     `ADAM_BHV_CFG_LOCALPARAMS;
 
-    localparam integer LPMEM_SIZE = 1024;
+    // lsdom ==================================================================
 
-    localparam integer MEM_SIZE [NO_MEMS+1] =
-        '{32768, 32768, 0};
-
-    // seq and pause ==========================================================
-
-    ADAM_SEQ lsdom_seq ();
-    ADAM_SEQ hsdom_seq ();
-
+    ADAM_SEQ   lsdom_seq ();
     ADAM_PAUSE lsdom_pause_ext ();
 
     adam_seq_bhv #(
@@ -25,132 +18,18 @@ module adam_tb;
         .seq (lsdom_seq)
     );
 
+    `ADAM_PAUSE_MST_TIE_ON(lsdom_pause_ext);
+
+    // hsdom ==================================================================
+
+    ADAM_SEQ hsdom_seq ();
+
     adam_seq_bhv #(
         `ADAM_BHV_CFG_PARAMS_MAP
     ) hsdom_adam_seq_bhv (
         .seq (hsdom_seq)
     );
 
-    `ADAM_PAUSE_MST_TIE_ON(lsdom_pause_ext);
-
-    // lpmem ==================================================================
-
-    logic        lsdom_lpmem_rst;
-    ADAM_SEQ     lsdom_lpmem_seq ();
-    ADAM_PAUSE   lsdom_lpmem_pause ();
-    `ADAM_AXIL_I lsdom_lpmem_axil ();
-
-    logic  lsdom_lpmem_req;
-    ADDR_T lsdom_lpmem_addr;
-    logic  lsdom_lpmem_we;
-    STRB_T lsdom_lpmem_be;
-    DATA_T lsdom_lpmem_wdata;
-    DATA_T lsdom_lpmem_rdata;
-
-    assign lsdom_lpmem_seq.clk = lsdom_seq.clk;
-    assign lsdom_lpmem_seq.rst = lsdom_seq.rst || lsdom_lpmem_rst;
-
-    if (EN_LPMEM) begin
-        adam_axil_to_mem #(
-            `ADAM_CFG_PARAMS_MAP
-        ) adam_axil_to_mem (
-            .seq   (lsdom_lpmem_seq),
-            .pause (lsdom_lpmem_pause),
-
-            .axil (lsdom_lpmem_axil),
-
-            .mem_req   (lsdom_lpmem_req),
-            .mem_addr  (lsdom_lpmem_addr),
-            .mem_we    (lsdom_lpmem_we),
-            .mem_be    (lsdom_lpmem_be),
-            .mem_wdata (lsdom_lpmem_wdata),
-            .mem_rdata (lsdom_lpmem_rdata)
-        );
-
-        adam_mem #(
-            `ADAM_CFG_PARAMS_MAP,
-
-            .SIZE (LPMEM_SIZE)
-        ) adam_mem (
-            .seq (lsdom_lpmem_seq),
-
-            .req   (lsdom_lpmem_req),
-            .addr  (lsdom_lpmem_addr),
-            .we    (lsdom_lpmem_we),
-            .be    (lsdom_lpmem_be),
-            .wdata (lsdom_lpmem_wdata),
-            .rdata (lsdom_lpmem_rdata)
-        );
-    end
-    else begin
-        // TODO: tie off
-    end
-
-    // mem ====================================================================
-
-    logic        hsdom_mem_rst   [NO_MEMS+1];
-    ADAM_SEQ     hsdom_mem_seq   [NO_MEMS+1] ();
-    ADAM_PAUSE   hsdom_mem_pause [NO_MEMS+1] ();
-    `ADAM_AXIL_I hsdom_mem_axil  [NO_MEMS+1] ();
-
-    logic  hsdom_mem_req   [NO_MEMS+1];
-    ADDR_T hsdom_mem_addr  [NO_MEMS+1];
-    logic  hsdom_mem_we    [NO_MEMS+1];
-    STRB_T hsdom_mem_be    [NO_MEMS+1];
-    DATA_T hsdom_mem_wdata [NO_MEMS+1];
-    DATA_T hsdom_mem_rdata [NO_MEMS+1];
-
-    for (genvar i = 0; i < NO_MEMS; i++) begin
-        assign hsdom_mem_seq[i].clk = lsdom_seq.clk;
-        assign hsdom_mem_seq[i].rst = lsdom_seq.rst || hsdom_mem_rst[i];
-
-        adam_axil_to_mem #(
-            `ADAM_CFG_PARAMS_MAP
-        ) adam_axil_to_mem (
-            .seq   (hsdom_mem_seq[i]),
-            .pause (hsdom_mem_pause[i]),
-
-            .axil (hsdom_mem_axil[i]),
-
-            .mem_req   (hsdom_mem_req[i]),
-            .mem_addr  (hsdom_mem_addr[i]),
-            .mem_we    (hsdom_mem_we[i]),
-            .mem_be    (hsdom_mem_be[i]),
-            .mem_wdata (hsdom_mem_wdata[i]),
-            .mem_rdata (hsdom_mem_rdata[i])
-        );
-    end
-
-    instr_rom #(
-        `ADAM_CFG_PARAMS_MAP
-    ) i_instr_rom (
-        .seq (hsdom_mem_seq[0]),
-
-        .req   (hsdom_mem_req[0]),
-        .addr  (hsdom_mem_addr[0]),
-        .we    (hsdom_mem_we[0]),
-        .be    (hsdom_mem_be[0]),
-        .wdata (hsdom_mem_wdata[0]),
-        .rdata (hsdom_mem_rdata[0])
-    );
-
-    for (genvar i = 1; i < NO_MEMS; i++) begin
-        adam_mem #(
-            `ADAM_CFG_PARAMS_MAP,
-
-            .SIZE (MEM_SIZE[i])
-        ) adam_mem (
-            .seq (hsdom_mem_seq[i]),
-
-            .req   (hsdom_mem_req[i]),
-            .addr  (hsdom_mem_addr[i]),
-            .we    (hsdom_mem_we[i]),
-            .be    (hsdom_mem_be[i]),
-            .wdata (hsdom_mem_wdata[i]),
-            .rdata (hsdom_mem_rdata[i])
-        );
-    end
-    //
     // lspa io ================================================================
 
     ADAM_IO     lspa_gpio_io   [NO_LSPA_GPIOS*GPIO_WIDTH+1] ();
@@ -208,7 +87,7 @@ module adam_tb;
     // debug ==================================================================
 
     ADAM_JTAG jtag ();
-    //
+
     adam_jtag_mst_bhv #(
        `ADAM_BHV_CFG_PARAMS_MAP
     ) jtag_bhv;
@@ -218,19 +97,10 @@ module adam_tb;
     adam #(
         `ADAM_CFG_PARAMS_MAP
     ) dut (
-        .lsdom_seq (lsdom_seq),
+        .lsdom_seq       (lsdom_seq),
+        .lsdom_pause_ext (lsdom_pause_ext),
 
-        .lsdom_pause_ext  (lsdom_pause_ext),
-
-        .lsdom_lpmem_rst   (lsdom_lpmem_rst),
-        .lsdom_lpmem_pause (lsdom_lpmem_pause),
-        .lsdom_lpmem_axil  (lsdom_lpmem_axil),
-
-        .hsdom_seq       (hsdom_seq),
-
-        .hsdom_mem_rst   (hsdom_mem_rst),
-        .hsdom_mem_pause (hsdom_mem_pause),
-        .hsdom_mem_axil  (hsdom_mem_axil),
+        .hsdom_seq (hsdom_seq),
 
         .jtag (jtag),
 
@@ -283,7 +153,7 @@ module adam_tb;
 
 
     initial begin
-        #10000us $error("timeout");
+        #1000us $error("timeout");
     end
 
     task dtm_init();
@@ -470,7 +340,7 @@ module adam_tb;
     `TEST_SUITE begin
         `TEST_CASE("minimal") begin
             jtag_bhv = new(jtag);
-            #9000us;
+            #10us;
         end
         `TEST_CASE("debug") begin
             ADDR_T  addr;
@@ -498,6 +368,4 @@ module adam_tb;
             end
         end
     end
-
-
 endmodule

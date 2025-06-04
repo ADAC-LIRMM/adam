@@ -26,6 +26,8 @@
     \
     __opt type GPIO_T = logic [GPIO_WIDTH-1:0] __sep \
     \
+    __opt type MEM_SIZE_T = adam_cfg_pkg::MEM_SIZE_T __sep \
+    \
     __opt type MMAP_T = adam_cfg_pkg::MMAP_T __sep \
     \
     __opt ADDR_T RST_BOOT_ADDR = CFG.RST_BOOT_ADDR __sep \
@@ -37,6 +39,10 @@
     __opt EN_LPCPU = CFG.EN_LPCPU __sep \
     __opt EN_LPMEM = CFG.EN_LPMEM __sep \
     __opt EN_DEBUG = CFG.EN_DEBUG __sep \
+    \
+    __opt LPMEM_SIZE = CFG.LPMEM_SIZE __sep \
+    \
+    __opt MEM_SIZE = CFG.MEM_SIZE __sep \
     \
     __opt NO_LSPA_GPIOS  = CFG.NO_LSPA_GPIOS __sep \
     __opt NO_LSPA_SPIS   = CFG.NO_LSPA_SPIS __sep \

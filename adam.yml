@@ -119,6 +119,7 @@ default:
     VERILATOR:
     ADAM_CORE_CPU: adam_core_cv32e40p
     ADAM_CORE_LPCPU: adam_core_ibex
+    ADAM_ROM: adam_mem
 
   rtl_fset:
     requires:
@@ -145,6 +146,11 @@ default:
   en_lpcpu: True
   en_lpmem: True
   en_debug: True
+
+  lpmem_size: 1024
+
+  # Use ROM for the first memory block by setting its size to 0
+  mem_size: [524288, 524288]
 
   no_lspa_gpios:  1
   no_lspa_spis:   1
@@ -383,10 +389,10 @@ fsets:
       - fabric/adam_fabric_lspx.sv
       - fabric/adam_fabric.sv
 
-      - adam.sv
-
-      - adam_clk_div.sv
       - adam_mem.sv
+      - adam.sv
+      - adam_clk_div.sv
+      - adam_top.sv
 
   adam_cv32e40p_rtl:
     requires:

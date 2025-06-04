@@ -7,31 +7,22 @@ module adam #(
 ) (
     // lsdom ==================================================================
 
-    ADAM_SEQ.Slave lsdom_seq,
-
+    ADAM_SEQ.Slave   lsdom_seq,
     ADAM_PAUSE.Slave lsdom_pause_ext,
-
-    output logic      lsdom_lpmem_rst,
-    ADAM_PAUSE.Master lsdom_lpmem_pause,
-    AXI_LITE.Master   lsdom_lpmem_axil,
 
     // hsdom ==================================================================
 
     ADAM_SEQ.Slave hsdom_seq,
-
-    output logic      hsdom_mem_rst   [NO_MEMS+1],
-    ADAM_PAUSE.Master hsdom_mem_pause [NO_MEMS+1],
-    AXI_LITE.Master   hsdom_mem_axil  [NO_MEMS+1],
 
     // jtag ===================================================================
 
     ADAM_JTAG.Slave jtag,
 
     // async - lspa ===========================================================
-    
+
     ADAM_IO.Master     lspa_gpio_io   [NO_LSPA_GPIOS*GPIO_WIDTH+1],
     output logic [1:0] lspa_gpio_func [NO_LSPA_GPIOS*GPIO_WIDTH+1],
-    
+
     ADAM_IO.Master lspa_spi_sclk [NO_LSPA_SPIS+1],
     ADAM_IO.Master lspa_spi_mosi [NO_LSPA_SPIS+1],
     ADAM_IO.Master lspa_spi_miso [NO_LSPA_SPIS+1],
@@ -44,7 +35,7 @@ module adam #(
 
     ADAM_IO.Master     lspb_gpio_io   [NO_LSPB_GPIOS*GPIO_WIDTH+1],
     output logic [1:0] lspb_gpio_func [NO_LSPB_GPIOS*GPIO_WIDTH+1],
-    
+
     ADAM_IO.Master lspb_spi_sclk [NO_LSPB_SPIS+1],
     ADAM_IO.Master lspb_spi_mosi [NO_LSPB_SPIS+1],
     ADAM_IO.Master lspb_spi_miso [NO_LSPB_SPIS+1],
@@ -55,7 +46,7 @@ module adam #(
 );
 
     // signals ================================================================
-    
+
     ADAM_PAUSE lsdom_pause ();
     ADAM_PAUSE hsdom_pause ();
 
@@ -143,6 +134,57 @@ module adam #(
         `ADAM_AXIL_SLV_TIE_OFF (lsdom_lpcpu_axil[1]);
     end
 
+    // lsdom - lpmem ==========================================================
+
+    logic        lsdom_lpmem_rst;
+    ADAM_SEQ     lsdom_lpmem_seq ();
+    ADAM_PAUSE   lsdom_lpmem_pause ();
+    `ADAM_AXIL_I lsdom_lpmem_axil ();
+
+    if (EN_LPMEM) begin
+        logic  lsdom_lpmem_req;
+        ADDR_T lsdom_lpmem_addr;
+        logic  lsdom_lpmem_we;
+        STRB_T lsdom_lpmem_be;
+        DATA_T lsdom_lpmem_wdata;
+        DATA_T lsdom_lpmem_rdata;
+
+        adam_axil_to_mem #(
+            `ADAM_CFG_PARAMS_MAP
+        ) adam_axil_to_mem (
+            .seq   (lsdom_lpmem_seq),
+            .pause (lsdom_lpmem_pause),
+
+            .axil (lsdom_lpmem_axil),
+
+            .mem_req   (lsdom_lpmem_req),
+            .mem_addr  (lsdom_lpmem_addr),
+            .mem_we    (lsdom_lpmem_we),
+            .mem_be    (lsdom_lpmem_be),
+            .mem_wdata (lsdom_lpmem_wdata),
+            .mem_rdata (lsdom_lpmem_rdata)
+        );
+
+        adam_mem #(
+            `ADAM_CFG_PARAMS_MAP,
+
+            .SIZE (LPMEM_SIZE)
+        ) adam_mem (
+            .seq (lsdom_lpmem_seq),
+
+            .req   (lsdom_lpmem_req),
+            .addr  (lsdom_lpmem_addr),
+            .we    (lsdom_lpmem_we),
+            .be    (lsdom_lpmem_be),
+            .wdata (lsdom_lpmem_wdata),
+            .rdata (lsdom_lpmem_rdata)
+        );
+    end
+    else begin
+        `ADAM_PAUSE_SLV_TIE_OFF(lsdom_lpmem_pause);
+        `ADAM_AXIL_MST_TIE_OFF (lsdom_lpmem_axil);
+    end
+
     // lsdom - lspa ===========================================================
 
     if (EN_LSPA) begin
@@ -174,7 +216,25 @@ module adam #(
         );
     end
     else begin
-        // TODO: tie off
+        for (genvar i = 0; i < NO_LSPAS; i++) begin
+            `ADAM_PAUSE_SLV_TIE_OFF(lsdom_lspa_pause[i]);
+            `ADAM_APB_SLV_TIE_OFF(lsdom_lspa_apb[i]);
+            assign lsdom_lspa_irq[i] = '0;
+
+            // GPIO
+            `ADAM_IO_MST_TIE_OFF(lspa_gpio_io[i]);
+            assign lspa_gpio_func[i] = '0;
+
+            // SPI
+            `ADAM_IO_MST_TIE_OFF(lspa_spi_sclk[i]);
+            `ADAM_IO_MST_TIE_OFF(lspa_spi_mosi[i]);
+            `ADAM_IO_MST_TIE_OFF(lspa_spi_miso[i]);
+            `ADAM_IO_MST_TIE_OFF(lspa_spi_ss_n[i]);
+
+            // UART
+            `ADAM_IO_MST_TIE_OFF(lspa_uart_tx[i]);
+            `ADAM_IO_MST_TIE_OFF(lspa_uart_rx[i]);
+        end
     end
 
     // lsdom - lspb ===========================================================
@@ -189,7 +249,6 @@ module adam #(
             .NO_UARTS  (NO_LSPB_UARTS)
         ) adam_periph_lspb (
             .seq   (lsdom_seq),
-            .pause (lsdom_lspb_pause),
 
             .periph_rst   (lsdom_lspb_rst),
             .periph_pause (lsdom_lspb_pause),
@@ -209,13 +268,30 @@ module adam #(
         );
     end
     else begin
-        // TODO: tie off
+        for (genvar i = 0; i < NO_LSPBS; i++) begin
+            `ADAM_PAUSE_SLV_TIE_OFF(lsdom_lspb_pause[i]);
+            `ADAM_APB_SLV_TIE_OFF(lsdom_lspb_apb[i]);
+            assign lsdom_lspb_irq[i] = '0;
+
+            // GPIO
+            `ADAM_IO_MST_TIE_OFF(lspb_gpio_io[i]);
+            assign lspb_gpio_func[i] = '0;
+
+            // SPI
+            `ADAM_IO_MST_TIE_OFF(lspb_spi_sclk[i]);
+            `ADAM_IO_MST_TIE_OFF(lspb_spi_mosi[i]);
+            `ADAM_IO_MST_TIE_OFF(lspb_spi_miso[i]);
+            `ADAM_IO_MST_TIE_OFF(lspb_spi_ss_n[i]);
+
+            // UART
+            `ADAM_IO_MST_TIE_OFF(lspb_uart_tx[i]);
+            `ADAM_IO_MST_TIE_OFF(lspb_uart_rx[i]);
+        end
     end
 
     // hsdom - cpu ============================================================
 
     for (genvar i = 0; i < NO_CPUS; i++) begin
-
         assign hsdom_cpu_seq[i].clk = hsdom_seq.clk;
         assign hsdom_cpu_seq[i].rst = hsdom_seq.rst || hsdom_cpu_rst[i];
 
@@ -236,7 +312,6 @@ module adam #(
             .debug_req     (hsdom_debug_req[i+1]),
             .debug_unavail (hsdom_debug_unavail[i+1])
         );
-
     end
 
     // hsdom - dma ============================================================
@@ -246,7 +321,73 @@ module adam #(
         `ADAM_AXIL_MST_TIE_OFF (hsdom_dma_axil [i]);
     end
 
-    // hsdom - hsp ===========================================================
+    // hsdom - mem ============================================================
+
+    logic        hsdom_mem_rst   [NO_MEMS+1];
+    ADAM_SEQ     hsdom_mem_seq   [NO_MEMS+1] ();
+    ADAM_PAUSE   hsdom_mem_pause [NO_MEMS+1] ();
+    `ADAM_AXIL_I hsdom_mem_axil  [NO_MEMS+1] ();
+
+    logic  hsdom_mem_req   [NO_MEMS+1];
+    ADDR_T hsdom_mem_addr  [NO_MEMS+1];
+    logic  hsdom_mem_we    [NO_MEMS+1];
+    STRB_T hsdom_mem_be    [NO_MEMS+1];
+    DATA_T hsdom_mem_wdata [NO_MEMS+1];
+    DATA_T hsdom_mem_rdata [NO_MEMS+1];
+
+    for (genvar i = 0; i < NO_MEMS; i++) begin
+        assign hsdom_mem_seq[i].clk = lsdom_seq.clk;
+        assign hsdom_mem_seq[i].rst = lsdom_seq.rst || hsdom_mem_rst[i];
+
+        adam_axil_to_mem #(
+            `ADAM_CFG_PARAMS_MAP
+        ) i_adam_axil_to_mem (
+            .seq   (hsdom_mem_seq[i]),
+            .pause (hsdom_mem_pause[i]),
+
+            .axil (hsdom_mem_axil[i]),
+
+            .mem_req   (hsdom_mem_req[i]),
+            .mem_addr  (hsdom_mem_addr[i]),
+            .mem_we    (hsdom_mem_we[i]),
+            .mem_be    (hsdom_mem_be[i]),
+            .mem_wdata (hsdom_mem_wdata[i]),
+            .mem_rdata (hsdom_mem_rdata[i])
+        );
+
+        if (i == 0 && MEM_SIZE[i] == 0) begin
+            `ADAM_ROM #(
+                `ADAM_CFG_PARAMS_MAP
+            ) i_adam_rom (
+                .seq (hsdom_mem_seq[i]),
+
+                .req   (hsdom_mem_req  [i]),
+                .addr  (hsdom_mem_addr [i]),
+                .we    (hsdom_mem_we   [i]),
+                .be    (hsdom_mem_be   [i]),
+                .wdata (hsdom_mem_wdata[i]),
+                .rdata (hsdom_mem_rdata[i])
+            );
+        end
+        else begin
+            adam_mem #(
+                `ADAM_CFG_PARAMS_MAP,
+
+                .SIZE (MEM_SIZE[i])
+            ) i_adam_mem (
+                .seq (hsdom_mem_seq[i]),
+
+                .req   (hsdom_mem_req  [i]),
+                .addr  (hsdom_mem_addr [i]),
+                .we    (hsdom_mem_we   [i]),
+                .be    (hsdom_mem_be   [i]),
+                .wdata (hsdom_mem_wdata[i]),
+                .rdata (hsdom_mem_rdata[i])
+            );
+        end
+    end
+
+    // hsdom - hsp ============================================================
 
     for (genvar i = 0; i < NO_HSPS; i++) begin
         `ADAM_PAUSE_SLV_TIE_OFF(hsdom_hsp_pause[i]);
