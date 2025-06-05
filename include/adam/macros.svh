@@ -12,8 +12,8 @@
     __opt type CFG_T  = adam_cfg_pkg::CFG_T __sep \
     __opt CFG_T CFG   = adam_cfg_pkg::CFG __sep \
     \
-    __opt DinWidth = 64 __sep \
-    __opt DoutWidth = 72 __sep \
+    __opt DinWidth = 192 __sep \
+    __opt DoutWidth = 32 __sep \
     __opt type din_t = logic [DinWidth-1:0] __sep \
     __opt type dout_t = logic [DoutWidth-1:0] __sep \
     \
