@@ -13,7 +13,7 @@ ADAM_DIR = $(shell realpath ../../)
 
 CODE_LOADER = $(ADAM_DIR)/scripts/code_loader.py
 GEN_ROM     = $(ADAM_DIR)/scripts/gen_rom.py
- 
+
 # ============================================================================ #
 
 BUILD_DIR = build
@@ -34,16 +34,8 @@ ROM_TARGET 	= $(TARGET_DIR)/instr_rom.sv
 
 BASE_SRCS = \
     src/startup.s \
-	$(ADAM_DIR)/software/hal/src/utils.c \
-	$(ADAM_DIR)/software/hal/src/uart.c \
-	$(ADAM_DIR)/software/hal/src/cvt.c \
-	$(ADAM_DIR)/software/hal/src/print.c \
-	$(ADAM_DIR)/software/hal/src/timer.c \
-	$(ADAM_DIR)/software/hal/src/gpio.c \
-	$(ADAM_DIR)/software/hal/src/spi.c \
-	$(ADAM_DIR)/software/hal/src/printf-stdarg.c \
 	src/main.c \
-	
+	src/hawkeye.c
 
 SRCS = $(BASE_SRCS) $(FAST_SRCS)
 
@@ -98,7 +90,7 @@ OBJS = \
 	$(patsubst %.c,$(OBJ_DIR)/%.o,$(filter %.c,$(SRCS))) \
     $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(filter %.cpp,$(SRCS))) \
     $(patsubst %.s,$(OBJ_DIR)/%.o,$(filter %.s,$(SRCS)))
-	
+
 DEPS = \
 	$(patsubst %.c,$(DEP_DIR)/%.d,$(filter %.c,$(SRCS))) \
 	$(patsubst %.cpp,$(DEP_DIR)/%.d,$(filter %.cpp,$(SRCS)))

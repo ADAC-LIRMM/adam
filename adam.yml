@@ -114,21 +114,36 @@ targets:
     clk_period: 32 #ns
 
 
-  hello_world:
+  hawkeye:
     defines:
+      ADAM_CORE_CPU: adam_core_cv32e40p
+      ADAM_CORE_LPCPU: adam_core_cv32e40p
       ADAM_ROM: instr_rom
 
     rtl_fset:
       requires:
         - adam_rtl
         - adam_cv32e40p_rtl
-        - adam_ibex_rtl
 
       sources:
         - bhv/adam_clk_gate.sv
-        - software/hello_world/build/target/instr_rom.sv
+        - software/hawkeye/build/target/instr_rom.sv
 
-    mem_size: [0, 524288]
+    no_cpus: 1
+    no_dmas: 0
+    no_hsps: 1
+    no_mems: 2
+
+    # en_lpcpu: False
+    # en_lpmem: False
+    en_debug: False
+
+    mem_size: [0, 1048576]
+
+    no_lspa_gpios:  0
+    no_lspa_spis:   0
+    no_lspa_timers: 0
+    no_lspa_uarts:  1
 
 default:
   defines:

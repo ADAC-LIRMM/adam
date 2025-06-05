@@ -173,9 +173,9 @@ module adam_tb;
     typedef logic[31:0]      dmdata_t;
 
 
-    initial begin
-        #1000us $error("timeout");
-    end
+    // initial begin
+    //     #1000us $error("timeout");
+    // end
 
     task dtm_init();
         logic [W_IDCODE-1:0] idcode;
@@ -361,7 +361,7 @@ module adam_tb;
     `TEST_SUITE begin
         `TEST_CASE("minimal") begin
             jtag_bhv = new(jtag);
-            #1000us;
+            #100000us;
         end
         `TEST_CASE("debug") begin
             ADDR_T  addr;

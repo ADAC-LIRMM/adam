@@ -138,8 +138,8 @@ module adam #(
     end
     else begin
         `ADAM_PAUSE_SLV_TIE_OFF(lsdom_lpcpu_pause);
-        `ADAM_AXIL_SLV_TIE_OFF (lsdom_lpcpu_axil[0]);
-        `ADAM_AXIL_SLV_TIE_OFF (lsdom_lpcpu_axil[1]);
+        `ADAM_AXIL_MST_TIE_OFF (lsdom_lpcpu_axil[0]);
+        `ADAM_AXIL_MST_TIE_OFF (lsdom_lpcpu_axil[1]);
     end
 
     // lsdom - lpmem ==========================================================
@@ -190,7 +190,7 @@ module adam #(
     end
     else begin
         `ADAM_PAUSE_SLV_TIE_OFF(lsdom_lpmem_pause);
-        `ADAM_AXIL_MST_TIE_OFF (lsdom_lpmem_axil);
+        `ADAM_AXIL_SLV_TIE_OFF (lsdom_lpmem_axil);
     end
 
     // lsdom - lspa ===========================================================
