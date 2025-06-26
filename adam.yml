@@ -7,13 +7,14 @@ targets:
     defines:
       ADAM_CORE_CPU: adam_core_ibex
       ADAM_CORE_LPCPU: adam_core_ibex
+      ADAM_ROM: instr_rom
 
     gpio_width: 16
     no_mems: 3
-    en_debug: True
-    no_lspa_spis:   0
-    en_lpcpu: False
     en_lpmem: True
+    en_lpcpu: False
+    mem_size: [0, 81920, 8192]
+    no_lspa_spis: 0
 
     rtl_fset:
       requires:
@@ -172,7 +173,7 @@ default:
 
   no_cpus: 1
   no_dmas: 1
-  no_hsps: 1
+  no_hsps: 0
   no_mems: 2
 
   en_lpcpu: True
