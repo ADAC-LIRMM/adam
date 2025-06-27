@@ -47,6 +47,7 @@ SRCS = $(BASE_SRCS) $(FAST_SRCS)
 INCS = \
 	inc \
 	$(ADAM_DIR)/software/hal/inc \
+	$(ADAM_DIR)/work/nexys_video_gmsv/atgen
 
 LDSCRIPT = link.ld
 

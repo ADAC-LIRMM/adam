@@ -24,6 +24,7 @@ logger = None
 loggers = {
     'flow': None,
     'atgen': None,
+    'cmake': None,
     'vunit': None,
     'bitst': None,
     'synth': None,
@@ -271,13 +272,13 @@ exit
 """)
 
 
-def atgen(*args, **kargs):
-    target_name = kargs['target_name']
-    target = kargs['target']
-    default = kargs['default']
-    adam_path = kargs['adam_path']
-    atgen_path = kargs['atgen_path']
-    clean = kargs.get('clean', True)
+def atgen(*args, **kwargs):
+    target_name = kwargs['target_name']
+    target = kwargs['target']
+    default = kwargs['default']
+    adam_path = kwargs['adam_path']
+    atgen_path = kwargs['atgen_path']
+    clean = kwargs.get('clean', True)
 
     logger.info('Starting atgen.')
 
@@ -290,11 +291,10 @@ def atgen(*args, **kargs):
 
     gen_pkg_path = adam_path / 'scripts' / 'gen_pkg.py'
     gen_ral_path = adam_path / 'scripts' / 'gen_ral.py'
-    gen_mem_path = adam_path / 'scripts' / 'mem_map_gen.py'
-    
+
     yml_path = atgen_path / 'target.yml'
     pkg_path = atgen_path / 'adam_cfg_pkg.sv'
-    ral_path = adam_path/ 'software' / 'hal' / 'inc' / 'adam_ral.h'
+    ral_path = atgen_path / 'adam_ral.h'
 
     with open(yml_path, 'w') as file:
         yaml.dump(target, file)
@@ -305,14 +305,46 @@ def atgen(*args, **kargs):
     cmd = ['python', gen_ral_path, yml_path, '-o', ral_path, '-t', target_name]
     exec_cmd(cmd, atgen_path, loggers['atgen'])
 
-def vunit(*args, **kargs):
-    target = kargs['target']
-    default = kargs['default']
-    fset_dict = kargs['fsets']
-    adam_path = kargs['adam_path']
-    atgen_path = kargs['atgen_path']
-    vunit_path = kargs['vunit_path']
-    clean = kargs.get('clean', True)
+
+def cmake(*args, **kwargs):
+    target_name = kwargs['target_name']
+    target = kwargs['target']
+    default = kwargs['default']
+    adam_path = kwargs['adam_path']
+    target_path = kwargs['target_path']
+    cmake_path = kwargs['cmake_path']
+    clean = kwargs.get('clean', True)
+
+    logger.info('Starting cmake.')
+
+    if clean and not dirty:
+        safe_rm(cmake_path)
+
+    cmake_path.mkdir(parents=True, exist_ok=True)
+
+    target = compile_target(target, default)
+
+    adam_software_path = adam_path / 'software'
+
+    cmd = [
+        'cmake', adam_software_path,
+        f'-DADAM_TARGET_NAME={target_name}',
+        f'-DADAM_TARGET_DIR={target_path}'
+    ]
+    exec_cmd(cmd, cmake_path, loggers['cmake'])
+
+    cmd = ['cmake', '--build', '.']
+    exec_cmd(cmd, cmake_path, loggers['cmake'])
+
+
+def vunit(*args, **kwargs):
+    target = kwargs['target']
+    default = kwargs['default']
+    fset_dict = kwargs['fsets']
+    adam_path = kwargs['adam_path']
+    atgen_path = kwargs['atgen_path']
+    vunit_path = kwargs['vunit_path']
+    clean = kwargs.get('clean', True)
 
     logger.info('Starting vunit.')
 
@@ -322,7 +354,7 @@ def vunit(*args, **kargs):
     vunit_path.mkdir(parents=True, exist_ok=True)
 
     target = compile_target(target, default)
-    top = kargs.get('top')
+    top = kwargs.get('top')
 
     py_data = {}
 
@@ -360,14 +392,14 @@ def vunit(*args, **kargs):
     exec_cmd(cmd, vunit_path, loggers['vunit'])
 
 
-def bitst(*args, **kargs):
-    target = kargs['target']
-    default = kargs['default']
-    fset_dict = kargs['fsets']
-    adam_path = kargs['adam_path']
-    atgen_path = kargs['atgen_path']
-    bitst_path = kargs['bitst_path']
-    clean = kargs.get('clean', True)
+def bitst(*args, **kwargs):
+    target = kwargs['target']
+    default = kwargs['default']
+    fset_dict = kwargs['fsets']
+    adam_path = kwargs['adam_path']
+    atgen_path = kwargs['atgen_path']
+    bitst_path = kwargs['bitst_path']
+    clean = kwargs.get('clean', True)
 
     logger.info('Starting bitst.')
 
@@ -413,14 +445,14 @@ def bitst(*args, **kargs):
     )
 
 
-def synth(*args, **kargs):
-    target = kargs['target']
-    default = kargs['default']
-    fset_dict = kargs['fsets']
-    adam_path = kargs['adam_path']
-    atgen_path = kargs['atgen_path']
-    synth_path = kargs['synth_path']
-    clean = kargs.get('clean', True)
+def synth(*args, **kwargs):
+    target = kwargs['target']
+    default = kwargs['default']
+    fset_dict = kwargs['fsets']
+    adam_path = kwargs['adam_path']
+    atgen_path = kwargs['atgen_path']
+    synth_path = kwargs['synth_path']
+    clean = kwargs.get('clean', True)
 
     logger.info('Starting synth.')
 
@@ -457,30 +489,32 @@ def synth(*args, **kargs):
     )
 
 
-def test_flow(*args, **kargs):
-    atgen_path = kargs['atgen_path']
-    vunit_path = kargs['vunit_path']
-    clean = kargs.get('clean', True)
+def test_flow(*args, **kwargs):
+    atgen_path = kwargs['atgen_path']
+    vunit_path = kwargs['vunit_path']
+    clean = kwargs.get('clean', True)
 
     if clean and not dirty:
         safe_rm(atgen_path)
         safe_rm(vunit_path)
 
-    atgen(*args, **kargs)
-    vunit(*args, **kargs)
+    atgen(*args, **kwargs)
+    cmake(*args, **kwargs)
+    vunit(*args, **kwargs)
 
 
-def fpga_flow(*args, **kargs):
-    atgen_path = kargs['atgen_path']
-    bitst_path = kargs['bitst_path']
-    clean = kargs.get('clean', True)
+def fpga_flow(*args, **kwargs):
+    atgen_path = kwargs['atgen_path']
+    bitst_path = kwargs['bitst_path']
+    clean = kwargs.get('clean', True)
 
     if clean and not dirty:
         safe_rm(atgen_path)
         safe_rm(bitst_path)
 
-    atgen(*args, **kargs)
-    bitst(*args, **kargs)
+    atgen(*args, **kwargs)
+    cmake(*args, **kwargs)
+    bitst(*args, **kwargs)
 
 
 def exec_cmd(cmd, work_path, logger):
@@ -502,7 +536,10 @@ def exec_cmd(cmd, work_path, logger):
     for line in iter(pipe.readline, ''):
         logger.info(line.strip())
     process.terminate()
-    return process.returncode
+
+    ret = process.returncode
+    if ret != 0:
+        raise RuntimeError(f'Command {cmd} exited with non-zero status {ret}')
 
 
 def setup_log(log_path):
@@ -667,6 +704,13 @@ def main():
         help='Code generators'
     )
 
+    # Define the 'cmake' command
+    subparsers.add_parser(
+        'cmake',
+        description='Build software using CMake',
+        help='CMake'
+    )
+
     # Define the 'vunit' command
     vunit_parser = subparsers.add_parser(
         'vunit',
@@ -784,6 +828,7 @@ def main():
     target_path.mkdir(parents=True, exist_ok=True)
 
     atgen_path = target_path / 'atgen'
+    cmake_path = target_path / 'cmake'
     vunit_path = target_path / 'vunit'
     bitst_path = target_path / 'bitst'
     synth_path = target_path / 'synth'
@@ -799,13 +844,15 @@ def main():
 
     logger.info('Hello.')
 
-    common_kargs = {
+    common_kwargs = {
         'target_name': target_name,
         'target': target,
         'default': default,
         'fsets': fsets,
         'adam_path': adam_path,
+        'target_path': target_path,
         'atgen_path': atgen_path,
+        'cmake_path': cmake_path,
         'vunit_path': vunit_path,
         'bitst_path': bitst_path,
         'synth_path': synth_path,
@@ -815,11 +862,13 @@ def main():
     }
 
     if command == 'atgen':
-        atgen(**common_kargs)
+        atgen(**common_kwargs)
     elif command == 'vunit':
-        vunit(**common_kargs, top=args.top)
+        vunit(**common_kwargs, top=args.top)
+    elif command == 'cmake':
+        cmake(**common_kwargs)
     elif command == 'bitst':
-        bitst(**common_kargs)
+        bitst(**common_kwargs)
     elif command == 'synth':
         raise RuntimeError('Not yet implemented')
     elif command == 'prpwr':
@@ -827,9 +876,9 @@ def main():
     elif command == 'plink':
         raise RuntimeError('Not yet implemented')
     elif command == 'test_flow':
-        test_flow(**common_kargs, top=args.top)
+        test_flow(**common_kwargs, top=args.top)
     elif command == 'fpga_flow':
-        fpga_flow(**common_kargs)
+        fpga_flow(**common_kwargs)
     elif command == 'power_flow':
         raise RuntimeError('Not yet implemented')
     else:

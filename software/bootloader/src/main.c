@@ -2,7 +2,7 @@
 #include <stdint.h>
 
 #include "crc32.h"
-#include "system.h"
+#include "adam_ral.h"
 
 #define PHATIC (0x11)
 
@@ -12,15 +12,6 @@
 // Update these macros for big-endian systems if needed.
 #define SEND_VAR(var) (send((uint8_t *) &(var), sizeof(var)))
 #define RECV_VAR(var) (recv((uint8_t *) &(var), sizeof(var)))
-volatile int timer_interrupt_occurred = 0;
-
-void __attribute__((interrupt)) default_handler(void)
-{
-    // Clear timer interrupt
-    RAL.LSPA.TIMER[0]->ER = ~0;
-    // Flag the interrupt
-    timer_interrupt_occurred = 1;
-}
 
 static void hw_init(void);
 
@@ -36,7 +27,7 @@ static void read_cmd(void);
 static void boot_cmd(void);
 static void default_cmd(void);
 
-static void send(uint8_t *data, uint16_t  len);
+static void send(const uint8_t *data, uint16_t  len);
 static void recv(uint8_t *data, uint16_t  len);
 
 // static uint32_t send_crc;  // Commented out
@@ -44,18 +35,15 @@ static void recv(uint8_t *data, uint16_t  len);
 
 int main()
 {
-    uint8_t pin_state = 1;
     uint8_t phatic;
     uint8_t cmd;
 
     // Resume Hardware Modules (Stopped by default)
     hw_init();
-    // Initialize UART0 at 115200 baud rate
-    uart_init(RAL.LSPA.UART[0], 115200);
-      
+
     // generate_crc32_table();  // Commented out
 
-    my_printf(greating);
+    send((const uint8_t *) greating, sizeof(greating) - 1);
 
     phatic = PHATIC;
     SEND_VAR(phatic);
@@ -67,7 +55,8 @@ int main()
             //my_printf("Received phatic value: 0x%02X\n\r", phatic);
         } while(phatic != PHATIC);
 
-        gpio_write(RAL.LSPA.GPIO[0], 3, 1);
+
+        RAL.LSPA.GPIO[0]->ODR = (1 << 3);
         //my_printf("GPIO state set\n\r");
 
         RECV_VAR(cmd);
@@ -102,8 +91,8 @@ void write_cmd(void)
 
     word_t word;
     uint8_t byte;
-    
-    uint8_t resp;
+
+    // uint8_t resp;
 
     RECV_VAR(address);
     RECV_VAR(length);
@@ -118,7 +107,7 @@ void write_cmd(void)
             RECV_VAR(byte);
             *(volatile uint8_t *) address = byte;
             address += sizeof(byte);
-            length -= sizeof(byte); 
+            length -= sizeof(byte);
         }
     }
 
@@ -137,7 +126,7 @@ void read_cmd(void)
     // uint32_t crc_remote;  // Commented out
     // uint32_t crc_local;  // Commented out
 
-    uint8_t resp;
+    // uint8_t resp;
 
     // recv_crc = 0;  // Commented out
     RECV_VAR(address);
@@ -167,7 +156,7 @@ void read_cmd(void)
             SEND_VAR(byte);
             //my_printf("Sending byte: 0x%02X from address: 0x%08x\n\r", byte, address);
             address += sizeof(byte);
-            length -= sizeof(byte); 
+            length -= sizeof(byte);
         }
     }
     // crc_local = send_crc;  // Commented out
@@ -180,7 +169,7 @@ void boot_cmd(void)
     uint32_t address;
     // uint32_t crc_remote;  // Commented out
     // uint32_t crc_local;  // Commented out
-    uint8_t resp;
+    // uint8_t resp;
 
     // recv_crc = 0;  // Commented out
     RECV_VAR(address);
@@ -201,16 +190,16 @@ void boot_cmd(void)
 
 void default_cmd(void)
 {
-    uint8_t resp = NAK;
+    // uint8_t resp = NAK;
     // SEND_VAR(resp);
     //my_printf("Invalid command received. Sending NAK.\n\r");
 }
 
 
-void send(uint8_t *data, uint16_t len)
+void send(const uint8_t *data, uint16_t len)
 {
     for (uint16_t i = 0; i < len; i++) {
-        uart_putc(RAL.LSPA.UART[0], data[i]);
+        RAL.LSPA.UART[0]->DR = data[i];
     }
     // send_crc = crc32(data, 1, send_crc);  // Commented out
 }
@@ -218,7 +207,7 @@ void send(uint8_t *data, uint16_t len)
 void recv(uint8_t *data, uint16_t len)
 {
     for (uint16_t i = 0; i < len; i++) {
-        data[i] = uart_getc(RAL.LSPA.UART[0]);
+        data[i] = RAL.LSPA.UART[0]->DR;
         //my_printf("Received byte: 0x%02X\n\r", data[i]);
     }
     // recv_crc = crc32(data, 1, recv_crc);  // Commented out
@@ -229,14 +218,17 @@ void hw_init(void) {
     RAL.SYSCFG->LSPA.UART[0].MR = 1;
     while (RAL.SYSCFG->LSPA.UART[0].MR);
 
-    // Resume TIMER0
-    RAL.SYSCFG->LSPA.TIMER[0].MR = 1;
-    while (RAL.SYSCFG->LSPA.TIMER[0].MR);
-    
     // Resume GPIO0
     RAL.SYSCFG->LSPA.GPIO[0].MR = 1;
     while (RAL.SYSCFG->LSPA.GPIO[0].MR);
-  
+
     // Enable CPU Interrupt
     RAL.SYSCFG->CPU[0].IER = ~0;
+
+    // Init UART
+    RAL.LSPA.UART[0]->BRR = SYSTEM_CLOCK / 115200; // Baud Rate
+    RAL.LSPA.UART[0]->CR = (1 << 0)  // PE: Parity disabled
+                         | (1 << 1)  // TE: Transmitter enabled
+                         | (1 << 2)  // RE: Receiver enabled
+                         | (8 << 8); // DL: 8 data bits
 }

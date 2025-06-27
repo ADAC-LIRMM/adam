@@ -7,7 +7,7 @@ targets:
     defines:
       ADAM_CORE_CPU: adam_core_ibex
       ADAM_CORE_LPCPU: adam_core_ibex
-      ADAM_ROM: instr_rom
+      ADAM_ROM: bootloader_rom
 
     gpio_width: 16
     no_mems: 3
@@ -24,8 +24,7 @@ targets:
       sources:
         - bhv/adam_clk_gate.sv
         - fpga/adam_basys3.sv
-        - bootloader/build/target/instr_rom.sv
-        #- software/hello_world_basys3/build/target/instr_rom.sv
+        - work/basys3/cmake/bootloader/bootloader_rom.sv
 
   nexys_video:
     top: adam_nexys_video
@@ -45,7 +44,6 @@ targets:
       sources:
         - bhv/adam_clk_gate.sv
         - fpga/adam_nexys_video.sv
-        # - rtl/instr_rom.sv
 
     bhv_fset:
       requires:
@@ -79,6 +77,9 @@ targets:
     defines:
       ADAM_CORE_CPU: adam_core_gmsv
       ADAM_CORE_LPCPU: adam_core_ibex
+      ADAM_ROM: gemmini_sv_rom
+
+    mem_size: [0, 16384]
 
     rtl_fset:
       requires:
@@ -89,7 +90,7 @@ targets:
       sources:
         - bhv/adam_clk_gate.sv
         - fpga/adam_nexys_video.sv
-        - software/gemmini-sv/build/target/instr_rom.sv
+        - work/nexys_video_gmsv/cmake/gemmini_sv/gemmini_sv_rom.sv
 
   zybo:
     top: adam_zybo
@@ -109,7 +110,6 @@ targets:
       sources:
         - bhv/adam_clk_gate.sv
         - fpga/adam_zybo.sv
-        # - rtl/instr_rom.sv
 
     en_debug: False
     clk_period: 32 #ns
