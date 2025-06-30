@@ -89,7 +89,7 @@ function(adam_add_executable tgt)
     COMMAND ${CMAKE_OBJDUMP} -S -D $<TARGET_FILE:${tgt}>
       > ${CMAKE_CURRENT_BINARY_DIR}/${tgt}.dump
     COMMAND ${ADAM_ROM_GEN} $<TARGET_FILE:${tgt}>
-      -f sverilog -m ${tgt}_rom -o ${CMAKE_CURRENT_BINARY_DIR}/${NAME}_rom.sv
+      -f sverilog -m ${tgt}_rom -o ${CMAKE_CURRENT_BINARY_DIR}/${tgt}_rom.sv
     VERBATIM
   )
 
