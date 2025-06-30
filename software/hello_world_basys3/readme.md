@@ -1,1 +1,0 @@
-This is a simple first application to run ADAM. It only uses the CPU and it uses both GPIOs and the TIMER to create a simple LED chase.
