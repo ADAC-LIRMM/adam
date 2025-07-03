@@ -63,7 +63,7 @@ package {{name}};
         bit EN_LPMEM;
         bit EN_DEBUG;
 
-        int LPMEM_SIZE;
+        ADDR_T LPMEM_SIZE;
 
         MEM_SIZE_T MEM_SIZE;
 

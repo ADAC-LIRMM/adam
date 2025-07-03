@@ -58,8 +58,8 @@ module adam_top #(
 
     // rst ====================================================================
 
-    logic rst;
-    logic [3:0] counter;
+    logic rst = 1;
+    logic [3:0] counter = 0;
 
     always_ff @(posedge clk_i) begin
         if (rst_i) begin

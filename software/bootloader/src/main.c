@@ -199,6 +199,7 @@ void default_cmd(void)
 void send(const uint8_t *data, uint16_t len)
 {
     for (uint16_t i = 0; i < len; i++) {
+        while (!RAL.LSPA.UART[0]->TBE);
         RAL.LSPA.UART[0]->DR = data[i];
     }
     // send_crc = crc32(data, 1, send_crc);  // Commented out
@@ -207,6 +208,7 @@ void send(const uint8_t *data, uint16_t len)
 void recv(uint8_t *data, uint16_t len)
 {
     for (uint16_t i = 0; i < len; i++) {
+        while (!RAL.LSPA.UART[0]->RBF);
         data[i] = RAL.LSPA.UART[0]->DR;
         //my_printf("Received byte: 0x%02X\n\r", data[i]);
     }

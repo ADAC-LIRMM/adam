@@ -6,8 +6,8 @@ module adam_basys3 (
 
     output logic gpio_io [15:0],
 
-    input  logic rs_rx,
-    output logic rs_tx,
+    input  logic uart_rx,
+    output logic uart_tx,
 
     input  logic jtag_tck,
     input  logic jtag_tms,

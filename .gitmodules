@@ -31,3 +31,6 @@
 [submodule "libs/gemmini-sv"]
 	path = libs/gemmini-sv
 	url = git@gite.lirmm.fr:adac/adam/gemmini-sv.git
+[submodule "libs/tflite-micro"]
+	path = libs/tflite-micro
+	url = https://github.com/tensorflow/tflite-micro.git

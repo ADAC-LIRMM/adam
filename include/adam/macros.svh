@@ -37,33 +37,33 @@
     \
     __opt ADDR_T RST_BOOT_ADDR = CFG.RST_BOOT_ADDR __sep \
     \
-    __opt NO_CPUS = CFG.NO_CPUS __sep \
-    __opt NO_DMAS = CFG.NO_DMAS __sep \
-    __opt NO_HSPS = CFG.NO_HSPS __sep \
-    __opt NO_MEMS = CFG.NO_MEMS __sep \
+    __opt int NO_CPUS = CFG.NO_CPUS __sep \
+    __opt int NO_DMAS = CFG.NO_DMAS __sep \
+    __opt int NO_HSPS = CFG.NO_HSPS __sep \
+    __opt int NO_MEMS = CFG.NO_MEMS __sep \
     \
-    __opt EN_LPCPU = CFG.EN_LPCPU __sep \
-    __opt EN_LPMEM = CFG.EN_LPMEM __sep \
-    __opt EN_DEBUG = CFG.EN_DEBUG __sep \
+    __opt bit EN_LPCPU = CFG.EN_LPCPU __sep \
+    __opt bit EN_LPMEM = CFG.EN_LPMEM __sep \
+    __opt bit EN_DEBUG = CFG.EN_DEBUG __sep \
     \
-    __opt LPMEM_SIZE = CFG.LPMEM_SIZE __sep \
+    __opt ADDR_T LPMEM_SIZE = CFG.LPMEM_SIZE __sep \
     \
-    __opt MEM_SIZE = CFG.MEM_SIZE __sep \
+    __opt MEM_SIZE_T MEM_SIZE = CFG.MEM_SIZE __sep \
     \
-    __opt NO_LSPA_GPIOS  = CFG.NO_LSPA_GPIOS __sep \
-    __opt NO_LSPA_SPIS   = CFG.NO_LSPA_SPIS __sep \
-    __opt NO_LSPA_TIMERS = CFG.NO_LSPA_TIMERS __sep \
-    __opt NO_LSPA_UARTS  = CFG.NO_LSPA_UARTS __sep \
+    __opt int NO_LSPA_GPIOS  = CFG.NO_LSPA_GPIOS __sep \
+    __opt int NO_LSPA_SPIS   = CFG.NO_LSPA_SPIS __sep \
+    __opt int NO_LSPA_TIMERS = CFG.NO_LSPA_TIMERS __sep \
+    __opt int NO_LSPA_UARTS  = CFG.NO_LSPA_UARTS __sep \
     \
-    __opt NO_LSPB_GPIOS  = CFG.NO_LSPB_GPIOS __sep \
-    __opt NO_LSPB_SPIS   = CFG.NO_LSPB_SPIS __sep \
-    __opt NO_LSPB_TIMERS = CFG.NO_LSPB_TIMERS __sep \
-    __opt NO_LSPB_UARTS  = CFG.NO_LSPB_UARTS __sep \
+    __opt int NO_LSPB_GPIOS  = CFG.NO_LSPB_GPIOS __sep \
+    __opt int NO_LSPB_SPIS   = CFG.NO_LSPB_SPIS __sep \
+    __opt int NO_LSPB_TIMERS = CFG.NO_LSPB_TIMERS __sep \
+    __opt int NO_LSPB_UARTS  = CFG.NO_LSPB_UARTS __sep \
     \
-    __opt EN_BOOTSTRAP_CPU0  = CFG.EN_BOOTSTRAP_CPU0 __sep \
-    __opt EN_BOOTSTRAP_MEM0  = CFG.EN_BOOTSTRAP_MEM0 __sep \
-    __opt EN_BOOTSTRAP_LPCPU = CFG.EN_BOOTSTRAP_LPCPU __sep \
-    __opt EN_BOOTSTRAP_LPMEM = CFG.EN_BOOTSTRAP_LPMEM __sep \
+    __opt int EN_BOOTSTRAP_CPU0  = CFG.EN_BOOTSTRAP_CPU0 __sep \
+    __opt int EN_BOOTSTRAP_MEM0  = CFG.EN_BOOTSTRAP_MEM0 __sep \
+    __opt int EN_BOOTSTRAP_LPCPU = CFG.EN_BOOTSTRAP_LPCPU __sep \
+    __opt int EN_BOOTSTRAP_LPMEM = CFG.EN_BOOTSTRAP_LPMEM __sep \
     \
     __opt logic [31:0] DEBUG_IDCODE         = CFG.DEBUG_IDCODE __sep \
     __opt ADDR_T       DEBUG_ADDR_HALT      = CFG.DEBUG_ADDR_HALT __sep \
@@ -82,17 +82,17 @@
     __opt MMAP_T MMAP_HSP   = CFG.MMAP_HSP __sep \
     __opt MMAP_T MMAP_MEM   = CFG.MMAP_MEM __sep \
     \
-    __opt NO_LSPAS = NO_LSPA_GPIOS + NO_LSPA_SPIS + NO_LSPA_TIMERS + \
+    __opt int NO_LSPAS = NO_LSPA_GPIOS + NO_LSPA_SPIS + NO_LSPA_TIMERS + \
         NO_LSPA_UARTS __sep \
     \
-    __opt EN_LSPA = (NO_LSPAS > 0) __sep \
+    __opt bit EN_LSPA = (NO_LSPAS > 0) __sep \
     \
-    __opt NO_LSPBS = NO_LSPB_GPIOS + NO_LSPB_SPIS + NO_LSPB_TIMERS + \
+    __opt int NO_LSPBS = NO_LSPB_GPIOS + NO_LSPB_SPIS + NO_LSPB_TIMERS + \
         NO_LSPB_UARTS __sep \
     \
-    __opt EN_LSPB = (NO_LSPBS > 0) __sep \
+    __opt bit EN_LSPB = (NO_LSPBS > 0) __sep \
     \
-    __opt EN_HSP  = (NO_HSPS > 0)
+    __opt bit EN_HSP  = (NO_HSPS > 0)
 
 `define ADAM_CFG_PARAMS \
     `ADAM_CFG_PARAMS_GENERIC(parameter, `ADAM_COMMA)

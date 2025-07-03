@@ -87,6 +87,7 @@ module adam_periph_timer #(
             control          <= 0;
             prescaler        <= 0;
             value            <= 0;
+            auto_reload      <= 0;
             events           <= 0;
             interrupt_enable <= 0;
 

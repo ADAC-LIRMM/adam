@@ -333,7 +333,7 @@ def cmake(*args, **kwargs):
     ]
     exec_cmd(cmd, cmake_path, loggers['cmake'])
 
-    cmd = ['cmake', '--build', '.']
+    cmd = ['cmake', '--build', '.', '-j8']
     exec_cmd(cmd, cmake_path, loggers['cmake'])
 
 
@@ -513,7 +513,7 @@ def fpga_flow(*args, **kwargs):
         safe_rm(bitst_path)
 
     atgen(*args, **kwargs)
-    cmake(*args, **kwargs)
+    # cmake(*args, **kwargs)
     bitst(*args, **kwargs)
 
 

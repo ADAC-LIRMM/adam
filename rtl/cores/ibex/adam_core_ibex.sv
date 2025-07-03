@@ -14,12 +14,9 @@ module adam_core_ibex #(
 
     input  logic irq,
 
-    input logic debug_req,
+    input  logic debug_req,
     output logic debug_unavail
 );
-    assign debug_unavail = '1;
-    // logic  pause_inst.req;
-    // logic  pause_inst.ack;
 
     ADAM_PAUSE pause_inst ();
     ADAM_PAUSE pause_data ();
@@ -34,9 +31,6 @@ module adam_core_ibex #(
     logic  inst_we_o;
     DATA_T inst_rdata_i;
 
-    // logic  pause_data.req;
-    // logic  pause_data.ack;
-
     logic  data_req_o;
     logic  data_gnt_i;
     logic  data_rvalid_i;
@@ -46,13 +40,15 @@ module adam_core_ibex #(
     DATA_T data_wdata_o;
     logic  data_we_o;
     DATA_T data_rdata_i;
-    
+
     assign inst_rready_o = 1;
     assign inst_be_o     = 0;
     assign inst_wdata_o  = 0;
     assign inst_we_o     = 0;
 
     assign data_rready_o = 1;
+
+    assign debug_unavail = pause.req || pause.ack;
 
     ibex_top #(
         .PMPEnable        (0),
@@ -72,16 +68,15 @@ module adam_core_ibex #(
         .RndCnstLfsrSeed  (ibex_pkg::RndCnstLfsrSeedDefault),
         .RndCnstLfsrPerm  (ibex_pkg::RndCnstLfsrPermDefault),
         .DbgTriggerEn     (0),
-        .DmHaltAddr       (32'hFFFF_FFFF),
-        .DmExceptionAddr  (32'hFFFF_FFFF)
+        .DmHaltAddr       (DEBUG_ADDR_HALT),
+        .DmExceptionAddr  (DEBUG_ADDR_EXCEPTION)
     ) ibex_top (
         // Clock and reset
         .clk_i       (seq.clk),
         .rst_ni      (!seq.rst),
+
         .test_en_i   ('0),
-        // .scan_rst_ni (test),
-        .scan_rst_ni ('0),
-        // .ram_cfg_i   (10'b0),
+        .ram_cfg_i   ('0),
 
         // Configuration
         .hart_id_i   (hart_id),
@@ -93,7 +88,7 @@ module adam_core_ibex #(
         .instr_rvalid_i     (inst_rvalid_i),
         .instr_addr_o       (inst_addr_o),
         .instr_rdata_i      (inst_rdata_i),
-        .instr_rdata_intg_i (7'b0),
+        .instr_rdata_intg_i ('0),
         .instr_err_i        ('0),
 
         // Data memory interface
@@ -104,28 +99,30 @@ module adam_core_ibex #(
         .data_be_o         (data_be_o),
         .data_addr_o       (data_addr_o),
         .data_wdata_o      (data_wdata_o),
-        // .data_wdata_intg_o (),
+        .data_wdata_intg_o (),
         .data_rdata_i      (data_rdata_i),
-        .data_rdata_intg_i (7'b0),
+        .data_rdata_intg_i ('0),
         .data_err_i        ('0),
 
         // Interrupt inputs
         .irq_software_i ('0),
         .irq_timer_i    ('0),
         .irq_external_i (irq),
-        .irq_fast_i     (15'b0),
+        .irq_fast_i     ('0),
         .irq_nm_i       ('0),
 
         // Debug interface
-        .debug_req_i  ('0),
-        // .crash_dump_o (),
+        .debug_req_i  (debug_req),
+        .crash_dump_o (),
 
         // Special control signals
-        .fetch_enable_i         ('1)
-        // .alert_minor_o          (),
-        // .alert_major_internal_o (),
-        // .alert_major_bus_o      (),
-        // .core_sleep_o           ()
+        .fetch_enable_i         ('1),
+        .alert_minor_o          (),
+        .alert_major_internal_o (),
+        .alert_major_bus_o      (),
+        .core_sleep_o           (),
+
+        .scan_rst_ni ('0)
     );
 
     adam_obi_to_axil #(
@@ -145,7 +142,7 @@ module adam_core_ibex #(
         .wdata  ('0),
         .rvalid (inst_rvalid_i),
         .rready (inst_rready_o),
-        .rdata  (inst_rdata_i) 
+        .rdata  (inst_rdata_i)
     );
 
     adam_obi_to_axil #(
@@ -165,7 +162,7 @@ module adam_core_ibex #(
         .wdata  (data_wdata_o),
         .rvalid (data_rvalid_i),
         .rready (data_rready_o),
-        .rdata  (data_rdata_i) 
+        .rdata  (data_rdata_i)
     );
 
     always_comb begin

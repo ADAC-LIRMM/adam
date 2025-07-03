@@ -109,8 +109,8 @@ set_max_delay -datapath_only -from [get_pins adam/adam_debug/dmi_jtag/i_dmi_cdc/
 # set_property -dict {PACKAGE_PIN F16 IOSTANDARD LVCMOS33} [get_ports {vga_vsync}]
 
 # USB-RS232 Interface ========================================================
-set_property -dict {PACKAGE_PIN B18 IOSTANDARD LVCMOS33} [get_ports rs_rx]
-set_property -dict {PACKAGE_PIN A18 IOSTANDARD LVCMOS33} [get_ports rs_tx]
+set_property -dict {PACKAGE_PIN B18 IOSTANDARD LVCMOS33} [get_ports uart_rx]
+set_property -dict {PACKAGE_PIN A18 IOSTANDARD LVCMOS33} [get_ports uart_tx]
 
 # USB HID (PS/2) ==============================================================
 # set_property -dict {PACKAGE_PIN C17 IOSTANDARD LVCMOS33} [get_ports ps2_clk]

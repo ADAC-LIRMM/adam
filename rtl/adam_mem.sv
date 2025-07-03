@@ -4,6 +4,10 @@ module adam_mem #(
     `ADAM_CFG_PARAMS,
 
     parameter SIZE = 4096
+
+`ifndef SYNTHESIS
+    , parameter string HEXFILE = ""
+`endif
 ) (
     ADAM_SEQ.Slave seq,
 
@@ -21,6 +25,10 @@ module adam_mem #(
 
     (* ram_style = "block" *)
     reg [DATA_WIDTH-1:0] mem [ALIGNED_SIZE-1:0];
+
+`ifndef SYNTHESIS
+    initial $readmemh(HEXFILE, mem);
+`endif
 
     logic [ALIGNED_WIDTH-1:0] aligned;
 

@@ -151,7 +151,7 @@ default:
     VERILATOR:
     ADAM_CORE_CPU: adam_core_cv32e40p
     ADAM_CORE_LPCPU: adam_core_ibex
-    ADAM_ROM: adam_ram
+    ADAM_ROM: adam_mem
 
   rtl_fset:
     requires:
@@ -180,14 +180,14 @@ default:
   en_lpmem: True
   en_debug: True
 
-  lpmem_size: 1024
+  lpmem_size: 4096
 
   # Use ROM for the first memory block by setting its size to 0
   mem_size: [524288, 524288]
 
   no_lspa_gpios:  1
   no_lspa_spis:   1
-  no_lspa_timers: 1
+  no_lspa_timers: 2
   no_lspa_uarts:  1
 
   no_lspb_gpios:  0
@@ -217,7 +217,7 @@ default:
   mmap_hsp:   [0x00090000, 0x00098000, 0x00000400]
   mmap_mem:   [0x01000000, 0xFFFFFFFF, 0x01000000]
 
-  clk_period: 40 #ns
+  clk_period: 20 #ns
   rst_cycles: 5
 
   ta: 2  #ns

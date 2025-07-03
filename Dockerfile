@@ -48,6 +48,7 @@ RUN dpkg --add-architecture i386 && \
         libxinerama1 \
         libxfixes3 \
         libxcursor1 \
+        wget \
     && \
     ln -sf /usr/bin/python3 /usr/bin/python && \
     ln -sf /usr/bin/pip3 /usr/bin/pip && \
@@ -64,40 +65,22 @@ RUN git clone https://github.com/riscv/riscv-gnu-toolchain.git && \
         --enable-debug-info=yes \
         --disable-linux \
         --enable-multilib \
+        --with-abi=ilp32 \
+        --with-arch=rv32imc_zicsr \
         --with-cmodel=medlow \
     && make -j$(nproc) && \
     cd .. && rm -rf riscv-gnu-toolchain
 
-# RUN git clone https://github.com/riscv/riscv-isa-sim.git && \
-#     cd riscv-isa-sim && \
-#     git checkout 530af85d83781a3dae31a4ace84a573ec255fefa && \
-#     mkdir build/ && cd build/ && \
-#     ../configure --prefix=/opt/riscv \
-#         --enable-histogram \
-#         --with-isa=${ARCH} \
-#     && make -j$(nproc) && \
-#     make install && \
-#     cd ../.. && rm -rf riscv-isa-sim
-
-# RUN git clone https://git.qemu.org/git/qemu.git && \
-#     cd qemu && \
-#     git checkout 78385bc738108a9b5b20e639520dc60425ca2a5a && \
-#     ./configure --prefix=/opt/riscv \
-#         --target-list=riscv32-softmmu \ 
-#     && make -j$(nproc) && \
-#     make install && \
-#     cd .. && rm -rf qemu
-
-# RUN git clone https://github.com/riscv-software-src/riscv-pk.git && \
-#     cd riscv-pk && \
-#     git checkout fafaedd2825054222ce2874bf4a90164b5b071d4 && \
-#     mkdir build/ && cd build/ && \
-#     ../configure --prefix=/opt/riscv \
-#         --host=riscv32-unknown-elf \
-#         --with-arch=${ARCH} \
-#     && make -j$(nproc) && \
-#     make install && \
-#     cd ../.. && rm -rf riscv-pk
+RUN git clone https://github.com/riscv/riscv-isa-sim.git && \
+    cd riscv-isa-sim && \
+    git checkout b0d7621ff8e9520aaacd57d97d4d99a545062d14 && \
+    mkdir build/ && cd build/ && \
+    ../configure --prefix=/opt/riscv \
+        --enable-histogram \
+        --with-isa=rv32gc \
+    && make -j$(nproc) && \
+    make install && \
+    cd ../.. && rm -rf riscv-isa-sim
 
 RUN git clone https://github.com/riscv/riscv-openocd.git && \
     cd riscv-openocd && \
@@ -116,8 +99,6 @@ RUN setup.bash --no-venv
 
 WORKDIR /adam
 
-RUN chmod 777 /adam
-
 RUN cat >> /etc/bash.bashrc <<'EOF'
 if [ ! -z "$XILINX_PATH" ]; then
     VER=$(ls $XILINX_PATH/Vivado/ | sort -V | tail -n 1)
@@ -131,6 +112,11 @@ fi
 PS1="(adam) \$(pwd | sed 's|^/adam|~|') \\$ "
 
 export HOME="/adam/work"
+
+export HISTCONTROL=ignoredups
+export HISTFILE="$HOME/.bash_history"
+export HISTFILESIZE=100000
+export HISTSIZE=1000
 
 git config --global --add safe.directory '*'
 EOF

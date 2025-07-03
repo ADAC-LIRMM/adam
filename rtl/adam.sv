@@ -149,13 +149,16 @@ module adam #(
     ADAM_PAUSE   lsdom_lpmem_pause ();
     `ADAM_AXIL_I lsdom_lpmem_axil ();
 
+    logic  lsdom_lpmem_req;
+    ADDR_T lsdom_lpmem_addr;
+    logic  lsdom_lpmem_we;
+    STRB_T lsdom_lpmem_be;
+    DATA_T lsdom_lpmem_wdata;
+    DATA_T lsdom_lpmem_rdata;
+
     if (EN_LPMEM) begin
-        logic  lsdom_lpmem_req;
-        ADDR_T lsdom_lpmem_addr;
-        logic  lsdom_lpmem_we;
-        STRB_T lsdom_lpmem_be;
-        DATA_T lsdom_lpmem_wdata;
-        DATA_T lsdom_lpmem_rdata;
+        assign lsdom_lpmem_seq.clk = lsdom_seq.clk;
+        assign lsdom_lpmem_seq.rst = lsdom_seq.rst || lsdom_lpmem_rst;
 
         adam_axil_to_mem #(
             `ADAM_CFG_PARAMS_MAP
@@ -177,7 +180,10 @@ module adam #(
             `ADAM_CFG_PARAMS_MAP,
 
             .SIZE (LPMEM_SIZE)
-        ) adam_mem (
+`ifndef SYNTHESIS
+            , .HEXFILE ("/adam/lpmem.hex")
+`endif
+        ) i_adam_lpmem (
             .seq (lsdom_lpmem_seq),
 
             .req   (lsdom_lpmem_req),
@@ -382,6 +388,13 @@ module adam #(
                 `ADAM_CFG_PARAMS_MAP,
 
                 .SIZE (MEM_SIZE[i])
+
+`ifndef SYNTHESIS
+                , .HEXFILE ((i == 0) ?
+                    "/adam/mem0.hex" :
+                    "/adam/mem1.hex"
+                )
+`endif
             ) i_adam_mem (
                 .seq (hsdom_mem_seq[i]),
 

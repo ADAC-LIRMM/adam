@@ -1,9 +1,11 @@
 cmake_minimum_required(VERSION 3.15)
 
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR riscv)
 
-set(TOOLCHAIN_PREFIX "/opt/riscv/bin/riscv64-unknown-elf-"
+set(TOOLCHAIN_PREFIX "/opt/riscv/bin/riscv32-unknown-elf-"
   CACHE PATH "Prefix for RISC-V tools")
 
 set(CMAKE_C_COMPILER   "${TOOLCHAIN_PREFIX}gcc"     CACHE FILEPATH "")
@@ -19,6 +21,7 @@ set(ADAM_ROOT_DIR   ${CMAKE_SOURCE_DIR}/..
 set(ADAM_TARGET_DIR ${ADAM_ROOT_DIR}/work/${ADAM_TARGET_NAME}
   CACHE FILEPATH "")
 
+set(ADAM_LIBS_DIR    ${ADAM_ROOT_DIR}/libs)
 set(ADAM_SCRIPTS_DIR ${ADAM_ROOT_DIR}/scripts)
 set(ADAM_ATGEN_DIR   ${ADAM_TARGET_DIR}/atgen)
 set(ADAM_CODE_LOADER ${ADAM_SCRIPTS_DIR}/code_loader.py)
@@ -42,6 +45,13 @@ target_compile_options(riscv_base INTERFACE
   -fdata-sections
   -ffunction-sections
   -fstrict-volatile-bitfields
+
+  $<$<COMPILE_LANGUAGE:CXX>:
+    -fno-exceptions
+    -fno-rtti
+    -fno-threadsafe-statics
+    -fno-use-cxa-atexit
+  >
 )
 
 target_link_options(riscv_base INTERFACE
@@ -55,9 +65,13 @@ add_library(riscv_stdlib INTERFACE)
 
 target_link_libraries(riscv_stdlib INTERFACE riscv_base)
 
-target_link_options(riscv_stdlib INTERFACE
-  -lc_nano
-  -lnosys
+target_link_libraries(riscv_stdlib INTERFACE
+  stdc++
+  supc++
+  c_nano
+  m
+  gcc
+  nosys
 )
 
 # =============================================================================
@@ -105,12 +119,19 @@ function(adam_add_executable tgt)
   )
 endfunction()
 
+# =============================================================================
+
+include(${CMAKE_SOURCE_DIR}/cmake/tflm.cmake)
+
 if(ADAM_TARGET_NAME MATCHES "hawkeye")
   add_subdirectory(hawkeye)
 else()
   add_subdirectory(hal)
   add_subdirectory(bootloader)
   add_subdirectory(hello_world)
+  if(ADAM_TARGET_NAME MATCHES "nexys_video")
+    add_subdirectory(kws)
+  endif()
   if(ADAM_TARGET_NAME MATCHES "_gmsv")
     add_subdirectory(gemmini_sv)
   endif()

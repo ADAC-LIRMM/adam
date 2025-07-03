@@ -216,7 +216,7 @@ module adam_periph_uart #(
                             tx_buf <= pwdata;
                             tx_buf_empty <= 0;
                             pready <= 1;
-                            //$write("%c", pwdata);
+                            $write("%c", pwdata);
                         end
                         else begin
                             // Transmission disabled, error
