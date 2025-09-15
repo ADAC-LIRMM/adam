@@ -48,6 +48,7 @@ RUN dpkg --add-architecture i386 && \
         libxinerama1 \
         libxfixes3 \
         libxcursor1 \
+        unzip \
         wget \
     && \
     ln -sf /usr/bin/python3 /usr/bin/python && \
