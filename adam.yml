@@ -231,7 +231,7 @@ fsets:
       - ./libs/apb/include/
 
     sources:
-      - ./work/adam_nexys_video/atgen/adam_cfg_pkg.sv
+      - ./work/nexys_video/atgen/adam_cfg_pkg.sv
       - ./libs/axi/src/axi_pkg.sv
       - ./libs/axi/src/axi_intf.sv
       - ./rtl/intf/adam_intf_io.sv
@@ -255,7 +255,7 @@ fsets:
       - adam_ibex_rtl
 
     sources:
-      - work/adam_nexys_video/atgen/adam_cfg_pkg.sv
+      - work/nexys_video/atgen/adam_cfg_pkg.sv
       - bhv/adam_clk_gate.sv
       - bhv/adam_seq_bhv.sv
       - bhv/jtag/adam_jtag_mst_bhv.sv
@@ -280,7 +280,7 @@ fsets:
       - adam_ibex_rtl
 
     sources:
-      - ./work/adam_nexys_video/atgen/adam_cfg_pkg.sv
+      - ./work/nexys_video/atgen/adam_cfg_pkg.sv
       - bhv/adam_clk_gate.sv
       - rtl/adam_unwrap.sv
 

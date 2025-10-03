@@ -32,12 +32,12 @@ This command will run all tests against the default target.
 
 If you want to test for a specific target,
 you can specify the target using the ``-t`` flag.
-For example, to test for the ``adam_nexys_video`` target,
+For example, to test for the ``nexys_video`` target,
 you can use the following command:
 
 .. code-block:: bash
 
-   (adam) ~ $ adam.py -t adam_nexys_video test_flow
+   (adam) ~ $ adam.py -t nexys_video test_flow
 
 This allows you to focus your testing on a particular target, ensuring that
 tests are run in the context of that specific configuration.
