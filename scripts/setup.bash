@@ -42,7 +42,17 @@ git clean -Xdf
 # Setup submodules
 # =============================================================================
 # Clone all submodules recursively
-git submodule update --init --recursive
+git submodule update --init --recursive \
+    libs/axi \
+    libs/apb \
+    libs/common_cells \
+    libs/common_verification \
+    libs/cv32e40p \
+    libs/ibex \
+    libs/riscv-dbg \
+    libs/tech_cells_generic \
+    libs/cv32e40x \
+    libs/tflite-micro
 
 # Apply patches to submodules
 for submodule in $(git submodule status | awk '{print $2}'); do
