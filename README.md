@@ -29,3 +29,18 @@ can be found in the `docs` folder.
 ## Maintainers
 
 The ADAM project is maintained by the ADAC team at the LIRMM laboratory.
+
+## Publications
+
+If you use ADAM in your work, you can cite us:
+
+```bibtex
+@inproceedings{alencar2025adam,
+  author    = {Felipe Paiva-Alencar and Aymen Romdhane and Bruno Lovison Franco and Yann Guilhot
+               and Jonathan Miquel and Th{\'e}o Soriano and David Novo and Pascal Benoit},
+  title     = {ADAM: ADAptive Microcontroller Platform for Edge AI Systems},
+  booktitle = {36th International Workshop on Rapid System Prototyping (RSP'25)},
+  year      = {2025}
+}
+
+
